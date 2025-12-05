@@ -1,6 +1,3 @@
-/* body NÃO pode estar em CSS module.
-   Coloque isso em src/index.css ou src/App.css global: */
-
 body {
   margin: 0;
   padding: 0;
@@ -12,7 +9,6 @@ body {
   min-height: 100vh;
 }
 
-/* Agora sim: CSS module para a tela */
 
 .container {
   width: 100%;
