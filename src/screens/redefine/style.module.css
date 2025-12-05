@@ -1,14 +1,4 @@
-body {
-  margin: 0;
-  padding: 0;
-  font-family: "Montserrat", sans-serif;
-  background-color: #e9ecf0;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-}
-
+/* LAYOUT GERAL DA TELA */
 .container {
   width: 100%;
   display: flex;
@@ -16,6 +6,7 @@ body {
   align-items: center;
 }
 
+/* CABEÇALHO */
 .header {
   background-color: #005C6D;
   width: 100vw;
@@ -25,17 +16,17 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  /*z-index: 10;*/
 }
 
-.logo-top {
+.logoTop {
   width: 200px;
 }
 
+/* CARD CENTRAL */
 .card {
   background: white;
   width: 90%;
-  max-width: 500px; 
+  max-width: 500px;
   padding: 40px 50px;
   border-radius: 40px;
   box-shadow: 0 0 20px rgba(0,0,0,0.1);
@@ -46,12 +37,13 @@ body {
 }
 
 .title {
-  font-size: 28px; 
+  font-size: 28px;
   color: #005C6D;
-  margin-bottom: 30px;
+  margin-bottom: 20px;
   font-weight: bold;
 }
 
+/* CAMPO INPUT */
 .label {
   display: block;
   text-align: left;
@@ -63,14 +55,13 @@ body {
   margin-bottom: 8px;
 }
 
-.input-area {
+.inputArea {
   display: flex;
   align-items: center;
   background: white;
   border: 2px solid #c7c7c7;
   border-radius: 25px;
   padding: 12px 20px;
-  margin-top: 5px;
   width: 100%;
   box-sizing: border-box;
 }
@@ -87,21 +78,16 @@ body {
   outline: none;
   font-size: 16px;
   background: transparent;
+  color: black;
 }
 
 .input::placeholder {
   color: #999;
 }
 
-.toggle {
-  cursor: pointer;
-  font-size: 18px;
-  color: #666;
-  margin-left: 10px;
-}
-
+/* BOTÃO */
 .button {
-  width: 100%; 
+  width: 100%;
   background-color: #005C6D;
   color: white;
   border: none;
@@ -115,30 +101,15 @@ body {
 }
 
 .button:hover {
-  background-color: #005C6D;
+  background-color: #004d5a;
 }
 
-.first-access {
-  font-size: 14px;
-  margin-top: 20px;
-  color: #666;
-}
-
-.first-access a {
-  color: #005C6D;
-  font-weight: bold;
-  text-decoration: none;
-}
-
-.first-access a:hover {
-  text-decoration: underline;
-}
-
+/* LOGO INFERIOR */
 .footer {
   margin-top: 40px;
   text-align: center;
 }
 
-.logo-bottom {
+.logoBottom {
   width: 300px;
 }

@@ -1,35 +1,37 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 
-function App() {
-  const [count, setCount] = useState(0)
+import LoginScreen from "./screens/login/LoginScreen";
+import StudentsListScreen from "./screens/students/StudentsListScreen";
+import FirstAccessScreen from "./screens/access/FirstAccessScreen";
+import RegisterStudentScreen from "./screens/register/RegisterStudentScreen";
+import RedefinePasswordScreen from "./screens/redefine/RedefinePasswordScreen";
+import SecurityCodeScreen from "./screens/code/SecurityCodeScreen";
+import NewPasswordScreen from "./screens/password/NewPasswordScreen";
 
+
+export default function App() {
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <BrowserRouter>
+      <Routes>
+
+        {/* ROTA PADRÃO */}
+        <Route path="/" element={<LoginScreen />} />
+
+        <Route path="/login" element={<LoginScreen />} />
+        <Route path="/students" element={<StudentsListScreen />} />
+        <Route path="/access" element={<FirstAccessScreen />} />
+        <Route path="/register" element={<RegisterStudentScreen />} />
+        <Route path="/redefine" element={<RedefinePasswordScreen />} />
+        <Route path="/code" element={<SecurityCodeScreen />} />
+        <Route path="/password" element={<NewPasswordScreen />} />
+
+
+
+        
+
+
+      </Routes>
+    </BrowserRouter>
+  );
 }
 
-export default App

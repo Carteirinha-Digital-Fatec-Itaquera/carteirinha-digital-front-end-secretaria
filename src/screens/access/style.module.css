@@ -1,3 +1,6 @@
+/* body NÃO pode estar em CSS module.
+   Coloque isso em src/index.css ou src/App.css global: */
+
 body {
   margin: 0;
   padding: 0;
@@ -8,6 +11,8 @@ body {
   align-items: center;
   min-height: 100vh;
 }
+
+/* Agora sim: CSS module para a tela */
 
 .container {
   width: 100%;
@@ -25,10 +30,9 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  /*z-index: 10;*/
 }
 
-.logo-top {
+.logoTop {
   width: 200px;
 }
 
@@ -63,7 +67,7 @@ body {
   margin-bottom: 8px;
 }
 
-.input-area {
+.inputArea {
   display: flex;
   align-items: center;
   background: white;
@@ -100,6 +104,24 @@ body {
   margin-left: 10px;
 }
 
+.forgotPassword {
+  font-size: 14px;
+  margin-top: 15px;
+  color: #444; /* texto em preto escuro */
+  text-align: right;
+  width: 100%;
+}
+
+.forgotPassword a {
+  color: #005C6D; /* azul igual do botão */
+  font-weight: bold;
+  text-decoration: none;
+}
+
+.forgotPassword a:hover {
+  text-decoration: underline;
+}
+
 .button {
   width: 100%; 
   background-color: #005C6D;
@@ -115,22 +137,22 @@ body {
 }
 
 .button:hover {
-  background-color: #005C6D;
+  background-color: #004d5a;
 }
 
-.first-access {
+.firstAccess {
   font-size: 14px;
   margin-top: 20px;
   color: #666;
 }
 
-.first-access a {
+.firstAccess a {
   color: #005C6D;
   font-weight: bold;
   text-decoration: none;
 }
 
-.first-access a:hover {
+.firstAccess a:hover {
   text-decoration: underline;
 }
 
@@ -139,6 +161,6 @@ body {
   text-align: center;
 }
 
-.logo-bottom {
+.logoBottom {
   width: 300px;
 }
