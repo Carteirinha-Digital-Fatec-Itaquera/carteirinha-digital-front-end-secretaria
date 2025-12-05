@@ -11,7 +11,7 @@ function RegisterStudentScreen() {
   }
 
   function handleRegister() {
-    // Futuramente você colocará lógica de cadastro aqui
+   
     navigate("/students");
   }
 
