@@ -1,18 +1,19 @@
 import axios, { type AxiosInstance } from 'axios';
 
 export interface Student {
-  ra: string;
-  name: string;
-  email?: string;
-  cpf?: string;
-  course: string;
-  period: number;
-  status: string;
-  birthdDate?: Date;
-  admission?: Date;
-  dueDate: Date,
-  photo?: string;
-  qrcode?: string;
+  ra: string
+  name: string
+  email?: string
+  cpf?: string
+  rg?: string
+  course: string
+  period: number
+  status: string
+  birthdDate?: Date
+  admission?: string
+  dueDate: Date
+  photo?: string
+  qrcode?: string
 }
 
 const api: AxiosInstance = axios.create({
@@ -43,7 +44,7 @@ export const StudentApi = {
     return response.data;
   },
 
-  create: async (studentData: Omit<Student, 'ra'>): Promise<Student> => {
+  create: async (studentData: Partial<Student>): Promise<Student> => {
     const response = await api.post('/estudantes', studentData);
     return response.data;
   },
