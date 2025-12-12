@@ -3,13 +3,13 @@ import axios, { type AxiosInstance } from 'axios';
 export interface Student {
   ra: string;
   name: string;
-  email?: string;
-  cpf?: string;
+  email: string;
+  cpf: string;
   course: string;
   period: number;
   status: string;
-  birthdDate?: Date;
-  admission?: Date;
+  birthdDate: Date;
+  admission: Date;
   dueDate: Date,
   photo?: string;
   qrcode?: string;

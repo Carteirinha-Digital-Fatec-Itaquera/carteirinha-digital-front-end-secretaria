@@ -1,23 +1,31 @@
 import { useState, useEffect } from 'react';
+
 import { useNavigate } from "react-router-dom";
-import styles from "./style.module.css";
+
 import logoFatec from "/fatec_ra_metropolitana_sp_capital_itaquera_cor.png";
 import logosGov from "/logos_cps_governo_com_slogan_horizontal_cor.png";
+
+import { SearchBarComp } from '../../components/searchbar/SearchBarComp';
+import { TitleComp } from '../../components/title/TitleComp';
+import { ButtonComp } from '../../components/button/ButtonComp';
+
 import { StudentApi, type Student } from '../../services/StudentApi';
 
-function StudentsListScreen() {
+import styles from "./style.module.css";
+
+export default function StudentsListScreen() {
   const navigate = useNavigate();
 
-  const [estudantes, setEstudantes] = useState<Student[]>([]);
+  const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
   const [error] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
-    const fetchEstudantes = async () => {
+    const fetchStudents = async () => {
       try {
         const data = await StudentApi.getAll();
-        setEstudantes(data);
+        setStudents(data);
       } catch (error) {
         console.error('Erro ao buscar estudantes: ', error);
       } finally {
@@ -25,28 +33,8 @@ function StudentsListScreen() {
       }
     };
 
-    fetchEstudantes();
+    fetchStudents();
   }, []);
-
-  const filteredEstudantes = estudantes.filter(estudante => {
-    const term = searchTerm.toLocaleLowerCase();
-    return (
-      estudante.name?.toLowerCase().includes(term) ||
-      estudante.email?.toLowerCase().includes(term) ||
-      estudante.cpf?.includes(term) ||
-      estudante.ra?.toString().includes(term)
-    );
-  });
-
-  function handleLogout() {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    navigate("/login");
-  }
-
-  function handleRegister() {
-    navigate("/register");
-  }
 
   if (loading) {
     return (
@@ -64,7 +52,7 @@ function StudentsListScreen() {
       <div className={styles.container}>
         <div className={styles.errorContainer}>
           <p className={styles.errorText}>{error}</p>
-          <button 
+          <button
             className={styles.retryButton}
             onClick={() => window.location.reload()}
           >
@@ -77,53 +65,36 @@ function StudentsListScreen() {
 
   return (
     <div className={styles.container}>
-      {/* HEADER */}
       <header className={styles.header}>
         <img src={logoFatec} className={styles.logoLeft} alt="Logo Fatec" />
-
-        <h1 className={styles.title}>Listagem de alunos</h1>
-
         <img src={logosGov} className={styles.logoRight} alt="Logos Governo" />
       </header>
 
-      {/* SEARCH AREA */}
-      <div className={styles.searchArea}>
-        <label className={styles.searchLabel}>Pesquisar aluno</label>
+      <TitleComp text='Listagem de alunos' />
 
-        <div className={styles.searchBox}>
-          <input
-            type="text"
-            placeholder="Ex: nome, email ou CPF"
-            className={styles.searchInput}
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-          <span className={styles.searchIcon}>🔍</span>
-        </div>
-        {searchTerm && (
-          <div className={styles.searchInfo}>
-            {filteredEstudantes.length} aluno(s) encontado(s)
-          </div>
-        )}
-      </div>
+      <SearchBarComp
+        label='Pequisar por alunos'
+        placeholder='Ex: nome, email, CPF, RG ou RA'
+        searchTerm={searchTerm}
+        setSearchTerm={setSearchTerm}
+      />
 
-      {/* STUDENTS LIST */}
       <div className={styles.list}>
         <div className={styles.listHeader}>
           <h2>
-            Lista de Estudantes
+            Lista de Students
           </h2>
           <span className={styles.totalCount}>
-            Total: {estudantes.length} aluno(s)
+            Total: {students.length} aluno(s)
           </span>
         </div>
 
-        {filteredEstudantes.length === 0 ? (
+        {students.length === 0 ? (
           <div className={styles.emptyState}>
             {searchTerm ? (
               <>
                 <p>Nenhum estudante encontrado para "{searchTerm}"</p>
-                <button 
+                <button
                   className={styles.clearSearch}
                   onClick={() => setSearchTerm("")}
                 >
@@ -135,56 +106,69 @@ function StudentsListScreen() {
             )}
           </div>
         ) : (
-        <div className={styles.tableContainer}>
-          <table className={styles.studentsTable}>
-            <thead>
-              <tr>
-                <th>RA</th>
-                <th>Nome</th>
-                <th>Curso</th>
-                <th>Período</th>
-                <th>Situação</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredEstudantes.map(estudante => (
-                <tr key={estudante.ra}>
-                  <td>{estudante.ra}</td>
-                  <td>{estudante.name}</td>
-                  <td>{estudante.course}</td>
-                  <td>{estudante.period}</td>
-                  <td>
-                    <span className={`${styles.status} ${styles[estudante.status]}`}>
-                      {estudante.status}
-                    </span>
-                  </td>
-                  <td>
-                    <button
-                      className={styles.viewButton}
-                      onClick={() => navigate(`/estudante.ra`)}>
-                        Ver detalhes
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+          <div className={styles.tableContainer}>
+            <table className={styles.studentsTable}>
+                <thead>
+                  <tr>
+                    <th>RA</th>
+                    <th>Nome</th>
+                    <th>Email</th>
+                    <th>CPF</th>
+                    <th>Curso</th>
+                    <th>Período</th>
+                    <th>Data de Nascimento</th>
+                    <th>Admissão</th>
+                    <th>Vencimento</th>
+                    <th>Situação</th>
+                  </tr>
+                </thead>
+              <tbody>
+                  {students.map(student => (
+                    <StudentCardComp student={student} />
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
-
-      {/* FOOTER BUTTONS */}
       <footer className={styles.footer}>
-        <button className={styles.logout} onClick={handleLogout}>
-          Deslogar
-        </button>
+        <ButtonComp
+          text='Deslogar'
+          onClick={() => { navigate("/login") }}
+        />
 
-        <button className={styles.register} onClick={handleRegister}>
-          Registrar aluno
-        </button>
+        <ButtonComp
+          text='Registrar aluno'
+          onClick={() => { navigate("/register") }}
+        />
       </footer>
     </div>
   );
 }
 
-export default StudentsListScreen;
+type StudentCardProps = {
+  student: Student;
+}
+
+const StudentCardComp = ({ student }: StudentCardProps) => {
+  return (
+    <tr key={student.ra}>
+      <td>{student.ra}</td>
+      <td>{student.name}</td>
+      <td>{student.email}</td>
+      <td>{student.cpf}</td>
+      <td>{student.course}</td>
+      <td>{student.period}</td>
+      <td>{student.birthdDate.toLocaleDateString()}</td>
+      <td>{student.admission.toLocaleDateString()}</td>
+      <td>{student.dueDate.toLocaleDateString()}</td>
+      <td>
+        <span className={`${styles.status} ${styles[student.status]}`}>
+          {student.status}
+        </span>
+      </td>
+    </tr>
+  );
+};
+
+

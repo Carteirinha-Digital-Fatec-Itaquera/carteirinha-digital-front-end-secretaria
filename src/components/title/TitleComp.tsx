@@ -7,7 +7,7 @@ type TitleProps = {
 export function TitleComp({ text }: TitleProps) {
   return (
     <div className={styles.container}>
-      <h2 className={styles.title}>{text}</h2>
+      <h1 className={styles.title}>{text}</h1>
       <div className={styles.line}></div>
     </div>
   )

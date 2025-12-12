@@ -6,9 +6,11 @@ import { FaEye, FaEyeSlash, FaLock } from "react-icons/fa";
 
 type InputPasswordProps = {
   label: string,
+  value: string,
+  onChangeText: (value: string) => void,
 }
 
-export function InputPasswordComp({ label }: InputPasswordProps) {
+export function InputPasswordComp({ label, value, onChangeText }: InputPasswordProps) {
   const [showPassword, setShowPassword] = useState(false);
 
   return (
@@ -22,6 +24,8 @@ export function InputPasswordComp({ label }: InputPasswordProps) {
         <input
           type={showPassword ? "text" : "password"}
           className={styles.input}
+          value={value}
+          onChange={(e) => onChangeText(e.target.value)}
         />
 
         <span

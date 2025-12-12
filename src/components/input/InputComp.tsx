@@ -6,10 +6,19 @@ type InputProps = {
   label: string,
   type?: string,
   placeholder: string,
-  icon?: ReactNode
+  icon?: ReactNode,
+  value: string,
+  onChangeText: (value: string) => void,
 }
 
-export function InputComp({ label, type = "text", placeholder, icon = null }: InputProps) {
+export function InputComp({
+  label,
+  type = "text",
+  placeholder,
+  icon = null,
+  value,
+  onChangeText
+}: InputProps) {
   return (
     <>
       <label className={styles.label}>{label}</label>
@@ -21,9 +30,11 @@ export function InputComp({ label, type = "text", placeholder, icon = null }: In
         }
         <input
           type={type}
+          value={value}
+          onChange={(e) => onChangeText(e.target.value)}
           placeholder={placeholder}
-            className={styles.input}
-          />
+          className={styles.input}
+        />
       </div>
     </>
   )

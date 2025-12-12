@@ -11,9 +11,13 @@ import { HeaderComp } from "../../components/header/HeaderComp";
 import { TextWithActionComp } from "../../components/textwithaction/TextWithAction";
 
 import styles from "./style.module.css";
+import { useState } from "react";
 
 export default function LoginScreen() {
   const navigate = useNavigate();
+
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
 
   return (
     <div className={styles.container}>
@@ -29,12 +33,16 @@ export default function LoginScreen() {
           <InputComp
             label="E-mail"
             type="email"
-            placeholder="Ex: fulano@dominio.com"
+            placeholder="Ex: joao@dominio.com"
             icon={<FaUser />}
+            value={email}
+            onChangeText={setEmail}
           />
 
           <InputPasswordComp
             label="Senha"
+            value={password}
+            onChangeText={setPassword}
           />
 
           <ButtonComp

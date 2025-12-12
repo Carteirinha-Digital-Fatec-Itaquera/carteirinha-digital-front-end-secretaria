@@ -2,60 +2,139 @@ import { useNavigate } from "react-router-dom";
 import styles from "./style.module.css";
 import logoFatec from "/fatec_ra_metropolitana_sp_capital_itaquera_cor.png";
 import logosGov from "/logos_cps_governo_com_slogan_horizontal_cor.png";
+import { useState } from "react";
+import { InputComp } from "../../components/input/InputComp";
+import { FaArrowLeft, FaBirthdayCake, FaBook, FaCalendar, FaCalendarCheck, FaClock, FaEnvelope, FaFlag, FaIdCard, FaUser } from "react-icons/fa";
+import { ButtonComp } from "../../components/button/ButtonComp";
+import { TitleComp } from "../../components/title/TitleComp";
 
-function RegisterStudentScreen() {
+export default function RegisterStudentScreen() {
   const navigate = useNavigate();
 
-  function handleBack() {
-    navigate("/students");
-  }
-
-  function handleRegister() {
-   
-    navigate("/students");
-  }
+  const [ra, setRa] = useState("");
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [cpf, setCpf] = useState("");
+  const [course, setCourse] = useState("");
+  const [period, setPeriod] = useState("");
+  const [birthDate, setBirthDate] = useState("");
+  const [admission, setAdmission] = useState("");
+  const [dueDate, setDueDate] = useState("");
+  const [status, setStatus] = useState("");
 
   return (
     <div className={styles.container}>
-      {/* HEADER */}
+
       <header className={styles.header}>
         <img src={logoFatec} alt="Logo Fatec" className={styles.logoLeft} />
-
-        <h1 className={styles.title}>Registro de aluno</h1>
-
         <img src={logosGov} alt="Logos Governo" className={styles.logoRight} />
       </header>
 
-      {/* BACK BUTTON */}
-      <button className={styles.backButton} onClick={handleBack}>❮</button>
+      <TitleComp text="Registro de aluno" />
 
-      {/* FORM */}
+      <button
+        className={styles.backButton}
+        onClick={() => navigate("/students")}>
+        <FaArrowLeft />
+      </button>
+
       <form className={styles.form}>
-        <label>RA</label>
-        <input type="text" placeholder="Ex: 00000000000000" />
+        <InputComp
+          label="RA"
+          type="text"
+          placeholder="Ex: 123456"
+          icon={<FaIdCard />}
+          value={ra}
+          onChangeText={setRa}
+        />
 
-        <label>Situação</label>
-        <input type="text" placeholder="Ex: Em curso" />
+        <InputComp
+          label="Nome"
+          type="text"
+          placeholder="Ex: João Moreira"
+          icon={<FaUser />}
+          value={name}
+          onChangeText={setName}
+        />
 
-        <label>Nome</label>
-        <input type="text" placeholder="Ex: Fulano da Silva" />
+        <InputComp
+          label="Email"
+          type="email"
+          placeholder="Ex: joao@dominio.com"
+          icon={<FaEnvelope />}
+          value={email}
+          onChangeText={setEmail}
+        />
 
-        <label>Ingresso</label>
-        <input type="text" placeholder="Ex: 20252" />
+        <InputComp
+          label="CPF"
+          type="text"
+          placeholder="Ex: 123.456.789-00"
+          icon={<FaIdCard />}
+          value={cpf}
+          onChangeText={setCpf}
+        />
 
-        <label>E-mail</label>
-        <input type="email" placeholder="Ex: fulano.silva@fatec.sp.gov.br" />
+        <InputComp
+          label="Curso"
+          type="text"
+          placeholder="Ex: Desenvolvimento de Software"
+          icon={<FaBook />}
+          value={course}
+          onChangeText={setCourse}
+        />
 
-        <label>CPF</label>
-        <input type="text" placeholder="Ex: 000.000.000-00" />
+        <InputComp
+          label="Período"
+          type="number"
+          placeholder="Ex: 5"
+          icon={<FaCalendar />}
+          value={period}
+          onChangeText={setPeriod}
+        />
+
+        <InputComp
+          label="Data de Nascimento"
+          type="date"
+          placeholder=""
+          icon={<FaBirthdayCake />}
+          value={birthDate}
+          onChangeText={setBirthDate}
+        />
+
+        <InputComp
+          label="Admissão"
+          type="date"
+          placeholder=""
+          icon={<FaCalendarCheck />}
+          value={admission}
+          onChangeText={setAdmission}
+        />
+
+        <InputComp
+          label="Vencimento"
+          type="date"
+          placeholder=""
+          icon={<FaClock />}
+          value={dueDate}
+          onChangeText={setDueDate}
+        />
+
+        <InputComp
+          label="Situação"
+          type="text"
+          placeholder="Ex: ativo, inativo, trancado"
+          icon={<FaFlag />}
+          value={status}
+          onChangeText={setStatus}
+        />
+
       </form>
 
-      {/* REGISTER BUTTON */}
-      <button className={styles.registerButton} onClick={handleRegister}>
-        Registrar
-      </button>
+      <ButtonComp
+        text="Registrar"
+        onClick={() => {}}
+      />
     </div>
   );
 }
-
-export default RegisterStudentScreen;

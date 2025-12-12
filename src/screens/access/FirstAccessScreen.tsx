@@ -1,96 +1,82 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+
+import { FaUser } from "react-icons/fa";
+
+import { InputComp } from "../../components/input/InputComp";
+import { InputPasswordComp } from "../../components/inputpassword/InputPasswordComp";
+import { ButtonComp } from "../../components/button/ButtonComp";
+import { TitleComp } from "../../components/title/TitleComp";
+import { FooterComp } from "../../components/footer/FooterComp";
+import { HeaderComp } from "../../components/header/HeaderComp";
+import { TextWithActionComp } from "../../components/textwithaction/TextWithAction";
+
 import styles from "./style.module.css";
 
 export default function FirstAccessScreen() {
-  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
 
-  function handleForgotPassword() {
-    navigate("/redefine"); // tela de redefinir senha
-  }
-
-  function handleRegister() {
-    navigate("/login"); // volta pra login após cadastro
-  }
-
-  function handleGoToLogin() {
-    navigate("/login");
-  }
+  const [name, setName] = useState("")
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [passwordConfirm, setPasswordConfirm] = useState("")
 
   return (
     <div className={styles.container}>
-      {/* TOPO */}
-      <header className={styles.header}>
-        <img
-          src="/fatec_ra_metropolitana_sp_capital_itaquera_br.png"
-          alt="Logo Fatec"
-          className={styles.logoTop}
-        />
-      </header>
 
-      {/* CARD CENTRAL */}
+      <HeaderComp />
+
       <div className={styles.card}>
-        <h2 className={styles.title}>Primeiro acesso</h2>
 
-        {/* EMAIL */}
-        <label className={styles.label}>E-mail</label>
-        <div className={styles.inputArea}>
-          <span className={styles.icon}>👤</span>
-          <input
+        <div className={styles.cardContent}>
+
+          <TitleComp text="Cadastro secretaria" />
+
+          <InputComp
+            label="Nome"
+            placeholder="Ex: João da Silva"
+            icon={<FaUser />}
+            value={name}
+            onChangeText={setName}
+          />
+
+          <InputComp
+            label="E-mail"
             type="email"
-            placeholder="Ex: fulano@dominio.com"
-            className={styles.input}
-          />
-        </div>
-
-        {/* SENHA */}
-        <label className={styles.label}>Senha</label>
-        <div className={styles.inputArea}>
-          <span className={styles.icon}>🔒</span>
-
-          <input
-            type={showPassword ? "text" : "password"}
-            className={styles.input}
+            placeholder="Ex: joao@dominio.com"
+            icon={<FaUser />}
+            value={email}
+            onChangeText={setEmail}
           />
 
-          <span
-            className={styles.toggle}
-            onClick={() => setShowPassword(!showPassword)}
-          >
-            {showPassword ? "🙈" : "👁️"}
-          </span>
+          <InputPasswordComp
+            label="Senha"
+            value={password}
+            onChangeText={setPassword}
+          />
+
+          <InputPasswordComp
+            label="Repita a senha"
+            value={passwordConfirm}
+            onChangeText={setPasswordConfirm}
+          />
+
+          <ButtonComp
+            text="Cadastrar"
+            onClick={() => navigate("/login")}
+          />
+
+          <TextWithActionComp
+            text="Já possui uma conta?"
+            textClickable="Clique aqui"
+            onAction={() => {
+              navigate("/login");
+            }}
+          />
+
         </div>
-
-        {/* Esqueceu a senha */}
-        <p className={styles.forgotPassword}>
-          <a onClick={handleForgotPassword} style={{ cursor: "pointer" }}>
-            Esqueceu sua senha?
-          </a>
-        </p>
-
-        {/* BOTÃO */}
-        <button className={styles.button} onClick={handleRegister}>
-          Cadastrar
-        </button>
-
-        {/* Já possui conta */}
-        <p className={styles.firstAccess}>
-          Já possui conta?{" "}
-          <a onClick={handleGoToLogin} style={{ cursor: "pointer" }}>
-            Entrar
-          </a>
-        </p>
+        <FooterComp />
       </div>
-
-      {/* LOGOS INFERIORES */}
-      <footer className={styles.footer}>
-        <img
-          src="/logos_cps_governo_com_slogan_horizontal_cor.png"
-          alt="Logos Governo"
-          className={styles.logoBottom}
-        />
-      </footer>
     </div>
   );
 }
