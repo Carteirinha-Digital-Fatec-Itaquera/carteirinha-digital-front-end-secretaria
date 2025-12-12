@@ -1,16 +1,14 @@
-/* RESET PADRÃO DO PROJETO */
-
 html, body, #root {
   height: 100%;
   width: 100%;
   margin: 0;
   padding: 0;
-  background: #f6f2f4 !important; /* fundo igual ao do seu app */
-  font-family: "Montserrat", sans-serif;
+  background: #f6f2f4 !important; 
+  font-family: "Montserrat";
 }
 
-/* remove qualquer herança escura do Vite */
 :root {
-  color: black;
-  background: #f6f2f4;
+  --primaryColor: #005C6D; 
+  --secondaryColor: #f6f2f4;
+  --labelColor: #000;
 }

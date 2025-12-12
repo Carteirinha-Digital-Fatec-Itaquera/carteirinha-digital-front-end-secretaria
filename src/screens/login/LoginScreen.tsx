@@ -1,85 +1,58 @@
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+
+import { FaUser } from "react-icons/fa";
+
+import { InputComp } from "../../components/input/InputComp";
+import { InputPasswordComp } from "../../components/inputpassword/InputPasswordComp";
+import { ButtonComp } from "../../components/button/ButtonComp";
+import { TitleComp } from "../../components/title/TitleComp";
+import { FooterComp } from "../../components/footer/FooterComp";
+import { HeaderComp } from "../../components/header/HeaderComp";
+import { TextWithActionComp } from "../../components/textwithaction/TextWithAction";
+
 import styles from "./style.module.css";
 
 export default function LoginScreen() {
-  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
 
   return (
     <div className={styles.container}>
-      {/* TOPO */}
-      <header className={styles.header}>
-        <img
-          src="/fatec_ra_metropolitana_sp_capital_itaquera_br.png"
-          alt="Logo Fatec"
-          className={styles.logoTop}
-        />
-      </header>
+      
+      <HeaderComp />
 
-      {/* CARD CENTRAL */}
       <div className={styles.card}>
-        <h2 className={styles.title}>Login secretaria</h2>
 
-        {/* EMAIL */}
-        <label className={styles.label}>E-mail</label>
-        <div className={styles.inputArea}>
-          <span className={styles.icon}>👤</span>
-          <input
+        <div className={styles.cardContent}>
+
+          <TitleComp text="Login secretaria" />
+
+          <InputComp
+            label="E-mail"
             type="email"
             placeholder="Ex: fulano@dominio.com"
-            className={styles.input}
-          />
-        </div>
-
-        {/* SENHA */}
-        <label className={styles.label}>Senha</label>
-        <div className={styles.inputArea}>
-          <span className={styles.icon}>🔒</span>
-
-          <input
-            type={showPassword ? "text" : "password"}
-            className={styles.input}
+            icon={<FaUser />}
           />
 
-          <span
-            className={styles.toggle}
-            onClick={() => setShowPassword(!showPassword)}
-          >
-            {showPassword ? "🙈" : "👁️"}
-          </span>
-        </div>
+          <InputPasswordComp
+            label="Senha"
+          />
 
-        {/* BOTÃO */}
-        <button
-          className={styles.button}
-          onClick={() => navigate("/students")}
-        >
-          Entrar
-        </button>
+          <ButtonComp
+            text="Entrar"
+            onClick={() => navigate("/students")}
+          />
 
-        <p className={styles.firstAccess}>
-          Este é o seu primeiro acesso?{" "}
-          <a
-            href="#"
-            onClick={(e) => {
-              e.preventDefault();
+          <TextWithActionComp
+            text="Este é o seu primeiro acesso?"
+            textClickable="Clique aqui"
+            onAction={() => {
               navigate("/access");
             }}
-          >
-            Clique aqui
-          </a>
-        </p>
-      </div>
+          />
 
-      {/* LOGOS INFERIORES */}
-      <footer className={styles.footer}>
-        <img
-          src="/logos_cps_governo_com_slogan_horizontal_cor.png"
-          alt="Logos Governo"
-          className={styles.logoBottom}
-        />
-      </footer>
+        </div>
+        <FooterComp />
+      </div>
     </div>
   );
 }

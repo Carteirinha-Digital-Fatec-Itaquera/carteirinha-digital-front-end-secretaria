@@ -5,7 +5,7 @@ export default function RedefinePasswordScreen() {
   const navigate = useNavigate();
 
   function handleSendEmail() {
-    navigate("/code"); // Vai para a tela de código de segurança
+    navigate("/code");
   }
 
   return (

@@ -1,0 +1,10 @@
+.header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.logoTop {
+  margin: 20px;
+  width: 200px;
+}

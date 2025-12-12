@@ -1,0 +1,17 @@
+.container {
+  font-size: 14px;
+  margin: 20px;
+  color: #666;
+}
+
+.container a {
+  color: var(--primaryColor);
+  font-weight: bold;
+  text-decoration: none;
+}
+
+.container a:hover {
+  text-decoration: underline;
+}
+
+
