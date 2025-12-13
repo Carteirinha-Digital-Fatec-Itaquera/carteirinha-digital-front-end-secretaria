@@ -1,0 +1,47 @@
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+
+.modalContent {
+  background: #fff;
+  padding: 24px;
+  border-radius: 8px;
+  min-width: 300px;
+  max-width: 90%;
+  text-align: center;
+}
+
+.errorText {
+  color: #B00020;
+  font-weight: bold;
+  margin: 12px 0;
+}
+
+.fieldText {
+  color: #444;
+  text-align: left;
+  margin-left: 8px;
+}
+
+.closeButton {
+  margin-top: 16px;
+  padding: 8px 16px;
+  background: #B00020;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.closeButton:hover {
+  opacity: 0.9;
+}

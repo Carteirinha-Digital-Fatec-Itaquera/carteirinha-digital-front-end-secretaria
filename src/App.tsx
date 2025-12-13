@@ -2,11 +2,11 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 import LoginScreen from "./screens/login/LoginScreen";
 import FirstAccessScreen from "./screens/access/FirstAccessScreen";
-import RegisterStudentScreen from "./screens/register/RegisterStudentScreen";
+import RegisterStudentScreen from "./screens/student/register/RegisterStudentScreen";
 import RedefinePasswordScreen from "./screens/redefine/RedefinePasswordScreen";
 import SecurityCodeScreen from "./screens/code/SecurityCodeScreen";
 import NewPasswordScreen from "./screens/password/NewPasswordScreen";
-import StudentsListScreen from "./screens/students/StudentsListScreen";
+import StudentsListScreen from "./screens/student/list/ListStudentScreen";
 
 
 export default function App() {
