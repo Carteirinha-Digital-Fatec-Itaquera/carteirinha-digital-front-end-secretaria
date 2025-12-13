@@ -77,8 +77,8 @@ export default function StudentsListScreen() {
       <TitleComp text='Listagem de alunos' />
 
       <SearchBarComp
-        label='Pequisar por alunos'
-        placeholder='Ex: nome, email, CPF, RG ou RA'
+        label='Pesquisar por alunos'
+        placeholder='Ex: nome, CPF, RG, e-mail, curso, periodo, status ou RA'
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
       />
@@ -94,36 +94,20 @@ export default function StudentsListScreen() {
         {students.length === 0 ? (
           <div className={styles.emptyState}>
             {searchTerm ? (
-              <>
-                <p>Nenhum estudante encontrado para "{searchTerm}"</p>
-              </>
+              <p>Nenhum estudante encontrado para "{searchTerm}"</p>
             ) : (
               <p>Nenhum estudante cadastrado.</p>
             )}
           </div>
         ) : (
-          <div className={styles.tableContainer}>
-            <table className={styles.studentsTable}>
-              <thead>
-                <tr>
-                  <th>RA</th>
-                  <th>Nome</th>
-                  <th>Email</th>
-                  <th>CPF</th>
-                  <th>Curso</th>
-                  <th>Período</th>
-                  <th>Data de Nascimento</th>
-                  <th>Admissão</th>
-                  <th>Vencimento</th>
-                  <th>Situação</th>
-                </tr>
-              </thead>
-              <tbody>
-                {students.map(student => (
-                  <StudentCardComp student={student} />
-                ))}
-              </tbody>
-            </table>
+          <div className={styles.cardsContainer}>
+            {students.map(student => (
+              <StudentCardComp
+                key={student.id}
+                student={student}
+                onAction={() => { navigate(`/update/${student.id}`) }}
+              />
+            ))}
           </div>
         )}
       </div>
@@ -131,7 +115,10 @@ export default function StudentsListScreen() {
       <footer className={styles.footer}>
         <ButtonComp
           text='Deslogar'
-          onClick={() => { navigate("/login") }}
+          onClick={() => {
+            sessionStorage.removeItem('token')
+            navigate("/login")
+          }}
         />
 
         <ButtonComp
@@ -145,28 +132,37 @@ export default function StudentsListScreen() {
 
 type StudentCardProps = {
   student: Student;
-}
+  onAction: () => void
+};
 
-const StudentCardComp = ({ student }: StudentCardProps) => {
+const StudentCardComp = ({ student, onAction }: StudentCardProps) => {
   return (
-    <tr key={student.ra}>
-      <td>{student.ra}</td>
-      <td>{student.name}</td>
-      <td>{student.email}</td>
-      <td>{student.rg}</td>
-      <td>{student.cpf}</td>
-      <td>{student.course}</td>
-      <td>{student.period}</td>
-      <td>{student.admission}</td>
-      <td>{student.birthDate}</td>
-      <td>{student.dueDate}</td>
-      <td>
+    <div className={styles.studentCard}>
+      <div className={styles.cardHeader}>
+        <span className={styles.ra}>RA: {student.ra}</span>
         <span className={`${styles.status} ${styles[student.status]}`}>
           {student.status}
         </span>
-      </td>
-    </tr>
+      </div>
+
+      <div className={styles.cardBody}>
+        <p><strong>Nome:</strong> {student.name}</p>
+        <p><strong>Email:</strong> {student.email}</p>
+        <p><strong>CPF:</strong> {student.cpf}</p>
+        <p><strong>RG:</strong> {student.rg}</p>
+        <p><strong>Curso:</strong> {student.course}</p>
+        <p><strong>Período:</strong> {student.period}</p>
+        <p><strong>Data de nascimento:</strong> {student.birthDate}</p>
+        <p><strong>Admissão:</strong> {student.admission}</p>
+        <p><strong>Vencimento:</strong> {student.dueDate}</p>
+      </div>
+
+      <div className={styles.container_button}>
+        <ButtonComp
+          text='Editar informações'
+          onClick={onAction}
+        />
+      </div>
+    </div>
   );
 };
-
-

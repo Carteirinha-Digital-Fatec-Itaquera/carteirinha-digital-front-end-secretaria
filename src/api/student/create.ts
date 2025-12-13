@@ -6,7 +6,6 @@ import type { Student } from '../../domains/Student';
 
 export async function create(student: Student): Promise<Ok | ApiError> {
   const token = sessionStorage.getItem('token')
-  console.log("toukinho: "+ token)
   const response = await fetch(`${GLOBAL_VAR.BASE_URL}/estudantes/criar`, {
     headers: {
       Authorization: `Bearer ${token}`,
@@ -26,7 +25,7 @@ export async function create(student: Student): Promise<Ok | ApiError> {
       status: data.status ?? response.status.toString(),
       message: data.message ?? 'Erro inesperado',
       timestamp: data.timestamp ?? new Date().toISOString(),
-      path: data.path ?? `/administradores/inserir`,
+      path: data.path ?? `/estudantes/criar`,
       errorFields: data.errorFields ?? null
     };
   }
