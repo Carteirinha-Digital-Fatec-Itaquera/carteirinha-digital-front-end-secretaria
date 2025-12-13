@@ -159,7 +159,7 @@ const StudentCardComp = ({ student, onAction }: StudentCardProps) => {
 
       <div className={styles.container_button}>
         <ButtonComp
-          text='Editar informações'
+          text='Gerenciar informações'
           onClick={onAction}
         />
       </div>

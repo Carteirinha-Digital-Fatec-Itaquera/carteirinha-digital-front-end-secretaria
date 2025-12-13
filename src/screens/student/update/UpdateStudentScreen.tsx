@@ -29,6 +29,8 @@ import { update } from "../../../api/student/update";
 import { findById } from "../../../api/student/findById";
 
 import styles from "./style.module.css";
+import { deleteById } from "../../../api/student/deleteById";
+import { AlertModalComp } from "../../../components/alertmodal/AlertModalComp";
 
 export default function UpdateStudentScreen() {
   const navigate = useNavigate();
@@ -47,12 +49,13 @@ export default function UpdateStudentScreen() {
   const [dueDate, setDueDate] = useState("");
   const [status, setStatus] = useState("");
 
-  const [message, setMessage] = useState("");
+  const [messageError, setMessageError] = useState("");
   const [errorFields, setErrorFields] = useState<ErrorField[]>([]);
   const [modalErrorVisible, setModalErrorVisible] = useState(false);
+  const [modalAlertVisible, setModalAlertVisible] = useState(false);
   const [onLoading, setOnLoading] = useState(false);
   const [loadingStudent, setLoadingStudent] = useState(true);
-
+  
   useEffect(() => {
     if (!id) {
       setLoadingStudent(false);
@@ -205,46 +208,76 @@ export default function UpdateStudentScreen() {
 
       <ErrorModalComp
         visible={modalErrorVisible}
-        error={message}
+        error={messageError}
         fields={errorFields?.map((val: ErrorField) => val.description) ?? []}
         onClose={() => {
           setModalErrorVisible(false);
-          setMessage("");
+          setMessageError("");
           setErrorFields([]);
+        }}
+      />
+
+      <AlertModalComp
+        visible={modalAlertVisible}
+        message={"Você tem certeza que deseja continuar? (Esta acão é irreversível)"}
+        onConfirm={async () => {
+          setOnLoading(true);
+          const result = await deleteById(id ?? "");
+          if ('ok' in result) {
+            navigate("/students");
+          } else {
+            setMessageError(result.message);
+            setModalErrorVisible(true);
+          }
+          setOnLoading(false);
+          setModalAlertVisible(false);
+        }}
+        onCancel={() => {
+          setModalAlertVisible(false);
         }}
       />
 
       {onLoading ? (
         <LoadingComp />
       ) : (
-        <ButtonComp
-          text="Atualizar"
-          onClick={async () => {
-            setOnLoading(true);
-            const student = new Student({
-              ra,
-              name,
-              email,
-              rg,
-              cpf,
-              course,
-              period,
-              status,
-              admission,
-              birthDate,
-              dueDate,
-            });
-            const result = await update(id ?? "", student);
-            if ('ok' in result) {
-              navigate("/students");
-            } else {
-              setMessage(result.message);
-              setErrorFields(result.errorFields ?? []);
-              setModalErrorVisible(true);
-            }
-            setOnLoading(false);
-          }}
-        />
+        <div className={styles.buttons}>
+          <ButtonComp
+            text="Atualizar"
+            onClick={async () => {
+              setOnLoading(true);
+              const student = new Student({
+                ra,
+                name,
+                email,
+                rg,
+                cpf,
+                course,
+                period,
+                status,
+                admission,
+                birthDate,
+                dueDate,
+              });
+              const result = await update(id ?? "", student);
+              if ('ok' in result) {
+                navigate("/students");
+              } else {
+                setMessageError(result.message);
+                setErrorFields(result.errorFields ?? []);
+                setModalErrorVisible(true);
+              }
+              setOnLoading(false);
+            }}
+          />
+
+          <ButtonComp
+            text="Deletar"
+            color='#bd0909ff'
+              onClick={() => { 
+              setModalAlertVisible(true)  
+            }}
+          />
+        </div>
       )}
 
     </div>

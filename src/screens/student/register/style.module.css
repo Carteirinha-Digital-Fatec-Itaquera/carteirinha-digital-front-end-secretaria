@@ -42,9 +42,8 @@
 }
 
 .form {
-  width: 40%;
-  margin-top: 40px;
+  width: 90%;
+  max-width: 1000px;
   display: flex;
   flex-direction: column;
-  gap: 20px;
 }
