@@ -19,3 +19,9 @@
   border-top-left-radius: 80px;
   border-top-right-radius: 80px;
 }
+
+.containerRetrieve {
+    width: 100%; 
+    display: flex;
+    justify-content: end;
+}

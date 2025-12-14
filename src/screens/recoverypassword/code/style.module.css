@@ -1,0 +1,44 @@
+.container {
+  width: 100%;
+  height: 80vh;
+  background-color: var(--primaryColor);
+}
+
+.cardContent {
+  width: 40%;
+  display: flex;
+  flex-direction: column;
+  justify-self: center;
+  align-items: center;
+}
+
+.card {
+  width: 100%;
+  height: 80vh;
+  background: var(--secondaryColor);
+  border-top-left-radius: 80px;
+  border-top-right-radius: 80px;
+}
+
+.containerRetrieve {
+  width: 100%;
+  display: flex;
+  justify-content: end;
+}
+
+.backButton {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: absolute;
+  left: 0px;
+  top: 280px;
+  background-color: var(--primaryColor);
+  border: none;
+  color: white;
+  font-size: 22px;
+  padding: 15px;
+  border-end-end-radius: 50%;
+  border-start-end-radius: 50%;
+  cursor: pointer;
+}

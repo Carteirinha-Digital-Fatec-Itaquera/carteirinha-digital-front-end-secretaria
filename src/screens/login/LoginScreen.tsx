@@ -58,6 +58,16 @@ export default function LoginScreen() {
             onChangeText={setPassword}
           />
 
+          <div className={styles.containerRetrieve}>
+            <TextWithActionComp
+              text="Esqueceu a sua senha?"
+              textClickable="Clique aqui"
+              onAction={() => {
+                navigate("/redefine")
+              }}
+            />
+          </div>
+
           <ErrorModalComp
             visible={modalErrorVisible}
             error={message}
