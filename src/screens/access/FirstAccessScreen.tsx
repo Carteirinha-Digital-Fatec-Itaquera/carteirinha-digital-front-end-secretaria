@@ -97,7 +97,7 @@ export default function FirstAccessScreen() {
                   setModalErrorVisible(true)
                   setOnLoading(false)
                   return
-                } 
+                }
                 const secretary = new Secretary({ name, email, password })
                 const result = await signup(secretary)
                 if ('ok' in result) {

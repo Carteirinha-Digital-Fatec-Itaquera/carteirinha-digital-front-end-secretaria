@@ -59,7 +59,11 @@ export default function RedefinePasswordScreen() {
             visible={modalErrorVisible}
             error={message}
             fields={errorFields?.map((val: ErrorField) => { return val.description }) ?? []}
-            onClose={() => { setModalErrorVisible(false) }}
+            onClose={() => {
+              setMessage("")
+              setErrorFields([])
+              setModalErrorVisible(false)
+            }}
           />
 
           {onLoading ? (

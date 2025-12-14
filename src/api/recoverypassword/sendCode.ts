@@ -15,7 +15,7 @@ export async function sendCode(email: string, code: string): Promise<Ok | ApiErr
       status: data.status ?? response.status.toString(),
       message: data.message ?? 'Erro inesperado',
       timestamp: data.timestamp ?? new Date().toISOString(),
-      path: data.path ?? '/redefinirsenha/secretaria/validartoken/${email}/${code}',
+      path: data.path ?? `/redefinirsenha/secretaria/validartoken/${email}/${code}`,
       errorFields: data.errorFields ?? null
     };
   }
