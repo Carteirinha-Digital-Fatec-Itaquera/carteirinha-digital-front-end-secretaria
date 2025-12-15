@@ -17,4 +17,18 @@ export type ErrorField = {
   value: string,
 }
 
+export type StudentImport = {
+  ra: string;
+  name: string;
+  email: string;
+  rg: string;
+  cpf: string;
+  course: string;
+  period: string;
+  status: string;
+  admission: string;
+  birthDate: string;
+  dueDate: string;
+};
+
 export type Ok = { ok: string }
