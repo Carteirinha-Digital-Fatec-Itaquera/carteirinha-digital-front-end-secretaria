@@ -5,13 +5,13 @@ import { useNavigate } from "react-router-dom";
 
 import { TitleComp } from "../../../components/title/TitleComp";
 import { ButtonComp } from "../../../components/button/ButtonComp";
-import { sendEmail } from "../../../api/recoverypassword/sendEmail";
 import { FooterComp } from "../../../components/footer/FooterComp";
 import { HeaderComp } from "../../../components/header/HeaderComp";
 import { InputComp } from "../../../components/input/InputComp";
 import { ErrorModalComp } from "../../../components/errormodal/ErrorModalComp";
 import { LoadingComp } from "../../../components/loading/LoadingComp";
 
+import { sendEmail } from "../../../api/recoverypassword/sendEmail";
 import type { ErrorField } from "../../../utils/Types";
 import { Email } from "../../../domains/Email";
 import styles from "./style.module.css";

@@ -13,6 +13,8 @@ export class Student {
     dueDate: string;
     photo: string;
     qrcode: string;
+    requestPending: boolean;
+    photoForAnalysis: string;
 
     constructor(props: {
         id?: string;
@@ -29,6 +31,8 @@ export class Student {
         dueDate?: string;
         photo?: string;
         qrcode?: string;
+        requestPending?: boolean;
+        photoForAnalysis?: string;
     }) {
         this.id = props.id ?? "";
         this.ra = props.ra ?? "";
@@ -44,5 +48,7 @@ export class Student {
         this.dueDate = props.dueDate ?? "";
         this.photo = props.photo ?? "";
         this.qrcode = props.qrcode ?? "";
+        this.requestPending = props.requestPending ?? false;
+        this.photoForAnalysis = props.photoForAnalysis ?? ""
     }
 }

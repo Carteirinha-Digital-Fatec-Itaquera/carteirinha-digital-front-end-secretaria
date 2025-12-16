@@ -14,14 +14,26 @@ import { findAllByQuery } from '../../../api/student/findAllByQuery';
 import type { Student } from '../../../domains/Student';
 
 import styles from "./style.module.css";
+import { AlertModalComp } from '../../../components/alertmodal/AlertModalComp';
+import type { ErrorField } from '../../../utils/Types';
+import { approvePhoto } from '../../../api/student/approvePhoto';
+import { toast } from 'react-toastify';
+import { ErrorModalComp } from '../../../components/errormodal/ErrorModalComp';
 
 export default function StudentsListScreen() {
   const navigate = useNavigate();
+
+  const [idStudentSelected, setIdStudentSelected] = useState<string>("");
 
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
   const [error] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
+
+  const [messageError, setMessageError] = useState("");
+  const [errorFields, setErrorFields] = useState<ErrorField[]>([]);
+  const [modalErrorVisible, setModalErrorVisible] = useState(false);
+  const [modalAlertVisible, setModalAlertVisible] = useState(false);
 
   useEffect(() => {
     const fetchStudents = async () => {
@@ -83,6 +95,58 @@ export default function StudentsListScreen() {
         setSearchTerm={setSearchTerm}
       />
 
+
+      <ErrorModalComp
+        visible={modalErrorVisible}
+        error={messageError}
+        fields={errorFields?.map((val: ErrorField) => val.description) ?? []}
+        onClose={() => {
+          setModalErrorVisible(false);
+          setMessageError("");
+          setErrorFields([]);
+        }}
+      />
+
+
+      <AlertModalComp
+        visible={modalAlertVisible}
+        message={"Você deseja aprovar ou reprovar está imagem? (Esta acão é irreversível)"}
+        onConfirm={async () => {
+          const result = await approvePhoto(idStudentSelected, true);
+          if ('ok' in result) {
+            toast.success('A foto foi aprovada!', {
+              position: 'top-right',
+              autoClose: 3000,
+              hideProgressBar: false,
+              closeOnClick: true,
+              pauseOnHover: true,
+              draggable: true,
+            });
+          } else {
+            setMessageError(result.message);
+            setModalErrorVisible(true);
+          }
+          setModalAlertVisible(false);
+        }}
+        onCancel={async () => {
+          const result = await approvePhoto(idStudentSelected, false);
+          if ('ok' in result) {
+            toast.success('A foto foi reprovada!', {
+              position: 'top-right',
+              autoClose: 3000,
+              hideProgressBar: false,
+              closeOnClick: true,
+              pauseOnHover: true,
+              draggable: true,
+            });
+          } else {
+            setMessageError(result.message);
+            setModalErrorVisible(true);
+          }
+          setModalAlertVisible(false);
+        }}
+      />
+
       <div className={styles.list}>
         <div className={styles.listHeader}>
           <h2>Lista de estudantes</h2>
@@ -106,6 +170,10 @@ export default function StudentsListScreen() {
                 key={student.id}
                 student={student}
                 onAction={() => { navigate(`/update/${student.id}`) }}
+                onClickResolve={() => {
+                  setIdStudentSelected(student.id)
+                  setModalAlertVisible(true)
+                }}
               />
             ))}
           </div>
@@ -132,10 +200,15 @@ export default function StudentsListScreen() {
 
 type StudentCardProps = {
   student: Student;
-  onAction: () => void
+  onAction: () => void;
+  onClickResolve: () => void;
 };
 
-const StudentCardComp = ({ student, onAction }: StudentCardProps) => {
+const StudentCardComp = ({ student, onAction, onClickResolve }: StudentCardProps) => {
+
+  console.log(student.photo)
+  console.log(student.photoForAnalysis)
+
   return (
     <div className={styles.studentCard}>
       <div className={styles.cardHeader}>
@@ -146,15 +219,34 @@ const StudentCardComp = ({ student, onAction }: StudentCardProps) => {
       </div>
 
       <div className={styles.cardBody}>
-        <p><strong>Nome:</strong> {student.name}</p>
-        <p><strong>Email:</strong> {student.email}</p>
-        <p><strong>CPF:</strong> {student.cpf}</p>
-        <p><strong>RG:</strong> {student.rg}</p>
-        <p><strong>Curso:</strong> {student.course}</p>
-        <p><strong>Período:</strong> {student.period}</p>
-        <p><strong>Data de nascimento:</strong> {student.birthDate}</p>
-        <p><strong>Admissão:</strong> {student.admission}</p>
-        <p><strong>Vencimento:</strong> {student.dueDate}</p>
+        <div>
+          <p><strong>Nome:</strong> {student.name}</p>
+          <p><strong>Email:</strong> {student.email}</p>
+          <p><strong>CPF:</strong> {student.cpf}</p>
+          <p><strong>RG:</strong> {student.rg}</p>
+          <p><strong>Curso:</strong> {student.course}</p>
+          <p><strong>Período:</strong> {student.period}</p>
+          <p><strong>Data de nascimento:</strong> {student.birthDate}</p>
+          <p><strong>Admissão:</strong> {student.admission}</p>
+          <p><strong>Vencimento:</strong> {student.dueDate}</p>
+        </div>
+        <div>
+          <p><strong>Foto atual</strong></p>
+          {student.photo != null && student.photo.length > 0 &&
+            <img height={150} width={150} src={student.photo} />
+          }
+          {student.requestPending &&
+            <div>
+              <p><strong>Foto solicitada</strong></p>
+              <div style={{display: 'flex', flexDirection: 'column'}}>
+                <img height={150} width={150} src={student.photoForAnalysis} />
+                <button onClick={onClickResolve}>
+                  Resolver
+                </button>
+              </div>
+            </div>
+          }
+        </div>
       </div>
 
       <div className={styles.container_button}>
@@ -163,6 +255,7 @@ const StudentCardComp = ({ student, onAction }: StudentCardProps) => {
           onClick={onAction}
         />
       </div>
+
     </div>
   );
 };
