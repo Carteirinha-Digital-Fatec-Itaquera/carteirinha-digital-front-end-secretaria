@@ -110,7 +110,9 @@ export default function StudentsListScreen() {
 
       <AlertModalComp
         visible={modalAlertVisible}
-        message={"Você deseja aprovar ou reprovar está imagem? (Esta acão é irreversível)"}
+        message={"Você deseja aprovar ou reprovar esta imagem? (Esta acão é irreversível)"}
+        textCancel="Reprovar"
+        textConfirm="Aprovar"
         onConfirm={async () => {
           const result = await approvePhoto(idStudentSelected, true);
           if ('ok' in result) {
@@ -240,9 +242,11 @@ const StudentCardComp = ({ student, onAction, onClickResolve }: StudentCardProps
               <p><strong>Foto solicitada</strong></p>
               <div style={{display: 'flex', flexDirection: 'column'}}>
                 <img height={150} width={150} src={student.photoForAnalysis} />
-                <button onClick={onClickResolve}>
-                  Resolver
-                </button>
+                <ButtonComp
+                  text='Responder'
+                  onClick={onClickResolve}
+                  color='#000000'
+                />
               </div>
             </div>
           }

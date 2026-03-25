@@ -7,13 +7,17 @@ type AlertModalProps = {
   message: string;
   onConfirm: () => void;
   onCancel: () => void;
+  textConfirm?: string;
+  textCancel?: string;
 };
 
 export const AlertModalComp = ({
   visible,
   message,
   onConfirm,
-  onCancel
+  onCancel,
+  textConfirm = "Confimar",
+  textCancel = "Cancelar"
 }: AlertModalProps) => {
   if (!visible) return null;
 
@@ -25,11 +29,11 @@ export const AlertModalComp = ({
         <p className={styles.messageText}>{message}</p>
 
         <button className={styles.closeButton} onClick={onCancel}>
-          Cancelar
+          {textCancel}
         </button>
 
         <button className={styles.confirmButton} onClick={onConfirm}>
-          Confimar
+          {textConfirm}
         </button>
       </div>
     </div>

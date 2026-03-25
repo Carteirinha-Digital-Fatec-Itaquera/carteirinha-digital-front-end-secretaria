@@ -95,6 +95,7 @@ export default function LoginScreen() {
                     setMessage(result.message)
                     setErrorFields(result.errorFields ?? [])
                     setModalErrorVisible(true)
+                    setPassword("")
                   }
                   setOnLoading(false)
                 }}
