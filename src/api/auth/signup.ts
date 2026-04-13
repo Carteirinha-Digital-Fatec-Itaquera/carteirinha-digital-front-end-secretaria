@@ -5,7 +5,7 @@ import type { ApiError, Ok } from '../../utils/Types'
 import { GLOBAL_VAR } from '../config/globalVar'
 
 export async function signup(secretary: Secretary): Promise<Ok | ApiError> {
-  const response = await fetch(`${GLOBAL_VAR.BASE_URL}/secretarias/criar`, {
+  const response = await fetch(`${GLOBAL_VAR.BASE_URL}/secretaria/criar`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
@@ -20,7 +20,7 @@ export async function signup(secretary: Secretary): Promise<Ok | ApiError> {
       status: data.status ?? response.status.toString(),
       message: data.message ?? 'Erro inesperado',
       timestamp: data.timestamp ?? new Date().toISOString(),
-      path: data.path ?? '/secretarias/criar',
+      path: data.path ?? '/secretaria/criar',
       errorFields: data.errorFields ?? null
     };
   }

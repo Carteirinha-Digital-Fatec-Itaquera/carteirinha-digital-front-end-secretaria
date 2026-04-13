@@ -5,7 +5,7 @@ import type { ApiError, Token } from '../../utils/Types'
 import { GLOBAL_VAR } from '../config/globalVar'
 
 export async function login(auth: Auth): Promise<Token | ApiError> {
-  const response = await fetch(`${GLOBAL_VAR.BASE_URL}/autenticacoes/secretaria/logar`, {
+  const response = await fetch(`${GLOBAL_VAR.BASE_URL}/autenticacao/login-secretaria`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
