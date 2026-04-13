@@ -22,15 +22,14 @@ import { ErrorModalComp } from "../../../components/errormodal/ErrorModalComp";
 import { LoadingComp } from "../../../components/loading/LoadingComp";
 
 import { Student } from "../../../domains/Student";
-
 import type { ErrorField } from "../../../utils/Types";
 
 import { update } from "../../../api/student/update";
 import { findById } from "../../../api/student/findById";
-
-import styles from "./style.module.css";
 import { deleteById } from "../../../api/student/deleteById";
 import { AlertModalComp } from "../../../components/alertmodal/AlertModalComp";
+
+import styles from "./style.module.css";
 
 export default function UpdateStudentScreen() {
   const navigate = useNavigate();
@@ -55,7 +54,41 @@ export default function UpdateStudentScreen() {
   const [modalAlertVisible, setModalAlertVisible] = useState(false);
   const [onLoading, setOnLoading] = useState(false);
   const [loadingStudent, setLoadingStudent] = useState(true);
+
+  // --- FUNÇÕES DE MÁSCARA ---
+  const maskRA = (v: string) => v.replace(/\D/g, "").slice(0, 13);
   
+  const maskCPF = (v: string) => v.replace(/\D/g, "")
+    .replace(/(\d{3})(\d)/, "$1.$2")
+    .replace(/(\d{3})(\d)/, "$1.$2")
+    .replace(/(\d{3})(\d{1,2})/, "$1-$2")
+    .slice(0, 14);
+
+  const maskRG = (v: string) => v.replace(/\D/g, "")
+    .replace(/(\d{2})(\d)/, "$1.$2")
+    .replace(/(\d{3})(\d)/, "$1.$2")
+    .replace(/(\d{3})(\d{1,2})/, "$1-$2")
+    .slice(0, 12);
+
+  const maskDate = (v: string) => v.replace(/\D/g, "")
+    .replace(/(\d{2})(\d)/, "$1/$2")
+    .replace(/(\d{2})(\d)/, "$1/$2")
+    .slice(0, 10);
+
+  // Converte YYYY-MM-DD para DD/MM/YYYY (para exibir o que vem do banco)
+  const formatISOToBR = (dateStr: string) => {
+    if (!dateStr || !dateStr.includes('-')) return dateStr;
+    const [year, month, day] = dateStr.split('T')[0].split('-');
+    return `${day}/${month}/${year}`;
+  };
+
+  // Converte DD/MM/YYYY para YYYY-MM-DD (para enviar ao banco)
+  const formatDateToISO = (dateStr: string) => {
+    const parts = dateStr.split('/');
+    if (parts.length !== 3) return dateStr;
+    return `${parts[2]}-${parts[1]}-${parts[0]}`;
+  };
+
   useEffect(() => {
     if (!id) {
       setLoadingStudent(false);
@@ -85,9 +118,10 @@ export default function UpdateStudentScreen() {
       setCpf(student.cpf ?? "");
       setCourse(student.course ?? "");
       setPeriod(student.period ?? "");
-      setBirthDate(student.birthDate ?? "");
+      // Formata a data que vem do banco para o padrão brasileiro com barras
+      setBirthDate(formatISOToBR(student.birthDate ?? ""));
       setAdmission(student.admission ?? "");
-      setDueDate(student.dueDate ?? "");
+      setDueDate(formatISOToBR(student.dueDate ?? ""));
       setStatus(student.status ?? "");
     }
   }, [student]);
@@ -98,52 +132,35 @@ export default function UpdateStudentScreen() {
 
   return (
     <div className={styles.container}>
-
       <header className={styles.header}>
         <img src={logoFatec} alt="Logo Fatec" className={styles.logoLeft} />
         <img src={logosGov} alt="Logos Governo" className={styles.logoRight} />
       </header>
 
-      <TitleComp text="Atualizar aluno" />
+      <TitleComp text={id ? "Atualizar aluno" : "Registro de aluno"} />
 
-      <button
-        className={styles.backButton}
-        onClick={() => navigate("/students")}>
+      <button className={styles.backButton} onClick={() => navigate("/students")}>
         <FaArrowLeft />
       </button>
 
       <form className={styles.form}>
         <InputComp
           label="RA"
-          placeholder="Ex: 1234567890000"
+          placeholder="Ex: 1234567890123"
           icon={<FaIdCard />}
           value={ra}
-          onChangeText={setRa}
+          onChangeText={(v) => setRa(maskRA(v))}
         />
 
-        <InputComp
-          label="Nome"
-          placeholder="Ex: João Silva dos Santos"
-          icon={<FaUser />}
-          value={name}
-          onChangeText={setName}
-        />
-
-        <InputComp
-          label="E-mail"
-          type="email"
-          placeholder="Ex: joao.santos@dominio.com"
-          icon={<FaEnvelope />}
-          value={email}
-          onChangeText={setEmail}
-        />
+        <InputComp label="Nome" placeholder="Ex: João Silva dos Santos" icon={<FaUser />} value={name} onChangeText={setName} />
+        <InputComp label="E-mail" type="email" placeholder="Ex: joao.santos@dominio.com" icon={<FaEnvelope />} value={email} onChangeText={setEmail} />
 
         <InputComp
           label="RG"
           placeholder="Ex: 12.345.678-9"
           icon={<FaIdCard />}
           value={rg}
-          onChangeText={setRg}
+          onChangeText={(v) => setRg(maskRG(v))}
         />
 
         <InputComp
@@ -151,59 +168,29 @@ export default function UpdateStudentScreen() {
           placeholder="Ex: 123.456.789-00"
           icon={<FaIdCard />}
           value={cpf}
-          onChangeText={setCpf}
+          onChangeText={(v) => setCpf(maskCPF(v))}
         />
 
-        <InputComp
-          label="Curso"
-          placeholder="Ex: Desenvolvimento de Software"
-          icon={<FaBook />}
-          value={course}
-          onChangeText={setCourse}
-        />
-
-        <InputComp
-          label="Período"
-          placeholder="Ex: Tarde, Manhã"
-          icon={<FaCalendar />}
-          value={period}
-          onChangeText={setPeriod}
-        />
-
-        <InputComp
-          label="Situação"
-          placeholder="Ex: em curso, trancado"
-          icon={<FaFlag />}
-          value={status}
-          onChangeText={setStatus}
-        />
-
-        <InputComp
-          label="Ingresso"
-          placeholder="Ex: 20251"
-          icon={<FaCalendarCheck />}
-          value={admission}
-          onChangeText={setAdmission}
-        />
+        <InputComp label="Curso" placeholder="Ex: Desenvolvimento de Software" icon={<FaBook />} value={course} onChangeText={setCourse} />
+        <InputComp label="Período" placeholder="Ex: Tarde, Manhã" icon={<FaCalendar />} value={period} onChangeText={setPeriod} />
+        <InputComp label="Situação" placeholder="Ex: em curso, trancado" icon={<FaFlag />} value={status} onChangeText={setStatus} />
+        <InputComp label="Ingresso" placeholder="Ex: 20251" icon={<FaCalendarCheck />} value={admission} onChangeText={setAdmission} />
 
         <InputComp
           label="Data de Nascimento"
-          type="date"
-          placeholder=""
+          placeholder="DD/MM/AAAA"
           icon={<FaBirthdayCake />}
           value={birthDate}
-          onChangeText={setBirthDate}
+          onChangeText={(v) => setBirthDate(maskDate(v))}
         />
 
         <InputComp
           label="Vencimento"
-          type="date"
-          placeholder=""
+          placeholder="DD/MM/AAAA"
           icon={<FaClock />}
           value={dueDate}
-          onChangeText={setDueDate}
+          onChangeText={(v) => setDueDate(maskDate(v))}
         />
-
       </form>
 
       <ErrorModalComp
@@ -219,7 +206,7 @@ export default function UpdateStudentScreen() {
 
       <AlertModalComp
         visible={modalAlertVisible}
-        message={"Você tem certeza que deseja continuar? (Esta acão é irreversível)"}
+        message={"Você tem certeza que deseja continuar? (Esta ação é irreversível)"}
         onConfirm={async () => {
           setOnLoading(true);
           const result = await deleteById(id ?? "");
@@ -232,9 +219,7 @@ export default function UpdateStudentScreen() {
           setOnLoading(false);
           setModalAlertVisible(false);
         }}
-        onCancel={() => {
-          setModalAlertVisible(false);
-        }}
+        onCancel={() => setModalAlertVisible(false)}
       />
 
       {onLoading ? (
@@ -244,8 +229,15 @@ export default function UpdateStudentScreen() {
           <ButtonComp
             text="Atualizar"
             onClick={async () => {
+              // Validação do RA (13 dígitos)
+              if (ra.length !== 13) {
+                setMessageError("O RA deve ter exatamente 13 dígitos.");
+                setModalErrorVisible(true);
+                return;
+              }
+
               setOnLoading(true);
-              const student = new Student({
+              const studentData = new Student({
                 ra,
                 name,
                 email,
@@ -255,10 +247,12 @@ export default function UpdateStudentScreen() {
                 period,
                 status,
                 admission,
-                birthDate,
-                dueDate,
+                // Converte de volta para ISO antes de enviar ao backend
+                birthDate: formatDateToISO(birthDate),
+                dueDate: formatDateToISO(dueDate),
               });
-              const result = await update(id ?? "", student);
+
+              const result = await update(id ?? "", studentData);
               if ('ok' in result) {
                 navigate("/students");
               } else {
@@ -273,13 +267,10 @@ export default function UpdateStudentScreen() {
           <ButtonComp
             text="Deletar"
             color='#bd0909ff'
-              onClick={() => { 
-              setModalAlertVisible(true)  
-            }}
+            onClick={() => setModalAlertVisible(true)}
           />
         </div>
       )}
-
     </div>
   );
 }
