@@ -3,7 +3,8 @@ import { useNavigate } from "react-router-dom";
 import {
   FaArrowLeft,
   FaBirthdayCake,
-  FaBook, FaCalendar,
+  FaBook,
+  FaCalendar,
   FaCalendarCheck,
   FaClock,
   FaEnvelope,
@@ -26,9 +27,53 @@ import { Student } from "../../../domains/Student";
 import type { ErrorField } from "../../../utils/Types";
 import styles from "./style.module.css";
 
+// --- CONSTANTES DE OPÇÕES ---
+const OPTIONS_COURSE = [
+  "Automação Industrial",
+  "Fabricação Mecanica",
+  "Desenvolvimento de Software Multiplataforma",
+  "Manutenção Industrial",
+  "Mecânica: Processos de Soldagem",
+  "Refrigeração, Ventilação e Ar Condicionado",
+];
+const OPTIONS_PERIOD = ["Manhã", "Tarde", "Noite"];
+const OPTIONS_STATUS = ["Em curso", "Trancado", "Concluído", "Desistente"];
+const OPTIONS_ADMISSION = ["20241", "20242", "20251", "20252", "20261"];
+
+// --- COMPONENTE DE SELEÇÃO UNIFICADO ---
+interface SelectProps {
+  label: string;
+  icon: React.ReactNode;
+  value: string;
+  options: string[];
+  onChange: (value: string) => void;
+}
+
+const SelectComp = ({ label, icon, value, options, onChange }: SelectProps) => {
+  return (
+    <div className={styles.form}> 
+      <label className={styles.label}>{label}</label>
+      <div className={styles.inputContainer}>
+        <span className={styles.icon}>{icon}</span>
+        <select 
+          className={styles.selectField} 
+          value={value} 
+          onChange={(e) => onChange(e.target.value)}
+        >
+          <option value="" disabled>Selecione uma opção...</option>
+          {options.map(opt => (
+            <option key={opt} value={opt}>{opt}</option>
+          ))}
+        </select>
+      </div>
+    </div>
+  );
+};
+
 export default function RegisterStudentScreen() {
   const navigate = useNavigate();
 
+  // --- ESTADOS ---
   const [ra, setRa] = useState("");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -41,41 +86,16 @@ export default function RegisterStudentScreen() {
   const [dueDate, setDueDate] = useState("");
   const [status, setStatus] = useState("");
 
-  const [message, setMessage] = useState("")
-  const [errorFields, setErrorFields] = useState<ErrorField[]>()
-  const [modalErrorVisible, setModalErrorVisible] = useState(false)
-  const [onLoading, setOnLoading] = useState(false)
+  const [message, setMessage] = useState("");
+  const [errorFields, setErrorFields] = useState<ErrorField[]>();
+  const [modalErrorVisible, setModalErrorVisible] = useState(false);
+  const [onLoading, setOnLoading] = useState(false);
 
-  // --- FUNÇÕES DE MÁSCARA ---
-  const maskRA = (value: string) => {
-    return value.replace(/\D/g, "").substring(0, 13);
-  };
-
-  const maskCPF = (value: string) => {
-    return value
-      .replace(/\D/g, "")
-      .replace(/(\d{3})(\d)/, "$1.$2")
-      .replace(/(\d{3})(\d)/, "$1.$2")
-      .replace(/(\d{3})(\d{1,2})/, "$1-$2")
-      .substring(0, 14);
-  };
-
-  const maskRG = (value: string) => {
-    return value
-      .replace(/\D/g, "")
-      .replace(/(\d{2})(\d)/, "$1.$2")
-      .replace(/(\d{3})(\d)/, "$1.$2")
-      .replace(/(\d{3})(\d{1,2})/, "$1-$2")
-      .substring(0, 12);
-  };
-
-  const maskDate = (value: string) => {
-    return value
-      .replace(/\D/g, "")
-      .replace(/(\d{2})(\d)/, "$1/$2")
-      .replace(/(\d{2})(\d)/, "$1/$2")
-      .substring(0, 10);
-  };
+  // --- MÁSCARAS ---
+  const maskRA = (v: string) => v.replace(/\D/g, "").substring(0, 13);
+  const maskCPF = (v: string) => v.replace(/\D/g, "").replace(/(\d{3})(\d)/, "$1.$2").replace(/(\d{3})(\d)/, "$1.$2").replace(/(\d{3})(\d{1,2})/, "$1-$2").substring(0, 14);
+  const maskRG = (v: string) => v.replace(/\D/g, "").replace(/(\d{2})(\d)/, "$1.$2").replace(/(\d{3})(\d)/, "$1.$2").replace(/(\d{3})(\d{1,2})/, "$1-$2").substring(0, 12);
+  const maskDate = (v: string) => v.replace(/\D/g, "").replace(/(\d{2})(\d)/, "$1/$2").replace(/(\d{2})(\d)/, "$1/$2").substring(0, 10);
 
   return (
     <div className={styles.container}>
@@ -94,50 +114,18 @@ export default function RegisterStudentScreen() {
         <InputComp label="Nome" placeholder="Ex: João Silva dos Santos" icon={<FaUser />} value={name} onChangeText={setName} />
         <InputComp label="Email" type="email" placeholder="Ex: joao.santos@dominio.com" icon={<FaEnvelope />} value={email} onChangeText={setEmail} />
 
-        <InputComp
-          label="RA"
-          placeholder="Ex: 1234567890123"
-          icon={<FaIdCard />}
-          value={ra}
-          onChangeText={(v) => setRa(maskRA(v))}
-        />
+        <InputComp label="RA" placeholder="Ex: 1234567890123" icon={<FaIdCard />} value={ra} onChangeText={(v) => setRa(maskRA(v))} />
+        <InputComp label="RG" placeholder="00.000.000-0" icon={<FaIdCard />} value={rg} onChangeText={(v) => setRg(maskRG(v))} />
+        <InputComp label="CPF" placeholder="000.000.000-00" icon={<FaIdCard />} value={cpf} onChangeText={(v) => setCpf(maskCPF(v))} />
 
-        <InputComp
-          label="RG"
-          placeholder="00.000.000-0"
-          icon={<FaIdCard />}
-          value={rg}
-          onChangeText={(v) => setRg(maskRG(v))}
-        />
+        {/* --- DROPDOWNS COM DESIGN UNIFICADO --- */}
+        <SelectComp label="Curso" icon={<FaBook />} value={course} options={OPTIONS_COURSE} onChange={setCourse} />
+        <SelectComp label="Período" icon={<FaCalendar />} value={period} options={OPTIONS_PERIOD} onChange={setPeriod} />
+        <SelectComp label="Situação" icon={<FaFlag />} value={status} options={OPTIONS_STATUS} onChange={setStatus} />
+        <SelectComp label="Ingresso" icon={<FaCalendarCheck />} value={admission} options={OPTIONS_ADMISSION} onChange={setAdmission} />
 
-        <InputComp
-          label="CPF"
-          placeholder="000.000.000-00"
-          icon={<FaIdCard />}
-          value={cpf}
-          onChangeText={(v) => setCpf(maskCPF(v))}
-        />
-
-        <InputComp label="Curso" placeholder="Ex: Desenvolvimento de Software" icon={<FaBook />} value={course} onChangeText={setCourse} />
-        <InputComp label="Período" placeholder="Ex: Tarde, Manhã" icon={<FaCalendar />} value={period} onChangeText={setPeriod} />
-        <InputComp label="Situação" placeholder="Ex: em curso, trancado" icon={<FaFlag />} value={status} onChangeText={setStatus} />
-        <InputComp label="Ingresso" placeholder="Ex: 20251" icon={<FaCalendarCheck />} value={admission} onChangeText={setAdmission} />
-
-        <InputComp
-          label="Data de Nascimento"
-          placeholder="DD/MM/AAAA"
-          icon={<FaBirthdayCake />}
-          value={birthDate}
-          onChangeText={(v) => setBirthDate(maskDate(v))}
-        />
-
-        <InputComp
-          label="Vencimento"
-          placeholder="DD/MM/AAAA"
-          icon={<FaClock />}
-          value={dueDate}
-          onChangeText={(v) => setDueDate(maskDate(v))}
-        />
+        <InputComp label="Data de Nascimento" placeholder="DD/MM/AAAA" icon={<FaBirthdayCake />} value={birthDate} onChangeText={(v) => setBirthDate(maskDate(v))} />
+        <InputComp label="Vencimento" placeholder="DD/MM/AAAA" icon={<FaClock />} value={dueDate} onChangeText={(v) => setDueDate(maskDate(v))} />
       </form>
 
       <ErrorModalComp
@@ -145,9 +133,9 @@ export default function RegisterStudentScreen() {
         error={message}
         fields={errorFields?.map((val: ErrorField) => val.description) ?? []}
         onClose={() => {
-          setModalErrorVisible(false)
-          setMessage("")
-          setErrorFields([])
+          setModalErrorVisible(false);
+          setMessage("");
+          setErrorFields([]);
         }}
       />
 
@@ -157,7 +145,6 @@ export default function RegisterStudentScreen() {
         <ButtonComp
           text="Registrar"
           onClick={async () => {
-            // VERIFICAÇÃO DE 13 DÍGITOS NO RA
             if (ra.length !== 13) {
               setMessage("O RA deve ter exatamente 13 dígitos.");
               setModalErrorVisible(true);
@@ -172,21 +159,12 @@ export default function RegisterStudentScreen() {
               return `${parts[2]}-${parts[1]}-${parts[0]}`;
             };
 
-            const student = new Student({
-              ra,
-              name,
-              email,
-              rg,
-              cpf,
-              course,
-              period,
-              status,
-              admission,
+            const result = await create(new Student({
+              ra, name, email, rg, cpf, course, period, status, admission,
               birthDate: formatDateToISO(birthDate),
               dueDate: formatDateToISO(dueDate),
-            });
+            }));
 
-            const result = await create(student);
             if ('ok' in result) {
               navigate("/students");
             } else {
