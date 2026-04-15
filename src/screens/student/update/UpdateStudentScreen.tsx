@@ -33,10 +33,10 @@ import styles from "./style.module.css";
 
 export default function UpdateStudentScreen() {
   const navigate = useNavigate();
-  const { id } = useParams();
+  const { ra } = useParams(); 
 
   const [student, setStudent] = useState<Student | undefined>(undefined);
-  const [ra, setRa] = useState("");
+  const [raValue, setRaValue] = useState("");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [rg, setRg] = useState("");
@@ -90,14 +90,14 @@ export default function UpdateStudentScreen() {
   };
 
   useEffect(() => {
-    if (!id) {
+    if (!ra) {
       setLoadingStudent(false);
       return;
     }
 
     const loadStudent = async () => {
       try {
-        const data = await findById(id);
+        const data = await findById(ra); 
         setStudent(data);
       } catch (error) {
         console.error("Erro ao carregar aluno:", error);
@@ -107,18 +107,17 @@ export default function UpdateStudentScreen() {
     };
 
     loadStudent();
-  }, [id]);
+  }, [ra]); 
 
   useEffect(() => {
     if (student) {
-      setRa(student.ra ?? "");
+      setRaValue(student.ra ?? "");
       setName(student.name ?? "");
       setEmail(student.email ?? "");
       setRg(student.rg ?? "");
       setCpf(student.cpf ?? "");
       setCourse(student.course ?? "");
       setPeriod(student.period ?? "");
-      // Formata a data que vem do banco para o padrão brasileiro com barras
       setBirthDate(formatISOToBR(student.birthDate ?? ""));
       setAdmission(student.admission ?? "");
       setDueDate(formatISOToBR(student.dueDate ?? ""));
@@ -137,7 +136,7 @@ export default function UpdateStudentScreen() {
         <img src={logosGov} alt="Logos Governo" className={styles.logoRight} />
       </header>
 
-      <TitleComp text={id ? "Atualizar aluno" : "Registro de aluno"} />
+      <TitleComp text={ra ? "Atualizar aluno" : "Registro de aluno"} />
 
       <button className={styles.backButton} onClick={() => navigate("/students")}>
         <FaArrowLeft />
@@ -148,8 +147,8 @@ export default function UpdateStudentScreen() {
           label="RA"
           placeholder="Ex: 1234567890123"
           icon={<FaIdCard />}
-          value={ra}
-          onChangeText={(v) => setRa(maskRA(v))}
+          value={raValue}
+          onChangeText={(v) => setRaValue(maskRA(v))}
         />
 
         <InputComp label="Nome" placeholder="Ex: João Silva dos Santos" icon={<FaUser />} value={name} onChangeText={setName} />
@@ -209,7 +208,8 @@ export default function UpdateStudentScreen() {
         message={"Você tem certeza que deseja continuar? (Esta ação é irreversível)"}
         onConfirm={async () => {
           setOnLoading(true);
-          const result = await deleteById(id ?? "");
+          console.log("RA antes de deletar:", ra);
+          const result = await deleteById(ra ?? ""); // 
           if ('ok' in result) {
             navigate("/students");
           } else {
@@ -229,8 +229,7 @@ export default function UpdateStudentScreen() {
           <ButtonComp
             text="Atualizar"
             onClick={async () => {
-              // Validação do RA (13 dígitos)
-              if (ra.length !== 13) {
+              if (raValue.length !== 13) {
                 setMessageError("O RA deve ter exatamente 13 dígitos.");
                 setModalErrorVisible(true);
                 return;
@@ -238,7 +237,7 @@ export default function UpdateStudentScreen() {
 
               setOnLoading(true);
               const studentData = new Student({
-                ra,
+                ra: raValue,
                 name,
                 email,
                 rg,
@@ -247,12 +246,11 @@ export default function UpdateStudentScreen() {
                 period,
                 status,
                 admission,
-                // Converte de volta para ISO antes de enviar ao backend
                 birthDate: formatDateToISO(birthDate),
                 dueDate: formatDateToISO(dueDate),
               });
 
-              const result = await update(id ?? "", studentData);
+              const result = await update(ra ?? "", studentData); 
               if ('ok' in result) {
                 navigate("/students");
               } else {

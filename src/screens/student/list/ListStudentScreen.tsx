@@ -171,7 +171,7 @@ export default function StudentsListScreen() {
               <StudentCardComp
                 key={student.id}
                 student={student}
-                onAction={() => { navigate(`/update/${student.id}`) }}
+                onAction={() => { navigate(`/update/${student.ra}`) }}
                 onClickResolve={() => {
                   setIdStudentSelected(student.id)
                   setModalAlertVisible(true)

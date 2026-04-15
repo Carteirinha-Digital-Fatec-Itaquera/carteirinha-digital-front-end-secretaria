@@ -11,8 +11,14 @@ import UpdateStudentScreen from "./screens/student/update/UpdateStudentScreen";
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <Routes>
+    <>
+      <style>{`
+        * {
+          font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif !important;
+        }
+      `}</style>
+      <BrowserRouter>
+        <Routes>
 
         <Route path="/" element={<LoginScreen />} />
 
@@ -25,10 +31,10 @@ export default function App() {
 
         <Route path="/students" element={<StudentsListScreen />} />
         <Route path="/register" element={<RegisterStudentScreen />} />
-        <Route path="/update/:id" element={<UpdateStudentScreen />} />
+        <Route path="/update/:ra" element={<UpdateStudentScreen />} />
         
-      </Routes>
-    </BrowserRouter>
+         </Routes>
+      </BrowserRouter>
+    </>
   );
 }
-
