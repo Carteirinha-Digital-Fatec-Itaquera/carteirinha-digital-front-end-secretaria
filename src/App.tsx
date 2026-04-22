@@ -8,27 +8,29 @@ import SecurityCodeScreen from "./screens/recoverypassword/code/SecurityCodeScre
 import NewPasswordScreen from "./screens/recoverypassword/password/NewPasswordScreen";
 import StudentsListScreen from "./screens/student/list/ListStudentScreen";
 import UpdateStudentScreen from "./screens/student/update/UpdateStudentScreen";
+import MenuLateral from "./components/menuLateral/MenuLateral";
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <Routes>
+    // <BrowserRouter>
+    //   <Routes>
 
-        <Route path="/" element={<LoginScreen />} />
+    //     <Route path="/" element={<LoginScreen />} />
 
-        <Route path="/login" element={<LoginScreen />} />
-        <Route path="/access" element={<FirstAccessScreen />} />
+    //     <Route path="/login" element={<LoginScreen />} />
+    //     <Route path="/access" element={<FirstAccessScreen />} />
 
-        <Route path="/redefine" element={<RedefinePasswordScreen />} />
-        <Route path="/code/:email" element={<SecurityCodeScreen />} />
-        <Route path="/password/:email/:code" element={<NewPasswordScreen />} />
+    //     <Route path="/redefine" element={<RedefinePasswordScreen />} />
+    //     <Route path="/code/:email" element={<SecurityCodeScreen />} />
+    //     <Route path="/password/:email/:code" element={<NewPasswordScreen />} />
 
-        <Route path="/students" element={<StudentsListScreen />} />
-        <Route path="/register" element={<RegisterStudentScreen />} />
-        <Route path="/update/:id" element={<UpdateStudentScreen />} />
+    //     <Route path="/students" element={<StudentsListScreen />} />
+    //     <Route path="/register" element={<RegisterStudentScreen />} />
+    //     <Route path="/update/:id" element={<UpdateStudentScreen />} />
         
-      </Routes>
-    </BrowserRouter>
+    //   </Routes>
+    // </BrowserRouter>
+    <MenuLateral/>
   );
 }
 
