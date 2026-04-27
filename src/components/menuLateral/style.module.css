@@ -2,39 +2,94 @@
     background-color: #005C6D;
     height: 100%;
     width: 250px;
-    padding: 10px;
+    
     justify-content: space-between;
     display: flex;
     flex-direction: column;
    
-
 }
 .logoFatec{
-    width: 110px;
+    width: 130px;
     height: 70px;
+    margin: 15px;
+}
+.divider{
+    width: 100%;
+    height: 1px;
+    background-color: rgba(255, 255, 255, 0.473);
+    margin-bottom: 35px;
+    margin-top: 10px;
 }
 .logoCps{
-    width: 170px;
-    height: 90px;
+    width: 200px;
+    height: 95px;
     align-self: center;
 }
 .estiloLista{
     list-style: none;
-    background-color: rgb(25, 63, 97);
     display: flex;
     flex-direction: column;
     padding: 0;
     align-items: center;
-    row-gap: 10px;
+    row-gap: 5px;
 }
 .itemMenu{
-    background-color: #f5f4f46a;
+    background-color: transparent;
     display: flex;
     width: 90%;
-    height: 35px;
-    border-radius: 5px;
+    height: 45px;
+    border-radius: 15px;
     align-items: center;
-    color: white;
-    font-size: 20px;
-    
+    column-gap: 10px;
+    padding-left: 15px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.itemMenu:hover {
+    background-color: rgba(48, 48, 48, 0.3);
+}
+
+.itemMenu.selected{
+    background-color: #f5f4f46a;
+}
+
+.itemMenu a{
+   text-decoration: none;
+   color: white;
+   font-size: 17px;
+}
+
+/* Estilização do botão do acordeão */
+.accordionBtn {
+    width: 102% !important;
+    height: 45px !important;
+    padding: 0 10px !important;
+    background-color: transparent !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 15px !important;
+    transition: background-color 0.3s ease !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    cursor: pointer;
+    box-shadow: none !important;
+    font-size: 17px !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}
+
+.accordionBtn.selected {
+    background-color: #f5f4f46a !important;
+}
+
+.accordionBtn:hover {
+    background-color: rgba(48, 48, 48, 0.3) !important;
+}
+
+.accordionBtn:focus {
+    box-shadow: none !important;
+
 }
