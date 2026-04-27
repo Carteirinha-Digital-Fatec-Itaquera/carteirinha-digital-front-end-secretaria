@@ -8,12 +8,14 @@ import logosGov from "/logos_cps_governo_com_slogan_horizontal_cor.png";
 import { SearchBarComp } from '../../../components/searchbar/SearchBarComp';
 import { TitleComp } from '../../../components/title/TitleComp';
 import { ButtonComp } from '../../../components/button/ButtonComp';
+import MenuLateral from '../../../components/menuLateral/MenuLateral';
 
 import { findAllByQuery } from '../../../api/student/findAllByQuery';
 
 import type { Student } from '../../../domains/Student';
 
 import styles from "./style.module.css";
+import layoutStyles from '../../../styles/layoutWithMenu.module.css';
 import { AlertModalComp } from '../../../components/alertmodal/AlertModalComp';
 import type { ErrorField } from '../../../utils/Types';
 import { approvePhoto } from '../../../api/student/approvePhoto';
@@ -80,8 +82,13 @@ export default function StudentsListScreen() {
   }
 
   return (
-    <div className={styles.container}>
-      <header className={styles.header}>
+    <div className={layoutStyles.layoutContainer}>
+      <div className={layoutStyles.menuWrapper}>
+        <MenuLateral />
+      </div>
+      <div className={layoutStyles.contentWrapper}>
+        <div className={styles.container}>
+          <header className={styles.header}>
         <img src={logoFatec} className={styles.logoLeft} alt="Logo Fatec" />
         <img src={logosGov} className={styles.logoRight} alt="Logos Governo" />
       </header>
@@ -196,6 +203,8 @@ export default function StudentsListScreen() {
           onClick={() => { navigate("/register") }}
         />
       </footer>
+        </div>
+      </div>
     </div>
   );
 }

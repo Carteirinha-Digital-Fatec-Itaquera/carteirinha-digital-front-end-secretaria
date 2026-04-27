@@ -1,0 +1,23 @@
+.layoutContainer {
+  display: flex;
+  flex-direction: row;
+  min-height: 100vh;
+  width: 100%;
+  background-color: #F5F5F5;
+}
+
+.menuWrapper {
+  flex-shrink: 0;
+  width: 250px;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.contentWrapper {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+}

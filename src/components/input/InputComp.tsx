@@ -21,6 +21,7 @@ export function InputComp({
 }: InputProps) {
   return (
     <>
+    <div className={styles.containerInput}>
       <label className={styles.label}>{label}</label>
       <div className={styles.inputArea}>
         {(icon != null) &&
@@ -35,6 +36,7 @@ export function InputComp({
           placeholder={placeholder}
           className={styles.input}
         />
+      </div>
       </div>
     </>
   )

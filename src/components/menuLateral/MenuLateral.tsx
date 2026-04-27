@@ -1,15 +1,28 @@
-import { useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import styles from "./style.module.css";
 import {  CloudArrowUpIcon, FilePlusIcon, SignOutIcon, UserCircleIcon, UserCirclePlusIcon, UserListIcon } from "@phosphor-icons/react";
 
 function MenuLateral(){
-    const [selected, setSelected] = useState("listaAlunos")
+    const navigate = useNavigate();
+    const location = useLocation();
     
-    const handleMenuClick = (item: string, e?: React.MouseEvent) => {
-        if (e) {
-            e.preventDefault();
-        }
-        setSelected(item);
+    // Detecta qual item deve estar selecionado baseado na rota
+    const getSelectedItem = () => {
+        if (location.pathname === "/students") return "listaAlunos";
+        if (location.pathname === "/register") return "registroManual";
+        if (location.pathname.startsWith("/update")) return "listaAlunos";
+        return "listaAlunos";
+    };
+    
+    const selected = getSelectedItem();
+    
+    const handleMenuClick = (item: string, path: string) => {
+        navigate(path);
+    };
+
+    const handleLogout = () => {
+        sessionStorage.removeItem("token");
+        navigate("/login");
     };
     
     return(
@@ -20,7 +33,7 @@ function MenuLateral(){
                 <ul className={styles.estiloLista}>
                     <li 
                         className={`${styles.itemMenu} ${selected === "listaAlunos" ? styles.selected : ""}`}
-                        onClick={() => handleMenuClick("listaAlunos")}
+                        onClick={() => handleMenuClick("listaAlunos", "/students")}
                     >
                         <UserListIcon size={30} color="#ffffff" /><a href="" onClick={(e) => e.preventDefault()}>Lista de alunos</a>
                     </li>
@@ -33,7 +46,7 @@ function MenuLateral(){
                         <h2 className="accordion-header">
                         {/* Botao */}
                      
-                        <button className={`accordion-button ${styles.accordionBtn} ${selected === "registrar" || selected === "registroManual" || selected === "registroImport" ? styles.selected : ""}`} type="button" data-bs-toggle="collapse" data-bs-target="#panelsStayOpen-collapseOne" aria-expanded="false" aria-controls="panelsStayOpen-collapseOne" onClick={() => handleMenuClick("registrar")}>
+                        <button className={`accordion-button ${styles.accordionBtn} ${selected === "registroManual" ? styles.selected : ""}`} type="button" data-bs-toggle="collapse" data-bs-target="#panelsStayOpen-collapseOne" aria-expanded="false" aria-controls="panelsStayOpen-collapseOne">
                              <UserCirclePlusIcon size={30} color="#ffffff" />
                             Registrar aluno
                         </button>
@@ -44,14 +57,14 @@ function MenuLateral(){
                         <div className="accordion-body" style={{background: 'transparent', padding: '0.5rem'}}>
                             <li 
                                 className={`${styles.itemMenu} ${selected === "registroManual" ? styles.selected : ""}`}
-                                onClick={() => handleMenuClick("registroManual")}
+                                onClick={() => handleMenuClick("registroManual", "/register")}
                             >
                                 <FilePlusIcon size={30} color="#ffffff"  />
                                 <a href="" onClick={(e) => e.preventDefault()}>Manual</a>
                             </li>
                             <li 
                                 className={`${styles.itemMenu} ${selected === "registroImport" ? styles.selected : ""}`}
-                                onClick={() => handleMenuClick("registroImport")}
+                                onClick={() => handleMenuClick("registroImport", "#")}
                             >
                                 <CloudArrowUpIcon size={30} color="#ffffff"  />
                                 <a href="" onClick={(e) => e.preventDefault()}>Importar</a>
@@ -63,14 +76,14 @@ function MenuLateral(){
 
                       <li 
                         className={`${styles.itemMenu} ${selected === "perfil" ? styles.selected : ""}`}
-                        onClick={() => handleMenuClick("perfil")}
+                        onClick={() => handleMenuClick("perfil", "#")}
                       >
                         <UserCircleIcon size={30} color="#ffffff" /><a href="" onClick={(e) => e.preventDefault()}>Perfil</a>
                       </li>
 
                        <li 
                         className={`${styles.itemMenu} ${selected === "deslogar" ? styles.selected : ""}`}
-                        onClick={() => handleMenuClick("deslogar")}
+                        onClick={handleLogout}
                       >
                         <SignOutIcon size={30} color="#ffffff" />
                         <a href="" onClick={(e) => e.preventDefault()}>Deslogar</a>

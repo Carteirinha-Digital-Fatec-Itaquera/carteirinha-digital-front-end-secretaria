@@ -21,11 +21,13 @@ import { ButtonComp } from "../../../components/button/ButtonComp";
 import { TitleComp } from "../../../components/title/TitleComp";
 import { ErrorModalComp } from "../../../components/errormodal/ErrorModalComp";
 import { LoadingComp } from "../../../components/loading/LoadingComp";
+import MenuLateral from "../../../components/menuLateral/MenuLateral";
 
 import { create } from "../../../api/student/create";
 import { Student } from "../../../domains/Student";
 import type { ErrorField } from "../../../utils/Types";
 import styles from "./style.module.css";
+import layoutStyles from "../../../styles/layoutWithMenu.module.css";
 
 // --- CONSTANTES DE OPÇÕES ---
 const OPTIONS_COURSE = [
@@ -51,7 +53,7 @@ interface SelectProps {
 
 const SelectComp = ({ label, icon, value, options, onChange }: SelectProps) => {
   return (
-    <div className={styles.form}> 
+    <div className={styles.selectContainer}> 
       <label className={styles.label}>{label}</label>
       <div className={styles.inputContainer}>
         <span className={styles.icon}>{icon}</span>
@@ -98,33 +100,49 @@ export default function RegisterStudentScreen() {
   const maskDate = (v: string) => v.replace(/\D/g, "").replace(/(\d{2})(\d)/, "$1/$2").replace(/(\d{2})(\d)/, "$1/$2").substring(0, 10);
 
   return (
-    <div className={styles.container}>
-      <header className={styles.header}>
-        <img src={logoFatec} alt="Logo Fatec" className={styles.logoLeft} />
-        <img src={logosGov} alt="Logos Governo" className={styles.logoRight} />
-      </header>
+    <div className={layoutStyles.layoutContainer}>
+      <div className={layoutStyles.menuWrapper}>
+        <MenuLateral />
+      </div>
+      <div className={layoutStyles.contentWrapper}>
+        <div className={styles.container}>
 
-      <TitleComp text="Registro de aluno" />
-
-      <button className={styles.backButton} onClick={() => navigate("/students")}>
-        <FaArrowLeft />
-      </button>
+          <TitleComp text="Registro de aluno" />
+      
 
       <form className={styles.form}>
-        <InputComp label="Nome" placeholder="Ex: João Silva dos Santos" icon={<FaUser />} value={name} onChangeText={setName} />
-        <InputComp label="Email" type="email" placeholder="Ex: joao.santos@dominio.com" icon={<FaEnvelope />} value={email} onChangeText={setEmail} />
+        <div className={styles.containerInputs}>
+           <InputComp label="RA" placeholder="Ex: 1234567890123" icon={<FaIdCard />} value={ra} onChangeText={(v) => setRa(maskRA(v))} />
+            <SelectComp label="Ingresso" icon={<FaCalendarCheck />} value={admission} options={OPTIONS_ADMISSION} onChange={setAdmission} />
+        </div>
 
-        <InputComp label="RA" placeholder="Ex: 1234567890123" icon={<FaIdCard />} value={ra} onChangeText={(v) => setRa(maskRA(v))} />
+         <div className={styles.containerInputs}>
+          <InputComp label="Nome" placeholder="Ex: João Silva dos Santos" icon={<FaUser />} value={name} onChangeText={setName} />
+           <InputComp label="Data de Nascimento" placeholder="DD/MM/AAAA" icon={<FaBirthdayCake />} value={birthDate} onChangeText={(v) => setBirthDate(maskDate(v))} />
+
+         </div>
+
+          <div className={styles.containerInputs}>
+            <InputComp label="Email" type="email" placeholder="Ex: joao.santos@dominio.com" icon={<FaEnvelope />} value={email} onChangeText={setEmail} />
+            <InputComp label="CPF" placeholder="000.000.000-00" icon={<FaIdCard />} value={cpf} onChangeText={(v) => setCpf(maskCPF(v))} />
+          </div>
+
+          <div className={styles.containerInputs}>
+            <SelectComp label="Curso" icon={<FaBook />} value={course} options={OPTIONS_COURSE} onChange={setCourse} />
+            <SelectComp label="Situação" icon={<FaFlag />} value={status} options={OPTIONS_STATUS} onChange={setStatus} />
+          </div>
+
+      
+       
         <InputComp label="RG" placeholder="00.000.000-0" icon={<FaIdCard />} value={rg} onChangeText={(v) => setRg(maskRG(v))} />
-        <InputComp label="CPF" placeholder="000.000.000-00" icon={<FaIdCard />} value={cpf} onChangeText={(v) => setCpf(maskCPF(v))} />
+        
 
-        {/* --- DROPDOWNS COM DESIGN UNIFICADO --- */}
-        <SelectComp label="Curso" icon={<FaBook />} value={course} options={OPTIONS_COURSE} onChange={setCourse} />
+       
         <SelectComp label="Período" icon={<FaCalendar />} value={period} options={OPTIONS_PERIOD} onChange={setPeriod} />
-        <SelectComp label="Situação" icon={<FaFlag />} value={status} options={OPTIONS_STATUS} onChange={setStatus} />
-        <SelectComp label="Ingresso" icon={<FaCalendarCheck />} value={admission} options={OPTIONS_ADMISSION} onChange={setAdmission} />
+        
+       
 
-        <InputComp label="Data de Nascimento" placeholder="DD/MM/AAAA" icon={<FaBirthdayCake />} value={birthDate} onChangeText={(v) => setBirthDate(maskDate(v))} />
+       
         <InputComp label="Vencimento" placeholder="DD/MM/AAAA" icon={<FaClock />} value={dueDate} onChangeText={(v) => setDueDate(maskDate(v))} />
       </form>
 
@@ -176,6 +194,8 @@ export default function RegisterStudentScreen() {
           }}
         />
       )}
+        </div>
+      </div>
     </div>
   );
 }
