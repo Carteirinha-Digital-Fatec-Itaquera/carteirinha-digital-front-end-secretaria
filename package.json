@@ -14,6 +14,7 @@
     "axios": "^1.13.2",
     "bootstrap": "^5.3.8",
     "react": "^19.2.0",
+    "react-calendar": "^6.0.1",
     "react-dom": "^19.2.0",
     "react-icons": "^5.5.0",
     "react-native-masked-text": "^1.13.0",

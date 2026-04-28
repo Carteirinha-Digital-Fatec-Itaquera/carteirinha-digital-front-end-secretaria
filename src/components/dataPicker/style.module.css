@@ -1,0 +1,191 @@
+/* --- ESTILOS PARA DATEPICKER --- */
+.datePickerContainer {
+  width: 50%;
+  position: relative;
+}
+
+.label {
+  font-weight: bold;
+  font-size: 14px;
+  margin-bottom: 5px;
+  margin-left: 20px;
+  display: block;
+  text-align: left;
+}
+
+.inputContainer {
+  display: flex;
+  align-items: center;
+  height: 50px;
+  background-color: #ffffff;
+  border: 2px solid #005C6D;
+  border-radius: 50px;
+  padding: 0 20px;
+  box-sizing: border-box;
+}
+
+.inputContainer:focus-within {
+  border-color: var(--primaryColor);
+}
+
+.icon {
+  color: #004a61;
+  margin-right: 12px;
+  display: flex;
+  align-items: center;
+  font-size: 18px;
+  min-width: 25px;
+}
+
+.dateInput {
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 1rem;
+  color: #444;
+  font-weight: 600;
+}
+
+.calendarButton {
+  background: none;
+  border: none;
+  color: #004a61;
+  font-size: 18px;
+  cursor: pointer;
+  padding: 0 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s;
+  flex-shrink: 0;
+}
+
+.calendarButton:hover {
+  color: #005C6D;
+}
+
+.calendarWrapper {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background: rgb(252, 252, 252);
+  border: 2px solid #005C6D;
+  border-radius: 8px;
+  padding: 10px;
+  margin-top: 10px;
+  z-index: 1000;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* --- OVERRIDES DO REACT-CALENDAR --- */
+
+/* Container principal */
+.calendarWrapper :global(.react-calendar) {
+  background: transparent;
+  border: none;
+  font-family: inherit;
+  width: 100%;
+}
+
+/* Navegação (cabeçalho com mês/ano) */
+.calendarWrapper :global(.react-calendar__navigation) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+
+/* Botão do label (mês e ano) — centralizado e sem borda */
+.calendarWrapper :global(.react-calendar__navigation__label) {
+  flex-grow: 1;
+  text-align: center;
+  font-weight: bold;
+  font-size: 14px;
+  color: #005C6D;
+  background: transparent;
+  border: none !important;
+  box-shadow: none !important;
+  outline: none;
+  cursor: pointer;
+}
+
+/* Botões de navegação (setas) — sem borda */
+.calendarWrapper :global(.react-calendar__navigation button) {
+  background: transparent;
+  border: none !important;
+  box-shadow: none !important;
+  color: #005C6D;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 4px;
+  min-width: 28px;
+  transition: background 0.2s;
+}
+
+.calendarWrapper :global(.react-calendar__navigation button:hover) {
+  background: rgba(0, 92, 109, 0.12);
+}
+
+.calendarWrapper :global(.react-calendar__navigation button:disabled) {
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* Cabeçalho dos dias da semana — sem borda, centralizado */
+.calendarWrapper :global(.react-calendar__month-view__weekdays) {
+  text-align: center;
+}
+
+.calendarWrapper :global(.react-calendar__month-view__weekdays__weekday) {
+  text-align: center;
+  padding: 4px 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: #005C6D;
+  border: none !important;
+}
+
+.calendarWrapper :global(.react-calendar__month-view__weekdays__weekday abbr) {
+  text-decoration: none;
+}
+
+/* Células dos dias — sem borda */
+.calendarWrapper :global(.react-calendar__tile) {
+  border: none !important;
+  box-shadow: none !important;
+  background: transparent;
+  font-weight: 500;
+  border-radius: 4px;
+  padding: 6px 4px;
+  font-size: 13px;
+  color: #333;
+  text-align: center;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.calendarWrapper :global(.react-calendar__tile:hover) {
+  background: rgba(0, 92, 109, 0.15);
+}
+
+/* Dia selecionado */
+.calendarWrapper :global(.react-calendar__tile--active) {
+  background: #005C6D !important;
+  color: #fff !important;
+  border-radius: 4px;
+}
+
+/* Hoje */
+.calendarWrapper :global(.react-calendar__tile--now) {
+  background: rgba(0, 92, 109, 0.2);
+  font-weight: bold;
+}
+
+/* Dias de outros meses */
+.calendarWrapper :global(.react-calendar__month-view__days__day--neighboringMonth) {
+  color: #aaa;
+}
