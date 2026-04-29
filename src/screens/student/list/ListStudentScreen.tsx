@@ -2,9 +2,6 @@ import { useState, useEffect } from 'react';
 
 import { useNavigate } from "react-router-dom";
 
-import logoFatec from "/fatec_ra_metropolitana_sp_capital_itaquera_cor.png";
-import logosGov from "/logos_cps_governo_com_slogan_horizontal_cor.png";
-
 import { SearchBarComp } from '../../../components/searchbar/SearchBarComp';
 import { TitleComp } from '../../../components/title/TitleComp';
 import { ButtonComp } from '../../../components/button/ButtonComp';
@@ -88,10 +85,6 @@ export default function StudentsListScreen() {
       </div>
       <div className={layoutStyles.contentWrapper}>
         <div className={styles.container}>
-          <header className={styles.header}>
-        <img src={logoFatec} className={styles.logoLeft} alt="Logo Fatec" />
-        <img src={logosGov} className={styles.logoRight} alt="Logos Governo" />
-      </header>
 
       <TitleComp text='Listagem de alunos' />
 
@@ -189,20 +182,7 @@ export default function StudentsListScreen() {
         )}
       </div>
 
-      <footer className={styles.footer}>
-        <ButtonComp
-          text='Deslogar'
-          onClick={() => {
-            sessionStorage.removeItem('token')
-            navigate("/login")
-          }}
-        />
-
-        <ButtonComp
-          text='Registrar aluno'
-          onClick={() => { navigate("/register") }}
-        />
-      </footer>
+      
         </div>
       </div>
     </div>
@@ -234,9 +214,7 @@ const StudentCardComp = ({ student, onAction, onClickResolve }: StudentCardProps
           <p><strong>Nome:</strong> {student.name}</p>
           <p><strong>Email:</strong> {student.email}</p>
           <p><strong>CPF:</strong> {student.cpf}</p>
-          <p><strong>RG:</strong> {student.rg}</p>
           <p><strong>Curso:</strong> {student.course}</p>
-          <p><strong>Período:</strong> {student.period}</p>
           <p><strong>Data de nascimento:</strong> {student.birthDate}</p>
           <p><strong>Admissão:</strong> {student.admission}</p>
           <p><strong>Vencimento:</strong> {student.dueDate}</p>
