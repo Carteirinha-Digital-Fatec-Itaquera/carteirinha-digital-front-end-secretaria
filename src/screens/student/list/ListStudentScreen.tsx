@@ -93,11 +93,11 @@ export default function StudentsListScreen() {
         <img src={logosGov} className={styles.logoRight} alt="Logos Governo" />
       </header>
 
-      <TitleComp text='Listagem de alunos' />
+      <TitleComp text='Listagem de Alunos' />
 
       <SearchBarComp
-        label='Pesquisar por alunos'
-        placeholder='Ex: nome, CPF, RG, e-mail, curso, periodo, status ou RA'
+        label='Pesquisar por Aluno'
+        placeholder='Ex: Nome, CPF, E-mail, Curso, Status ou RA'
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
       />
@@ -158,7 +158,6 @@ export default function StudentsListScreen() {
 
       <div className={styles.list}>
         <div className={styles.listHeader}>
-          <h2>Lista de estudantes</h2>
           <span className={styles.totalCount}>
             Total: {students.length} aluno(s)
           </span>
@@ -178,9 +177,9 @@ export default function StudentsListScreen() {
               <StudentCardComp
                 key={student.id}
                 student={student}
-                onAction={() => { navigate(`/update/${student.id}`) }}
+                onAction={() => { navigate(`/update/${student.ra}`) }}
                 onClickResolve={() => {
-                  setIdStudentSelected(student.id)
+                  setIdStudentSelected(student.ra)
                   setModalAlertVisible(true)
                 }}
               />
@@ -190,18 +189,7 @@ export default function StudentsListScreen() {
       </div>
 
       <footer className={styles.footer}>
-        <ButtonComp
-          text='Deslogar'
-          onClick={() => {
-            sessionStorage.removeItem('token')
-            navigate("/login")
-          }}
-        />
 
-        <ButtonComp
-          text='Registrar aluno'
-          onClick={() => { navigate("/register") }}
-        />
       </footer>
         </div>
       </div>
@@ -234,9 +222,7 @@ const StudentCardComp = ({ student, onAction, onClickResolve }: StudentCardProps
           <p><strong>Nome:</strong> {student.name}</p>
           <p><strong>Email:</strong> {student.email}</p>
           <p><strong>CPF:</strong> {student.cpf}</p>
-          <p><strong>RG:</strong> {student.rg}</p>
           <p><strong>Curso:</strong> {student.course}</p>
-          <p><strong>Período:</strong> {student.period}</p>
           <p><strong>Data de nascimento:</strong> {student.birthDate}</p>
           <p><strong>Admissão:</strong> {student.admission}</p>
           <p><strong>Vencimento:</strong> {student.dueDate}</p>
