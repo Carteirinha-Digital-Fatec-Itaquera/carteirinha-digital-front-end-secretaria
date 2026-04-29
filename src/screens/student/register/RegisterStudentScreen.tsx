@@ -1,11 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  FaArrowLeft,
-  FaBirthdayCake,
   FaBook,
-  FaCalendar,
-  FaClock,
   FaEnvelope,
   FaFlag,
   FaIdCard,
@@ -35,7 +31,7 @@ const OPTIONS_COURSE = [
   "Mecânica: Processos de Soldagem",
   "Refrigeração, Ventilação e Ar Condicionado",
 ];
-const OPTIONS_PERIOD = ["Manhã", "Tarde", "Noite"];
+
 const OPTIONS_STATUS = ["Em curso", "Trancado", "Concluído", "Desistente"];
 
 // --- COMPONENTE DE SELEÇÃO UNIFICADO ---
@@ -75,10 +71,8 @@ export default function RegisterStudentScreen() {
   const [ra, setRa] = useState("");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [rg, setRg] = useState("");
   const [cpf, setCpf] = useState("");
   const [course, setCourse] = useState("");
-  const [period, setPeriod] = useState("");
   const [birthDate, setBirthDate] = useState("");
   const [admission, setAdmission] = useState("");
   const [dueDate, setDueDate] = useState("");
@@ -95,7 +89,6 @@ export default function RegisterStudentScreen() {
   // --- MÁSCARAS ---
   const maskRA = (v: string) => v.replace(/\D/g, "").substring(0, 13);
   const maskCPF = (v: string) => v.replace(/\D/g, "").replace(/(\d{3})(\d)/, "$1.$2").replace(/(\d{3})(\d)/, "$1.$2").replace(/(\d{3})(\d{1,2})/, "$1-$2").substring(0, 14);
-  const maskRG = (v: string) => v.replace(/\D/g, "").replace(/(\d{2})(\d)/, "$1.$2").replace(/(\d{3})(\d)/, "$1.$2").replace(/(\d{3})(\d{1,2})/, "$1-$2").substring(0, 12);
 
   return (
     <div className={layoutStyles.layoutContainer}>
@@ -144,7 +137,7 @@ export default function RegisterStudentScreen() {
           </div>
 
        <div className={styles.containerInputs}>
-        <InputComp label="RG" placeholder="00.000.000-0" icon={<FaIdCard />} value={rg} onChangeText={(v) => setRg(maskRG(v))} />
+       
 
         <DatePickerComp
           label="Vencimento"
@@ -156,7 +149,7 @@ export default function RegisterStudentScreen() {
 
        </div>
        
-        <SelectComp label="Período" icon={<FaCalendar />} value={period} options={OPTIONS_PERIOD} onChange={setPeriod} />
+        
         
       </form>
 
@@ -192,7 +185,7 @@ export default function RegisterStudentScreen() {
             };
 
             const result = await create(new Student({
-              ra, name, email, rg, cpf, course, period, status, 
+              ra, name, email, cpf, course, status, 
               admission: formatDateToISO(admission),
               birthDate: formatDateToISO(birthDate),
               dueDate: formatDateToISO(dueDate),

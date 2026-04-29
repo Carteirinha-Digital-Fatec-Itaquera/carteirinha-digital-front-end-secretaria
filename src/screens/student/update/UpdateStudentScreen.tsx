@@ -39,10 +39,8 @@ export default function UpdateStudentScreen() {
   const [ra, setRa] = useState("");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [rg, setRg] = useState("");
   const [cpf, setCpf] = useState("");
   const [course, setCourse] = useState("");
-  const [period, setPeriod] = useState("");
   const [birthDate, setBirthDate] = useState("");
   const [admission, setAdmission] = useState("");
   const [dueDate, setDueDate] = useState("");
@@ -63,12 +61,6 @@ export default function UpdateStudentScreen() {
     .replace(/(\d{3})(\d)/, "$1.$2")
     .replace(/(\d{3})(\d{1,2})/, "$1-$2")
     .slice(0, 14);
-
-  const maskRG = (v: string) => v.replace(/\D/g, "")
-    .replace(/(\d{2})(\d)/, "$1.$2")
-    .replace(/(\d{3})(\d)/, "$1.$2")
-    .replace(/(\d{3})(\d{1,2})/, "$1-$2")
-    .slice(0, 12);
 
   const maskDate = (v: string) => v.replace(/\D/g, "")
     .replace(/(\d{2})(\d)/, "$1/$2")
@@ -114,10 +106,8 @@ export default function UpdateStudentScreen() {
       setRa(student.ra ?? "");
       setName(student.name ?? "");
       setEmail(student.email ?? "");
-      setRg(student.rg ?? "");
       setCpf(student.cpf ?? "");
-      setCourse(student.course ?? "");
-      setPeriod(student.period ?? "");
+      setCourse(student.course ?? "")
       // Formata a data que vem do banco para o padrão brasileiro com barras
       setBirthDate(formatISOToBR(student.birthDate ?? ""));
       setAdmission(student.admission ?? "");
@@ -155,13 +145,6 @@ export default function UpdateStudentScreen() {
         <InputComp label="Nome" placeholder="Ex: João Silva dos Santos" icon={<FaUser />} value={name} onChangeText={setName} />
         <InputComp label="E-mail" type="email" placeholder="Ex: joao.santos@dominio.com" icon={<FaEnvelope />} value={email} onChangeText={setEmail} />
 
-        <InputComp
-          label="RG"
-          placeholder="Ex: 12.345.678-9"
-          icon={<FaIdCard />}
-          value={rg}
-          onChangeText={(v) => setRg(maskRG(v))}
-        />
 
         <InputComp
           label="CPF"
@@ -172,7 +155,6 @@ export default function UpdateStudentScreen() {
         />
 
         <InputComp label="Curso" placeholder="Ex: Desenvolvimento de Software" icon={<FaBook />} value={course} onChangeText={setCourse} />
-        <InputComp label="Período" placeholder="Ex: Tarde, Manhã" icon={<FaCalendar />} value={period} onChangeText={setPeriod} />
         <InputComp label="Situação" placeholder="Ex: em curso, trancado" icon={<FaFlag />} value={status} onChangeText={setStatus} />
         <InputComp label="Ingresso" placeholder="Ex: 20251" icon={<FaCalendarCheck />} value={admission} onChangeText={setAdmission} />
 
@@ -241,10 +223,8 @@ export default function UpdateStudentScreen() {
                 ra,
                 name,
                 email,
-                rg,
                 cpf,
                 course,
-                period,
                 status,
                 admission,
                 // Converte de volta para ISO antes de enviar ao backend

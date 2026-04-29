@@ -3,10 +3,8 @@ export class Student {
     ra: string;
     name: string;
     email: string;
-    rg: string;
     cpf: string;
     course: string;
-    period: string;
     status: string;
     admission: string;
     birthDate: string;
@@ -21,10 +19,8 @@ export class Student {
         ra?: string;
         name?: string;
         email?: string;
-        rg?: string;
         cpf?: string;
         course?: string;
-        period?: string;
         status?: string;
         admission?: string;
         birthDate?: string;
@@ -38,10 +34,8 @@ export class Student {
         this.ra = props.ra ?? "";
         this.name = props.name ?? "";
         this.email = props.email ?? "";
-        this.rg = props.rg ?? "";
         this.cpf = props.cpf ?? "";
         this.course = props.course ?? "";
-        this.period = props.period ?? "";
         this.status = props.status ?? "";
         this.admission = props.admission ?? "";
         this.birthDate = props.birthDate ?? "";
