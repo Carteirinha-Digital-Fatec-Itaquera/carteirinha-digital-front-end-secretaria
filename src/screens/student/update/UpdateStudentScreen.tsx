@@ -1,16 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import {
-  FaArrowLeft,
-  FaBirthdayCake,
-  FaBook, FaCalendar,
-  FaCalendarCheck,
-  FaClock,
-  FaEnvelope,
-  FaFlag,
-  FaIdCard,
-  FaUser
-} from "react-icons/fa";
+import { FaBook, FaEnvelope, FaFlag, FaIdCard, FaUser } from "react-icons/fa";
 
 import logoFatec from "/fatec_ra_metropolitana_sp_capital_itaquera_cor.png";
 import logosGov from "/logos_cps_governo_com_slogan_horizontal_cor.png";
@@ -20,6 +10,9 @@ import { ButtonComp } from "../../../components/button/ButtonComp";
 import { TitleComp } from "../../../components/title/TitleComp";
 import { ErrorModalComp } from "../../../components/errormodal/ErrorModalComp";
 import { LoadingComp } from "../../../components/loading/LoadingComp";
+import { DatePickerComp } from "../../../components/dataPicker/DatePickerComp";
+import MenuLateral from "../../../components/menuLateral/MenuLateral";
+import { AlertModalComp } from "../../../components/alertmodal/AlertModalComp";
 
 import { Student } from "../../../domains/Student";
 import type { ErrorField } from "../../../utils/Types";
@@ -27,13 +20,45 @@ import type { ErrorField } from "../../../utils/Types";
 import { update } from "../../../api/student/update";
 import { findById } from "../../../api/student/findById";
 import { deleteById } from "../../../api/student/deleteById";
-import { AlertModalComp } from "../../../components/alertmodal/AlertModalComp";
 
 import styles from "./style.module.css";
+import layoutStyles from "../../../styles/layoutWithMenu.module.css";
+
+const OPTIONS_COURSE = [
+  "Automação Industrial",
+  "Fabricação Mecanica",
+  "Desenvolvimento de Software Multiplataforma",
+  "Manutenção Industrial",
+  "Mecânica: Processos de Soldagem",
+  "Refrigeração, Ventilação e Ar Condicionado",
+];
+
+const OPTIONS_STATUS = ["Em curso", "Trancado", "Concluído", "Desistente"];
+
+interface SelectProps {
+  label: string;
+  icon: React.ReactNode;
+  value: string;
+  options: string[];
+  onChange: (value: string) => void;
+}
+
+const SelectComp = ({ label, icon, value, options, onChange }: SelectProps) => (
+  <div className={styles.selectContainer}>
+    <label className={styles.label}>{label}</label>
+    <div className={styles.inputContainer}>
+      <span className={styles.icon}>{icon}</span>
+      <select className={styles.selectField} value={value} onChange={(e) => onChange(e.target.value)}>
+        <option value="" disabled>Selecione uma opção...</option>
+        {options.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+      </select>
+    </div>
+  </div>
+);
 
 export default function UpdateStudentScreen() {
   const navigate = useNavigate();
-  const { id } = useParams();
+  const { ra: paramRa } = useParams();
 
   const [student, setStudent] = useState<Student | undefined>(undefined);
   const [ra, setRa] = useState("");
@@ -46,6 +71,10 @@ export default function UpdateStudentScreen() {
   const [dueDate, setDueDate] = useState("");
   const [status, setStatus] = useState("");
 
+  const [isCalendarOpenAdmission, setIsCalendarOpenAdmission] = useState(false);
+  const [isCalendarOpenBirthDate, setIsCalendarOpenBirthDate] = useState(false);
+  const [isCalendarOpenDueDate, setIsCalendarOpenDueDate] = useState(false);
+
   const [messageError, setMessageError] = useState("");
   const [errorFields, setErrorFields] = useState<ErrorField[]>([]);
   const [modalErrorVisible, setModalErrorVisible] = useState(false);
@@ -53,28 +82,18 @@ export default function UpdateStudentScreen() {
   const [onLoading, setOnLoading] = useState(false);
   const [loadingStudent, setLoadingStudent] = useState(true);
 
-  // --- FUNÇÕES DE MÁSCARA ---
-  const maskRA = (v: string) => v.replace(/\D/g, "").slice(0, 13);
-  
   const maskCPF = (v: string) => v.replace(/\D/g, "")
     .replace(/(\d{3})(\d)/, "$1.$2")
     .replace(/(\d{3})(\d)/, "$1.$2")
     .replace(/(\d{3})(\d{1,2})/, "$1-$2")
     .slice(0, 14);
 
-  const maskDate = (v: string) => v.replace(/\D/g, "")
-    .replace(/(\d{2})(\d)/, "$1/$2")
-    .replace(/(\d{2})(\d)/, "$1/$2")
-    .slice(0, 10);
-
-  // Converte YYYY-MM-DD para DD/MM/YYYY (para exibir o que vem do banco)
   const formatISOToBR = (dateStr: string) => {
     if (!dateStr || !dateStr.includes('-')) return dateStr;
     const [year, month, day] = dateStr.split('T')[0].split('-');
     return `${day}/${month}/${year}`;
   };
 
-  // Converte DD/MM/YYYY para YYYY-MM-DD (para enviar ao banco)
   const formatDateToISO = (dateStr: string) => {
     const parts = dateStr.split('/');
     if (parts.length !== 3) return dateStr;
@@ -82,14 +101,14 @@ export default function UpdateStudentScreen() {
   };
 
   useEffect(() => {
-    if (!id) {
+    if (!paramRa) {
       setLoadingStudent(false);
       return;
     }
 
     const loadStudent = async () => {
       try {
-        const data = await findById(id);
+        const data = await findById(paramRa);
         setStudent(data);
       } catch (error) {
         console.error("Erro ao carregar aluno:", error);
@@ -99,7 +118,7 @@ export default function UpdateStudentScreen() {
     };
 
     loadStudent();
-  }, [id]);
+  }, [paramRa]);
 
   useEffect(() => {
     if (student) {
@@ -107,150 +126,147 @@ export default function UpdateStudentScreen() {
       setName(student.name ?? "");
       setEmail(student.email ?? "");
       setCpf(student.cpf ?? "");
-      setCourse(student.course ?? "")
-      // Formata a data que vem do banco para o padrão brasileiro com barras
+      setCourse(student.course ?? "");
       setBirthDate(formatISOToBR(student.birthDate ?? ""));
-      setAdmission(student.admission ?? "");
+      setAdmission(formatISOToBR(student.admission ?? ""));
       setDueDate(formatISOToBR(student.dueDate ?? ""));
       setStatus(student.status ?? "");
     }
   }, [student]);
 
-  if (loadingStudent) {
-    return <LoadingComp />;
-  }
+  if (loadingStudent) return <LoadingComp />;
 
   return (
-    <div className={styles.container}>
-      <header className={styles.header}>
-        <img src={logoFatec} alt="Logo Fatec" className={styles.logoLeft} />
-        <img src={logosGov} alt="Logos Governo" className={styles.logoRight} />
-      </header>
+    <div className={layoutStyles.layoutContainer}>
+      <div className={layoutStyles.menuWrapper}>
+        <MenuLateral />
+      </div>
+      <div className={layoutStyles.contentWrapper}>
+        <div className={styles.container}>
 
-      <TitleComp text={id ? "Atualizar aluno" : "Registro de aluno"} />
+          <TitleComp text="Atualizar aluno" />
 
-      <button className={styles.backButton} onClick={() => navigate("/students")}>
-        <FaArrowLeft />
-      </button>
+          <form className={styles.form}>
+            <div className={styles.containerInputs}>
+              <InputComp
+                label="RA"
+                placeholder="Ex: 1234567890123"
+                icon={<FaIdCard />}
+                value={ra}
+                onChangeText={() => {}}
+                disabled={true}
+              />
+              <DatePickerComp
+                label="Ingresso"
+                value={admission}
+                onChange={setAdmission}
+                isOpen={isCalendarOpenAdmission}
+                onToggle={() => setIsCalendarOpenAdmission(!isCalendarOpenAdmission)}
+              />
+            </div>
 
-      <form className={styles.form}>
-        <InputComp
-          label="RA"
-          placeholder="Ex: 1234567890123"
-          icon={<FaIdCard />}
-          value={ra}
-          onChangeText={(v) => setRa(maskRA(v))}
-        />
+            <div className={styles.containerInputs}>
+              <InputComp label="Nome" placeholder="Ex: João Silva dos Santos" icon={<FaUser />} value={name} onChangeText={setName} />
+              <DatePickerComp
+                label="Data de Nascimento"
+                value={birthDate}
+                onChange={setBirthDate}
+                isOpen={isCalendarOpenBirthDate}
+                onToggle={() => setIsCalendarOpenBirthDate(!isCalendarOpenBirthDate)}
+              />
+            </div>
 
-        <InputComp label="Nome" placeholder="Ex: João Silva dos Santos" icon={<FaUser />} value={name} onChangeText={setName} />
-        <InputComp label="E-mail" type="email" placeholder="Ex: joao.santos@dominio.com" icon={<FaEnvelope />} value={email} onChangeText={setEmail} />
+            <div className={styles.containerInputs}>
+              <InputComp label="Email" type="email" placeholder="Ex: joao.santos@dominio.com" icon={<FaEnvelope />} value={email} onChangeText={setEmail} />
+              <InputComp label="CPF" placeholder="000.000.000-00" icon={<FaIdCard />} value={cpf} onChangeText={(v) => setCpf(maskCPF(v))} />
+            </div>
 
+            <div className={styles.containerInputs}>
+              <SelectComp label="Curso" icon={<FaBook />} value={course} options={OPTIONS_COURSE} onChange={setCourse} />
+              <SelectComp label="Situação" icon={<FaFlag />} value={status} options={OPTIONS_STATUS} onChange={setStatus} />
+            </div>
 
-        <InputComp
-          label="CPF"
-          placeholder="Ex: 123.456.789-00"
-          icon={<FaIdCard />}
-          value={cpf}
-          onChangeText={(v) => setCpf(maskCPF(v))}
-        />
+            <div className={styles.containerInputs}>
+              <DatePickerComp
+                label="Vencimento"
+                value={dueDate}
+                onChange={setDueDate}
+                isOpen={isCalendarOpenDueDate}
+                onToggle={() => setIsCalendarOpenDueDate(!isCalendarOpenDueDate)}
+              />
+            </div>
+          </form>
 
-        <InputComp label="Curso" placeholder="Ex: Desenvolvimento de Software" icon={<FaBook />} value={course} onChangeText={setCourse} />
-        <InputComp label="Situação" placeholder="Ex: em curso, trancado" icon={<FaFlag />} value={status} onChangeText={setStatus} />
-        <InputComp label="Ingresso" placeholder="Ex: 20251" icon={<FaCalendarCheck />} value={admission} onChangeText={setAdmission} />
+          <ErrorModalComp
+            visible={modalErrorVisible}
+            error={messageError}
+            fields={errorFields?.map((val: ErrorField) => val.description) ?? []}
+            onClose={() => {
+              setModalErrorVisible(false);
+              setMessageError("");
+              setErrorFields([]);
+            }}
+          />
 
-        <InputComp
-          label="Data de Nascimento"
-          placeholder="DD/MM/AAAA"
-          icon={<FaBirthdayCake />}
-          value={birthDate}
-          onChangeText={(v) => setBirthDate(maskDate(v))}
-        />
-
-        <InputComp
-          label="Vencimento"
-          placeholder="DD/MM/AAAA"
-          icon={<FaClock />}
-          value={dueDate}
-          onChangeText={(v) => setDueDate(maskDate(v))}
-        />
-      </form>
-
-      <ErrorModalComp
-        visible={modalErrorVisible}
-        error={messageError}
-        fields={errorFields?.map((val: ErrorField) => val.description) ?? []}
-        onClose={() => {
-          setModalErrorVisible(false);
-          setMessageError("");
-          setErrorFields([]);
-        }}
-      />
-
-      <AlertModalComp
-        visible={modalAlertVisible}
-        message={"Você tem certeza que deseja continuar? (Esta ação é irreversível)"}
-        onConfirm={async () => {
-          setOnLoading(true);
-          const result = await deleteById(id ?? "");
-          if ('ok' in result) {
-            navigate("/students");
-          } else {
-            setMessageError(result.message);
-            setModalErrorVisible(true);
-          }
-          setOnLoading(false);
-          setModalAlertVisible(false);
-        }}
-        onCancel={() => setModalAlertVisible(false)}
-      />
-
-      {onLoading ? (
-        <LoadingComp />
-      ) : (
-        <div className={styles.buttons}>
-          <ButtonComp
-            text="Atualizar"
-            onClick={async () => {
-              // Validação do RA (13 dígitos)
-              if (ra.length !== 13) {
-                setMessageError("O RA deve ter exatamente 13 dígitos.");
-                setModalErrorVisible(true);
-                return;
-              }
-
+          <AlertModalComp
+            visible={modalAlertVisible}
+            message="Você tem certeza que deseja deletar este aluno? (Esta ação é irreversível)"
+            onConfirm={async () => {
               setOnLoading(true);
-              const studentData = new Student({
-                ra,
-                name,
-                email,
-                cpf,
-                course,
-                status,
-                admission,
-                // Converte de volta para ISO antes de enviar ao backend
-                birthDate: formatDateToISO(birthDate),
-                dueDate: formatDateToISO(dueDate),
-              });
-
-              const result = await update(id ?? "", studentData);
+              const result = await deleteById(paramRa ?? "");
               if ('ok' in result) {
                 navigate("/students");
               } else {
                 setMessageError(result.message);
-                setErrorFields(result.errorFields ?? []);
                 setModalErrorVisible(true);
               }
               setOnLoading(false);
+              setModalAlertVisible(false);
             }}
+            onCancel={() => setModalAlertVisible(false)}
           />
 
-          <ButtonComp
-            text="Deletar"
-            color='#bd0909ff'
-            onClick={() => setModalAlertVisible(true)}
-          />
+          {onLoading ? (
+            <LoadingComp />
+          ) : (
+            <div className={styles.buttons}>
+              <ButtonComp
+                text="Atualizar"
+                onClick={async () => {
+                  setOnLoading(true);
+                  const studentData = new Student({
+                    ra: paramRa ?? "",
+                    name,
+                    email,
+                    cpf,
+                    course,
+                    status,
+                    admission: formatDateToISO(admission),
+                    birthDate: formatDateToISO(birthDate),
+                    dueDate: formatDateToISO(dueDate),
+                  });
+
+                  const result = await update(paramRa ?? "", studentData);
+                  if ('ok' in result) {
+                    navigate("/students");
+                  } else {
+                    setMessageError(result.message);
+                    setErrorFields(result.errorFields ?? []);
+                    setModalErrorVisible(true);
+                  }
+                  setOnLoading(false);
+                }}
+              />
+
+              <ButtonComp
+                text="Deletar"
+                color="#bd0909ff"
+                onClick={() => setModalAlertVisible(true)}
+              />
+            </div>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 }
