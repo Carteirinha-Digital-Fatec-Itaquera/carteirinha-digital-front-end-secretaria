@@ -1,14 +1,32 @@
-html, body, #root {
-  height: 100%;
-  width: 100%;
+/* reset básico */
+* {
   margin: 0;
   padding: 0;
-  background: #f6f2f4 !important; 
-  font-family: "Montserrat";
+  box-sizing: border-box;
 }
 
-:root {
-  --primaryColor: #005C6D; 
-  --secondaryColor: #f6f2f4;
-  --labelColor: #000;
+html, body {
+  overflow-x: hidden;
+  width: 100%;
+  font-size: 16px;
+}
+
+body {
+  background-color: white;
+  font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+  line-height: 1.5;
+}
+
+img, picture, video, canvas, svg {
+  display: block;
+  max-width: 100%;
+}
+
+input, button, textarea, select {
+  font: inherit;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
 }

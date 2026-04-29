@@ -8,6 +8,8 @@ import SecurityCodeScreen from "./screens/recoverypassword/code/SecurityCodeScre
 import NewPasswordScreen from "./screens/recoverypassword/password/NewPasswordScreen";
 import StudentsListScreen from "./screens/student/list/ListStudentScreen";
 import UpdateStudentScreen from "./screens/student/update/UpdateStudentScreen";
+import UploadStudentsScreen from "./screens/secretary/UploadStudentsScreen";
+
 
 export default function App() {
   return (
@@ -32,6 +34,8 @@ export default function App() {
         <Route path="/students" element={<StudentsListScreen />} />
         <Route path="/register" element={<RegisterStudentScreen />} />
         <Route path="/update/:ra" element={<UpdateStudentScreen />} />
+
+        <Route path="/upload-alunos" element={<UploadStudentsScreen />} />
         
          </Routes>
       </BrowserRouter>

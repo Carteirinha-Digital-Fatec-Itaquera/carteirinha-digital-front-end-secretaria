@@ -1,0 +1,117 @@
+.container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #003d4d 0%, #005C6D 100%);
+  padding: 2rem;
+}
+
+.card {
+  max-width: 850px;
+  margin: 0 auto;
+  background: white;
+  border-radius: 40px;
+  padding: 2.5rem;
+  box-shadow: 0 25px 45px -12px rgba(0, 0, 0, 0.35);
+  transition: transform 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+}
+
+.backButton {
+  background: none;
+  border: none;
+  color: #005C6D;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 20px;
+  transition: background 0.2s ease;
+}
+
+.backButton:hover {
+  background: #f0f0f0;
+  color: #CC092F;
+}
+
+.info {
+  background: #f0f4f8;
+  padding: 1.2rem;
+  border-radius: 24px;
+  font-size: 0.9rem;
+  margin: 1.5rem 0;
+  border-left: 6px solid #CC092F;
+  color: #1e2a3e;
+}
+
+.info code {
+  background: #e2e8f0;
+  padding: 0.2rem 0.4rem;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  color: #CC092F;
+}
+
+.fileInput {
+  display: block;
+  width: 100%;
+  padding: 1rem;
+  margin: 1.5rem 0;
+  border: 2px dashed #cbd5e1;
+  border-radius: 24px;
+  background-color: #fef9f9;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.9rem;
+}
+
+.fileInput:hover {
+  border-color: #CC092F;
+  background-color: #fff0f0;
+}
+
+.resultBox {
+  margin-top: 2rem;
+  background: #f8fafc;
+  padding: 1.5rem;
+  border-radius: 24px;
+  border: 1px solid #e2e8f0;
+}
+
+.resultBox h3 {
+  margin-top: 0;
+  color: #005C6D;
+  font-weight: 600;
+  font-size: 1.3rem;
+}
+
+.resultBox p {
+  margin: 0.5rem 0;
+  font-size: 0.95rem;
+}
+
+.resultBox details {
+  margin-top: 1rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.resultBox summary {
+  font-weight: bold;
+  color: #CC092F;
+}
+
+.resultBox ul {
+  margin-top: 0.5rem;
+  padding-left: 1.2rem;
+}
+
+.resultBox li {
+  margin: 0.3rem 0;
+  color: #2d3e50;
+}
