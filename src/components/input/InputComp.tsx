@@ -17,7 +17,8 @@ export function InputComp({
   placeholder,
   icon = null,
   value,
-  onChangeText
+  onChangeText,
+  disabled = false,
 }: InputProps) {
   return (
     <>
@@ -35,6 +36,7 @@ export function InputComp({
           onChange={(e) => onChangeText(e.target.value)}
           placeholder={placeholder}
           className={styles.input}
+          disabled={disabled}
         />
       </div>
       </div>
