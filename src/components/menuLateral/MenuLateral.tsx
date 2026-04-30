@@ -10,8 +10,9 @@ function MenuLateral(){
     const getSelectedItem = () => {
         if (location.pathname === "/students") return "listaAlunos";
         if (location.pathname === "/register") return "registroManual";
-         if (location.pathname === "/upload-alunos") return "registroImport";
+        if (location.pathname === "/upload-alunos") return "registroImport";
         if (location.pathname.startsWith("/update")) return "listaAlunos";
+        if (location.pathname === "/perfil") return "perfil";
         return "listaAlunos";
     };
     
@@ -77,7 +78,7 @@ function MenuLateral(){
 
                       <li 
                         className={`${styles.itemMenu} ${selected === "perfil" ? styles.selected : ""}`}
-                        onClick={() => handleMenuClick("perfil", "#")}
+                        onClick={() => handleMenuClick("perfil", "/perfil")}
                       >
                         <UserCircleIcon size={30} color="#ffffff" /><a href="" onClick={(e) => e.preventDefault()}>Perfil</a>
                       </li>
