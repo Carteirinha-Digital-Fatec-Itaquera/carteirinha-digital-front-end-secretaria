@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { FaBook, FaEnvelope, FaFlag, FaIdCard, FaUser } from "react-icons/fa";
 
 import logoFatec from "/fatec_ra_metropolitana_sp_capital_itaquera_cor.png";
 import logosGov from "/logos_cps_governo_com_slogan_horizontal_cor.png";
@@ -23,6 +22,20 @@ import { deleteById } from "../../../api/student/deleteById";
 
 import styles from "./style.module.css";
 import layoutStyles from "../../../styles/layoutWithMenu.module.css";
+
+import { FaBook, FaEnvelope, FaFlag, FaIdCard, FaUser, FaCalendarCheck } from "react-icons/fa";
+
+const generateAdmissionOptions = (): string[] => {
+  const currentYear = new Date().getFullYear();
+  const options: string[] = [];
+  for (let year = currentYear - 2; year <= currentYear + 2; year++) {
+    options.push(`${year}1`);
+    options.push(`${year}2`);
+  }
+  return options;
+};
+
+const OPTIONS_ADMISSION = generateAdmissionOptions();
 
 const OPTIONS_COURSE = [
   "Automação Industrial",
@@ -71,9 +84,7 @@ export default function UpdateStudentScreen() {
   const [dueDate, setDueDate] = useState("");
   const [status, setStatus] = useState("");
 
-  const [isCalendarOpenAdmission, setIsCalendarOpenAdmission] = useState(false);
   const [isCalendarOpenBirthDate, setIsCalendarOpenBirthDate] = useState(false);
-  const [isCalendarOpenDueDate, setIsCalendarOpenDueDate] = useState(false);
 
   const [messageError, setMessageError] = useState("");
   const [errorFields, setErrorFields] = useState<ErrorField[]>([]);
@@ -128,7 +139,7 @@ export default function UpdateStudentScreen() {
       setCpf(student.cpf ?? "");
       setCourse(student.course ?? "");
       setBirthDate(formatISOToBR(student.birthDate ?? ""));
-      setAdmission(formatISOToBR(student.admission ?? ""));
+      setAdmission(student.admission ?? "");
       setDueDate(formatISOToBR(student.dueDate ?? ""));
       setStatus(student.status ?? "");
     }
@@ -156,12 +167,12 @@ export default function UpdateStudentScreen() {
                 onChangeText={() => {}}
                 disabled={true}
               />
-              <DatePickerComp
-                label="Ingresso"
-                value={admission}
-                onChange={setAdmission}
-                isOpen={isCalendarOpenAdmission}
-                onToggle={() => setIsCalendarOpenAdmission(!isCalendarOpenAdmission)}
+              <SelectComp
+               label="Ingresso"
+               icon={<FaCalendarCheck />}
+               value={admission}
+               options={OPTIONS_ADMISSION}
+               onChange={setAdmission}
               />
             </div>
 
@@ -187,13 +198,6 @@ export default function UpdateStudentScreen() {
             </div>
 
             <div className={styles.containerInputs}>
-              <DatePickerComp
-                label="Vencimento"
-                value={dueDate}
-                onChange={setDueDate}
-                isOpen={isCalendarOpenDueDate}
-                onToggle={() => setIsCalendarOpenDueDate(!isCalendarOpenDueDate)}
-              />
             </div>
           </form>
 
@@ -241,9 +245,8 @@ export default function UpdateStudentScreen() {
                     cpf,
                     course,
                     status,
-                    admission: formatDateToISO(admission),
+                    admission,
                     birthDate: formatDateToISO(birthDate),
-                    dueDate: formatDateToISO(dueDate),
                   });
 
                   const result = await update(paramRa ?? "", studentData);
