@@ -5,9 +5,9 @@ import {
   FaEnvelope,
   FaFlag,
   FaIdCard,
-  FaUser
+  FaUser,
+  FaCalendarCheck,  // ← adicione
 } from "react-icons/fa";
-
 
 import { InputComp } from "../../../components/input/InputComp";
 import { ButtonComp } from "../../../components/button/ButtonComp";
@@ -43,6 +43,18 @@ interface SelectProps {
   onChange: (value: string) => void;
 }
 
+const generateAdmissionOptions = (): string[] => {
+  const currentYear = new Date().getFullYear();
+  const options: string[] = [];
+  for (let year = currentYear - 2; year <= currentYear + 2; year++) {
+    options.push(`${year}1`);
+    options.push(`${year}2`);
+  }
+  return options;
+};
+
+const OPTIONS_ADMISSION = generateAdmissionOptions();
+
 const SelectComp = ({ label, icon, value, options, onChange }: SelectProps) => {
   return (
     <div className={styles.selectContainer}> 
@@ -75,11 +87,8 @@ export default function RegisterStudentScreen() {
   const [course, setCourse] = useState("");
   const [birthDate, setBirthDate] = useState("");
   const [admission, setAdmission] = useState("");
-  const [dueDate, setDueDate] = useState("");
   const [status, setStatus] = useState("");
-  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [isCalendarOpenBirthDate, setIsCalendarOpenBirthDate] = useState(false);
-  const [isCalendarOpenDueDate, setIsCalendarOpenDueDate] = useState(false);
 
   const [message, setMessage] = useState("");
   const [errorFields, setErrorFields] = useState<ErrorField[]>();
@@ -105,13 +114,13 @@ export default function RegisterStudentScreen() {
         <div className={styles.containerInputs}>
            <InputComp label="RA" placeholder="Ex: 1234567890123" icon={<FaIdCard />} value={ra} onChangeText={(v) => setRa(maskRA(v))} />
            
-           <DatePickerComp
-             label="Ingresso"
-             value={admission}
-             onChange={setAdmission}
-             isOpen={isCalendarOpen}
-             onToggle={() => setIsCalendarOpen(!isCalendarOpen)}
-           />
+           <SelectComp
+            label="Ingresso"
+            icon={<FaCalendarCheck />}
+            value={admission}
+            options={OPTIONS_ADMISSION}
+            onChange={setAdmission}
+          />
         </div>
 
          <div className={styles.containerInputs}>
@@ -135,22 +144,7 @@ export default function RegisterStudentScreen() {
             <SelectComp label="Curso" icon={<FaBook />} value={course} options={OPTIONS_COURSE} onChange={setCourse} />
             <SelectComp label="Situação" icon={<FaFlag />} value={status} options={OPTIONS_STATUS} onChange={setStatus} />
           </div>
-
-       <div className={styles.containerInputs}>
        
-
-        <DatePickerComp
-          label="Vencimento"
-          value={dueDate}
-          onChange={setDueDate}
-          isOpen={isCalendarOpenDueDate}
-          onToggle={() => setIsCalendarOpenDueDate(!isCalendarOpenDueDate)}
-        />
-
-       </div>
-       
-        
-        
       </form>
 
       <ErrorModalComp
@@ -188,7 +182,6 @@ export default function RegisterStudentScreen() {
               ra, name, email, cpf, course, status, 
               admission: formatDateToISO(admission),
               birthDate: formatDateToISO(birthDate),
-              dueDate: formatDateToISO(dueDate),
             }));
 
             if ('ok' in result) {
