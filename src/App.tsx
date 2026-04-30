@@ -11,6 +11,7 @@ import UpdateStudentScreen from "./screens/student/update/UpdateStudentScreen";
 import Lista from "./screens/student/lista/Lista";
 import ListStudentScreen from "./screens/student/list/ListStudentScreen";
 import UploadStudentsScreen from "./screens/student/upload/UploadStudentsScreen";
+import ProfileScreen from "./screens/secretary/profile/ProfileScreen";
 
 export default function App() {
   return (
@@ -26,6 +27,7 @@ export default function App() {
         <Route path="/register" element={<RegisterStudentScreen />} />
         <Route path="/update/:ra" element={<UpdateStudentScreen />} />
         <Route path="/upload-alunos" element={<UploadStudentsScreen />} />
+        <Route path="/perfil" element={<ProfileScreen />} />
       </Routes>
     </BrowserRouter>
   );
