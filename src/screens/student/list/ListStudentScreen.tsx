@@ -19,6 +19,12 @@ import { approvePhoto } from '../../../api/student/approvePhoto';
 import { toast } from 'react-toastify';
 import { ErrorModalComp } from '../../../components/errormodal/ErrorModalComp';
 
+const formatDueDate = (dueDate: Date | string) => {
+  const date = new Date(dueDate);
+  if (date < new Date()) return "Vencida";
+  return date.toLocaleDateString('pt-BR');
+  };
+
 export default function StudentsListScreen() {
   const navigate = useNavigate();
 
@@ -33,6 +39,8 @@ export default function StudentsListScreen() {
   const [errorFields, setErrorFields] = useState<ErrorField[]>([]);
   const [modalErrorVisible, setModalErrorVisible] = useState(false);
   const [modalAlertVisible, setModalAlertVisible] = useState(false);
+
+
 
   useEffect(() => {
     const fetchStudents = async () => {
@@ -194,16 +202,16 @@ type StudentCardProps = {
   onClickResolve: () => void;
 };
 
-const StudentCardComp = ({ student, onAction, onClickResolve }: StudentCardProps) => {
+  const StudentCardComp = ({ student, onAction, onClickResolve }: StudentCardProps) => {
 
-  console.log(student.photo)
-  console.log(student.photoForAnalysis)
+   console.log(student.photo)
+   console.log(student.photoForAnalysis)
 
-  return (
-    <div className={styles.studentCard}>
-      <div className={styles.cardHeader}>
-        <span className={styles.ra}>RA: {student.ra}</span>
-        <span className={`${styles.status} ${styles[student.status]}`}>
+    return (
+      <div className={styles.studentCard}>
+        <div className={styles.cardHeader}>
+          <span className={styles.ra}>RA: {student.ra}</span>
+          <span className={`${styles.status} ${styles[student.status]}`}>
           {student.status}
         </span>
       </div>
@@ -211,12 +219,12 @@ const StudentCardComp = ({ student, onAction, onClickResolve }: StudentCardProps
       <div className={styles.cardBody}>
         <div>
           <p><strong>Nome:</strong> {student.name}</p>
-          <p><strong>Email:</strong> {student.email}</p>
+          <p><strong>E-mail:</strong> {student.email}</p>
           <p><strong>CPF:</strong> {student.cpf}</p>
           <p><strong>Curso:</strong> {student.course}</p>
-          <p><strong>Data de nascimento:</strong> {student.birthDate}</p>
+          <p><strong>Data de Nascimento:</strong> {new Date(student.birthDate).toLocaleDateString('pt-BR')}</p>
           <p><strong>Admissão:</strong> {student.admission}</p>
-          <p><strong>Vencimento:</strong> {student.dueDate}</p>
+          <p><strong>Vencimento:</strong> {formatDueDate(student.dueDate)}</p>
         </div>
         <div>
           <p><strong>Foto atual</strong></p>
@@ -248,4 +256,6 @@ const StudentCardComp = ({ student, onAction, onClickResolve }: StudentCardProps
 
     </div>
   );
+  
+
 };
