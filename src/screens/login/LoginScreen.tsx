@@ -20,6 +20,7 @@ import { type ErrorField } from '../../utils/Types';
 import { login } from "../../api/auth/login";
 
 import styles from "./style.module.css";
+import { InputLogin } from "../../components/inputLoginCadastro/InputLogin";
 
 export default function LoginScreen() {
   const navigate = useNavigate();
@@ -43,7 +44,7 @@ export default function LoginScreen() {
 
           <TitleComp text="Login secretaria" />
 
-          <InputComp
+          <InputLogin
             label="E-mail"
             type="email"
             placeholder="Ex: joao@dominio.com"

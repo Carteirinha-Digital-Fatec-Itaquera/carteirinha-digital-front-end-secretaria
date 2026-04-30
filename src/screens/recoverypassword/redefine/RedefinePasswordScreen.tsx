@@ -15,6 +15,7 @@ import { sendEmail } from "../../../api/recoverypassword/sendEmail";
 import type { ErrorField } from "../../../utils/Types";
 import { Email } from "../../../domains/Email";
 import styles from "./style.module.css";
+import { InputLogin } from "../../../components/inputLoginCadastro/InputLogin";
 
 export default function RedefinePasswordScreen() {
   const navigate = useNavigate();
@@ -46,7 +47,7 @@ export default function RedefinePasswordScreen() {
             Insira seu e-mail institucional para enviarmos um código de segurança.
           </p>
 
-          <InputComp
+          <InputLogin
             label="Email"
             type="email"
             placeholder="Ex: joao.santos@dominio.com"

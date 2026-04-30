@@ -5,20 +5,23 @@
   font-size: 16px;
   font-weight: 600;
   color: #4E4E4E;
-  margin-left: 35px;
+  margin-left: 15px;
   margin-top: 20px;
 }
 
 .inputArea {
   display: flex;
   align-items: center;
-  background: rgb(255, 255, 255);
+  background: white;
+  height: 50px;
   border: 2px solid #005C6D;
   border-radius: 25px;
-  padding: 12px 20px;
-  margin-top: 2px;
+  padding: 0 20px;
   width: 100%;
   box-sizing: border-box;
+}
+.containerInput{
+  width: 100%;
 }
 
 .icon {
@@ -32,16 +35,9 @@
   border: none;
   outline: none;
   font-size: 16px;
-  background: white;
+  background: #FFFFFF;
 }
 
 .input::placeholder {
-  color: #999;
-}
-
-.toggle {
-  cursor: pointer;
-  font-size: 18px;
-  color: #666;
-  margin-left: 10px;
+  color: #B2B2B2;
 }

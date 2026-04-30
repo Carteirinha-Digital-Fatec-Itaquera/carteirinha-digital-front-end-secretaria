@@ -2,7 +2,7 @@
   background-color: var(--primaryColor);
   color: white;
   border: none;
-  width: 169px;
+  padding: 0 30px; 
   height: 41px;
   border-radius: 25px;
   margin: 30px;

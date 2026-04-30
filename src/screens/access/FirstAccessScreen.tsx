@@ -20,6 +20,7 @@ import type { ErrorField } from "../../utils/Types";
 import { signup } from "../../api/auth/signup";
 
 import styles from "./style.module.css";
+import { InputLogin } from "../../components/inputLoginCadastro/InputLogin";
 
 export default function FirstAccessScreen() {
   const navigate = useNavigate();
@@ -45,7 +46,7 @@ export default function FirstAccessScreen() {
 
           <TitleComp text="Cadastro secretaria" />
 
-          <InputComp
+          <InputLogin
             label="Nome"
             placeholder="Ex: João da Silva"
             icon={<FaUser />}
@@ -53,7 +54,7 @@ export default function FirstAccessScreen() {
             onChangeText={setName}
           />
 
-          <InputComp
+          <InputLogin
             label="E-mail"
             type="email"
             placeholder="Ex: joao@dominio.com"

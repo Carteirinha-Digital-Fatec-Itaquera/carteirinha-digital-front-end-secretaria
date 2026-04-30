@@ -16,6 +16,7 @@ import type { ErrorField } from "../../../utils/Types";
 import { sendCode } from "../../../api/recoverypassword/sendCode";
 
 import styles from "./style.module.css";
+import { InputLogin } from "../../../components/inputLoginCadastro/InputLogin";
 
 export default function RedefinePasswordScreen() {
   const navigate = useNavigate();
@@ -49,7 +50,7 @@ export default function RedefinePasswordScreen() {
             Insira o código que enviamos no seu e-mail institucional.
           </p>
 
-          <InputComp
+          <InputLogin
             label="Código"
             placeholder="Ex: 000000"
             icon={<FaEnvelope />}

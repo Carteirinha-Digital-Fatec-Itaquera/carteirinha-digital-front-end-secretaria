@@ -11,13 +11,14 @@ type InputProps = {
   onChangeText: (value: string) => void,
 }
 
-export function InputComp({
+export function InputLogin({
   label,
   type = "text",
   placeholder,
   icon = null,
   value,
   onChangeText,
+
 }: InputProps) {
   return (
     <>
@@ -35,6 +36,7 @@ export function InputComp({
           onChange={(e) => onChangeText(e.target.value)}
           placeholder={placeholder}
           className={styles.input}
+      
         />
       </div>
       </div>

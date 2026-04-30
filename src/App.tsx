@@ -9,6 +9,7 @@ import NewPasswordScreen from "./screens/recoverypassword/password/NewPasswordSc
 import StudentsListScreen from "./screens/student/list/ListStudentScreen";
 import UpdateStudentScreen from "./screens/student/update/UpdateStudentScreen";
 import Lista from "./screens/student/lista/Lista";
+import ListStudentScreen from "./screens/student/list/ListStudentScreen";
 
 export default function App() {
   return (
@@ -20,7 +21,7 @@ export default function App() {
         <Route path="/redefine" element={<RedefinePasswordScreen />} />
         <Route path="/code/:email" element={<SecurityCodeScreen />} />
         <Route path="/password/:email/:code" element={<NewPasswordScreen />} />
-        <Route path="/students" element={<Lista />} />
+        <Route path="/students" element={<ListStudentScreen />} />
         <Route path="/register" element={<RegisterStudentScreen />} />
         <Route path="/update/:ra" element={<UpdateStudentScreen />} />
       </Routes>
