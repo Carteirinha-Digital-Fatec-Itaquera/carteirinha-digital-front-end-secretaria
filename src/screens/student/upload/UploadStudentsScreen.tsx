@@ -39,7 +39,7 @@ export default function UploadStudentsScreen() {
 
   const handleUpload = async () => {
     if (!file) {
-      toast.warning("Selecione um arquivo CSV ou TXT");
+      toast.warning("Selecione um arquivo CSV, TXT ou PDF");
       return;
     }
 
@@ -74,13 +74,17 @@ export default function UploadStudentsScreen() {
 
        
         <p className={styles.info}>
-          Envie um arquivo <strong>.csv</strong> ou <strong>.txt</strong> com os dados dos alunos.
+          Envie um arquivo <strong>.CSV</strong>, <strong>.TXT</strong> ou <strong>.PDF</strong> com os dados dos alunos.
           <br />
-          Formato esperado (separado por vírgulas ou ponto e vírgula):
+          <strong>Formato esperado:</strong>
           <br />
-          <code>
-            ra;course;period;status;name;admission;email;cpf;rg;birthDate;dueDate;password
-          </code>
+          (RA: 13 digitos, Status: Em Curso, Trancado, Concluido ou Desistente e Admission: ex: 20241, 20242...)
+          <br />
+          (separado por vírgulas ou ponto e vírgula):
+          <br />
+          Parametros:
+          <br />
+          <code>ra;course;status;name;admission;email;cpf;birthDate</code>
         </p>
 
         <div className={styles.uploadBox}>
@@ -88,7 +92,7 @@ export default function UploadStudentsScreen() {
             <input
               id="fileUpload"
               type="file"
-              accept=".csv,.txt"
+              accept=".csv,.txt,.pdf"
               onChange={handleFileChange}
               ref={fileInputRef}
               className={styles.fileInput}
