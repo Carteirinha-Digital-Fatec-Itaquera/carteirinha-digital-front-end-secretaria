@@ -22,7 +22,7 @@ export default function App() {
         <Route path="/password/:email/:code" element={<NewPasswordScreen />} />
         <Route path="/students" element={<Lista />} />
         <Route path="/register" element={<RegisterStudentScreen />} />
-        <Route path="/update/:id" element={<UpdateStudentScreen />} />
+        <Route path="/update/:ra" element={<UpdateStudentScreen />} />
       </Routes>
     </BrowserRouter>
   );

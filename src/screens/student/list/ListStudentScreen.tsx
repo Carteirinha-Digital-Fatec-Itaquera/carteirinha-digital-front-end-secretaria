@@ -86,11 +86,11 @@ export default function StudentsListScreen() {
       <div className={layoutStyles.contentWrapper}>
         <div className={styles.container}>
 
-      <TitleComp text='Listagem de alunos' />
+      <TitleComp text='Listagem de Alunos' />
 
       <SearchBarComp
-        label='Pesquisar por alunos'
-        placeholder='Ex: nome, CPF, RG, e-mail, curso, periodo, status ou RA'
+        label='Pesquisar por Aluno'
+        placeholder='Ex: Nome, CPF, E-mail, Curso, Status ou RA'
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
       />
@@ -151,7 +151,6 @@ export default function StudentsListScreen() {
 
       <div className={styles.list}>
         <div className={styles.listHeader}>
-          <h2>Lista de estudantes</h2>
           <span className={styles.totalCount}>
             Total: {students.length} aluno(s)
           </span>
@@ -171,9 +170,9 @@ export default function StudentsListScreen() {
               <StudentCardComp
                 key={student.id}
                 student={student}
-                onAction={() => { navigate(`/update/${student.id}`) }}
+                onAction={() => { navigate(`/update/${student.ra}`) }}
                 onClickResolve={() => {
-                  setIdStudentSelected(student.id)
+                  setIdStudentSelected(student.ra)
                   setModalAlertVisible(true)
                 }}
               />
