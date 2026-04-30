@@ -10,6 +10,7 @@ function MenuLateral(){
     const getSelectedItem = () => {
         if (location.pathname === "/students") return "listaAlunos";
         if (location.pathname === "/register") return "registroManual";
+         if (location.pathname === "/upload-alunos") return "registroImport";
         if (location.pathname.startsWith("/update")) return "listaAlunos";
         return "listaAlunos";
     };
@@ -64,7 +65,7 @@ function MenuLateral(){
                             </li>
                             <li 
                                 className={`${styles.itemMenu} ${selected === "registroImport" ? styles.selected : ""}`}
-                                onClick={() => handleMenuClick("registroImport", "#")}
+                                onClick={() => handleMenuClick("registroImport", "/upload-alunos")}
                             >
                                 <CloudArrowUpIcon size={30} color="#ffffff"  />
                                 <a href="" onClick={(e) => e.preventDefault()}>Importar</a>
@@ -83,7 +84,7 @@ function MenuLateral(){
 
                        <li 
                         className={`${styles.itemMenu} ${selected === "deslogar" ? styles.selected : ""}`}
-                       j
+                        onClick={handleLogout}
                       >
                         <SignOutIcon size={30} color="#ffffff" />
                         <a href="" onClick={(e) => e.preventDefault()}>Deslogar</a>
