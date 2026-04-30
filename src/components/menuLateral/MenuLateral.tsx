@@ -83,7 +83,7 @@ function MenuLateral(){
 
                        <li 
                         className={`${styles.itemMenu} ${selected === "deslogar" ? styles.selected : ""}`}
-                        onClick={handleLogout}
+                       j
                       >
                         <SignOutIcon size={30} color="#ffffff" />
                         <a href="" onClick={(e) => e.preventDefault()}>Deslogar</a>
