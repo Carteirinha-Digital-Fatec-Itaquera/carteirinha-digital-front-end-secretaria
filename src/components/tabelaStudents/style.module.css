@@ -1,0 +1,85 @@
+.tableWrapper {
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
+  width: 100%;
+  overflow: hidden;
+}
+
+.tabela {
+  border-spacing: 0;
+  font-size: 14px;
+  color: #2c3e50;
+}
+
+.colunas tr th {
+  background-color: #a8c5c5;
+  color: #1a3333;
+  font-weight: 700;
+  font-size: 17px;
+  padding: 14px 16px;
+  border: none;
+  white-space: nowrap;
+}
+
+.linhas td {
+  padding: 12px 16px;
+  border-top: 1px solid #e8f0f0;
+  background-color: #ffffff;
+  vertical-align: middle;
+  font-size: medium;
+  transition: background-color 0.15s ease;
+}
+
+.linhas:hover td {
+  background-color: #f4fbfb;
+}
+
+.badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.badgeActive {
+  background-color: #c8f0df;
+  color: #1a7a4a;
+}
+
+.badgeInactive {
+  background-color: #fcd5d5;
+  color: #b91c1c;
+}
+
+.semAlunos {
+  text-align: center;
+  padding: 40px 0 !important;
+  color: #94a3b8;
+  font-size: 14px;
+}
+
+.colunaBotao {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.botaoGerenciar {
+  padding: 6px 16px;
+  border: 2px solid var(--primaryColor, #2a9d8f);
+  background-color: transparent;
+  color: var(--primaryColor, #2a9d8f);
+  font-weight: 600;
+  font-size: 13px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.botaoGerenciar:hover {
+  background-color: var(--primaryColor, #2a9d8f);
+  color: #ffffff;
+}
