@@ -1,13 +1,13 @@
 .searchArea {
   width: 100%;
-  max-width: 800px;
+  max-width: 1500px;
   margin-top: 10px;
-  text-align: center;
+  margin-bottom: 20px;
 }
 
 .searchLabel {
   font-weight: bold;
-  color: var(--labelColor);
+  color: #005C6D;
   font-size: 16px;
 }
 
@@ -15,12 +15,19 @@
   margin-top: 5px;
   background: white;
   border: 2px solid #c8c8c8;
-  border-radius: 20px;
+  border-radius: 10px;
   padding: 10px 15px;
   display: flex;
   align-items: center;
-}
 
+}
+.searchBox:focus-within {
+  border-color: #005C6D; 
+  
+}
+.searchBox {
+  transition: border-color 0.3s ease;
+}
 .searchInput {
   flex: 1;
   border: none;
@@ -28,10 +35,12 @@
   font-size: 15px;
   background: transparent;
   color: #000;
+
 }
 
 .searchIcon {
   font-size: 18px;
   margin-left: 10px;
   cursor: pointer;
+  color: #005C6D;
 }
