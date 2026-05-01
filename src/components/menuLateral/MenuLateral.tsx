@@ -80,7 +80,8 @@ function MenuLateral(){
                         className={`${styles.itemMenu} ${selected === "perfil" ? styles.selected : ""}`}
                         onClick={() => handleMenuClick("perfil", "/perfil")}
                       >
-                        <UserCircleIcon size={30} color="#ffffff" /><a href="" onClick={(e) => e.preventDefault()}>Perfil</a>
+                        <UserCircleIcon size={30} color="#ffffff" />
+                        <a href="" onClick={(e) => e.preventDefault()}>Perfil</a>
                       </li>
 
                        <li 
