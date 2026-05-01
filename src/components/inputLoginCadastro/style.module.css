@@ -23,6 +23,13 @@
 .containerInput{
   width: 100%;
 }
+.inputArea:focus-within {
+  border-color: #5bb9ca; 
+  
+}
+.inputArea {
+  transition: border-color 0.3s ease;
+}
 
 .icon {
   margin-right: 12px;
