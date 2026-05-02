@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import type { Student } from '../../domains/Student';
 import styles from './style.module.css';
+import { useState } from 'react';
 
 type Props = {
   students: Student[];

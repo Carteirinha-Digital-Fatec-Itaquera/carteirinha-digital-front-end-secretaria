@@ -44,4 +44,75 @@
   color: #000000;
   cursor: default;
 }
+.filterBar {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  max-width: 1500px;
+  background: #c8dede;
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin-top: 20px;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 50px;
+}
+
+.filterSelect {
+  height: 45px;
+  padding: 0 12px;
+  border: 1.5px solid #b0cccc;
+  border-radius: 8px;
+  background: #ffffff;
+  font-size: 16px;
+  color: #2c3e50;
+  outline: none;
+  cursor: pointer;
+  min-width: 170px;
+  appearance: auto;
+  transition: border-color 0.2s ease;
+}
+
+.filterSelect:focus, .searchBox:focus-within {
+  border-color: var(--primaryColor, #2a9d8f);
+  box-shadow: 0 0 0 3px rgba(42, 157, 143, 0.12);
+}
+
+.searchArea {
+  display: flex;
+  flex-direction: column;
+  width: 65%;
+}
+
+.searchBox {
+  margin-top: 5px;
+  background: rgb(170, 147, 147);
+  border: 1.5px solid #b0cccc;
+  border-radius: 10px;
+  padding: 10px 15px;
+  display: flex;
+  align-items: center;
+  background-color: #fff;
+
+}
+
+.searchBox {
+  transition: border-color 0.3s ease;
+}
+.searchInput {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 15px;
+  background: transparent;
+  color: #000;
+}
+
+.searchIcon {
+  font-size: 18px;
+  margin-left: 10px;
+  cursor: pointer;
+  color: #005C6D;
+}
 
