@@ -4,7 +4,6 @@ import { useNavigate } from "react-router-dom";
 
 import { SearchBarComp } from '../../../components/searchbar/SearchBarComp';
 import { TitleComp } from '../../../components/title/TitleComp';
-import { ButtonComp } from '../../../components/button/ButtonComp';
 import MenuLateral from '../../../components/menuLateral/MenuLateral';
 
 import { findAllByQuery } from '../../../api/student/findAllByQuery';
@@ -18,12 +17,8 @@ import type { ErrorField } from '../../../utils/Types';
 import { approvePhoto } from '../../../api/student/approvePhoto';
 import { toast } from 'react-toastify';
 import { ErrorModalComp } from '../../../components/errormodal/ErrorModalComp';
-
-const formatDueDate = (dueDate: Date | string) => {
-  const date = new Date(dueDate);
-  if (date < new Date()) return "Vencida";
-  return date.toLocaleDateString('pt-BR');
-  };
+import { LoadingComp } from '../../../components/loading/LoadingComp';
+import TabelaStudents from '../../../components/tabelaStudents/TabelaStudents';
 
 export default function StudentsListScreen() {
   const navigate = useNavigate();
@@ -59,32 +54,6 @@ export default function StudentsListScreen() {
     fetchStudents();
   }, [searchTerm]);
 
-  if (loading) {
-    return (
-      <div className={styles.container}>
-        <div className={styles.loadingContainer}>
-          <div className={styles.spinner}></div>
-          <p>Carregando lista de estudantes...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className={styles.container}>
-        <div className={styles.errorContainer}>
-          <p className={styles.errorText}>{error}</p>
-          <button
-            className={styles.retryButton}
-            onClick={() => window.location.reload()}
-          >
-            Tentar novamente
-          </button>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className={layoutStyles.layoutContainer}>
@@ -159,33 +128,16 @@ export default function StudentsListScreen() {
 
       <div className={styles.list}>
         <div className={styles.listHeader}>
-          <span className={styles.totalCount}>
-            Total: {students.length} aluno(s)
+            Total:  <span className={styles.totalCount}>{students.length} aluno(s)
           </span>
         </div>
 
-        {students.length === 0 ? (
-          <div className={styles.emptyState}>
-            {searchTerm ? (
-              <p>Nenhum estudante encontrado para "{searchTerm}"</p>
-            ) : (
-              <p>Nenhum estudante cadastrado.</p>
-            )}
+        {loading ? (
+          <div style={{ display: 'flex', justifyContent: 'center', marginTop: '2rem' }}>
+          <LoadingComp />
           </div>
         ) : (
-          <div className={styles.cardsContainer}>
-            {students.map(student => (
-              <StudentCardComp
-                key={student.id}
-                student={student}
-                onAction={() => { navigate(`/update/${student.ra}`) }}
-                onClickResolve={() => {
-                  setIdStudentSelected(student.ra)
-                  setModalAlertVisible(true)
-                }}
-              />
-            ))}
-          </div>
+          <TabelaStudents students={students} />
         )}
       </div>
 
@@ -195,67 +147,3 @@ export default function StudentsListScreen() {
     </div>
   );
 }
-
-type StudentCardProps = {
-  student: Student;
-  onAction: () => void;
-  onClickResolve: () => void;
-};
-
-  const StudentCardComp = ({ student, onAction, onClickResolve }: StudentCardProps) => {
-
-   console.log(student.photo)
-   console.log(student.photoForAnalysis)
-
-    return (
-      <div className={styles.studentCard}>
-        <div className={styles.cardHeader}>
-          <span className={styles.ra}>RA: {student.ra}</span>
-          <span className={`${styles.status} ${styles[student.status]}`}>
-          {student.status}
-        </span>
-      </div>
-
-      <div className={styles.cardBody}>
-        <div>
-          <p><strong>Nome:</strong> {student.name}</p>
-          <p><strong>E-mail:</strong> {student.email}</p>
-          <p><strong>CPF:</strong> {student.cpf}</p>
-          <p><strong>Curso:</strong> {student.course}</p>
-          <p><strong>Data de Nascimento:</strong> {new Date(student.birthDate).toLocaleDateString('pt-BR')}</p>
-          <p><strong>Admissão:</strong> {student.admission}</p>
-          <p><strong>Vencimento:</strong> {formatDueDate(student.dueDate)}</p>
-        </div>
-        <div>
-          <p><strong>Foto atual</strong></p>
-          {student.photo != null && student.photo.length > 0 &&
-            <img height={150} width={150} src={student.photo} />
-          }
-          {student.requestPending &&
-            <div>
-              <p><strong>Foto solicitada</strong></p>
-              <div style={{display: 'flex', flexDirection: 'column'}}>
-                <img height={150} width={150} src={student.photoForAnalysis} />
-                <ButtonComp
-                  text='Responder'
-                  onClick={onClickResolve}
-                  color='#000000'
-                />
-              </div>
-            </div>
-          }
-        </div>
-      </div>
-
-      <div className={styles.container_button}>
-        <ButtonComp
-          text='Gerenciar informações'
-          onClick={onAction}
-        />
-      </div>
-
-    </div>
-  );
-  
-
-};

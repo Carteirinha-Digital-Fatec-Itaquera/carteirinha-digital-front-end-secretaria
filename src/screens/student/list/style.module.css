@@ -1,12 +1,12 @@
 .container {
   width: 100%;
   min-height: 100vh;
-  background: var(--secondaryColor);
+  background: #F5F5F5;
   display: flex;
   flex-direction: column;
   align-items: center;
-  font-family: "Montserrat";
   padding-bottom: 60px;
+  padding: 20px;
 }
 
 .header {
@@ -15,100 +15,33 @@
   justify-content: space-between;
 }
 
-.logoLeft {
-  height: 100px;
-  margin: 10px;
-}
-
-.logoRight {
-  height: 100px;
-  margin: 10px;
-}
-
 .list {
   width: 100%;
-  max-width: 900px;
+  max-width: 1500px;
   margin-top: 25px;
 }
-
-.cardsContainer {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  margin-top: 15px;
-}
-
-.studentCard {
-  background: #ffffff;
-  border-radius: 12px;
-  padding: 18px 22px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
-  border-left: 6px solid var(--primaryColor);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.studentCard:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12);
-}
-
-.cardHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 12px;
-}
-
-.ra {
-  font-weight: 600;
-  font-size: 15px;
-}
-
-.cardBody {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  gap: 6px;
-  font-size: 14px;
-}
-
-.cardBody strong {
-  color: #333;
-}
-
-.status {
-  padding: 4px 10px;
-  border-radius: 12px;
-  font-size: 12px;
-  font-weight: 600;
-  text-transform: capitalize;
-}
-
-.active {
-  background: #d1fae5;
-  color: #065f46;
-}
-
-.inactive {
-  background: #fee2e2;
-  color: #991b1b;
-}
-
-.pending {
-  background: #fef3c7;
-  color: #92400e;
-}
-
-.container_button {
-  width: 100%;
+.listHeader{
+  font-size: 16px;
+  font-weight: 700;
+  background-color: #a8c5c5;
+  border-radius: 10px;
+  padding: 5px;
+  width: 200px;
+  color: #000000;
   display: flex;
   justify-content: center;
+  margin-bottom: 20px;
+  column-gap: 7px;
+
+}
+.listHeader span{
+  color: #0e6e81;
+  font-size: 16px;
+  font-weight: 600;
+}
+.listHeader:hover{
+  background-color: #86acac;
+  color: #000000;
+  cursor: default;
 }
 
-.footer {
-  position: fixed;
-  bottom: 0px;
-  width: 100%;
-  display: flex;
-  justify-content: space-between;
-}
