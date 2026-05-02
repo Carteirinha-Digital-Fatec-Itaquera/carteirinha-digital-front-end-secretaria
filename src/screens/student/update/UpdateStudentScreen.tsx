@@ -145,7 +145,7 @@ export default function UpdateStudentScreen() {
     }
   }, [student]);
 
-  if (loadingStudent) return <LoadingComp />;
+  
 
   return (
     <div className={layoutStyles.layoutContainer}>
@@ -157,7 +157,10 @@ export default function UpdateStudentScreen() {
 
           <TitleComp text="Atualizar aluno" />
 
-          <form className={styles.form}>
+          {loadingStudent ? (
+            <LoadingComp />
+          ) :  (
+            <form className={styles.form}>
             <div className={styles.containerInputs}>
               <InputComp
                 label="RA"
@@ -165,7 +168,7 @@ export default function UpdateStudentScreen() {
                 icon={<FaIdCard />}
                 value={ra}
                 onChangeText={() => {}}
-                disabled={true}
+                
               />
               <SelectComp
                label="Ingresso"
@@ -200,6 +203,10 @@ export default function UpdateStudentScreen() {
             <div className={styles.containerInputs}>
             </div>
           </form>
+          
+          )}
+
+          
 
           <ErrorModalComp
             visible={modalErrorVisible}
