@@ -70,25 +70,9 @@ export default function UploadStudentsScreen() {
 
 
       <div className={styles.card}>
-        {/* Botão voltar */}
-
-       
-        <p className={styles.info}>
-          Envie um arquivo <strong>.CSV</strong>, <strong>.TXT</strong> ou <strong>.PDF</strong> com os dados dos alunos.
-          <br />
-          <strong>Formato esperado:</strong>
-          <br />
-          (RA: 13 digitos, Status: Em Curso, Trancado, Concluido ou Desistente e Admission: ex: 20241, 20242...)
-          <br />
-          (separado por vírgulas ou ponto e vírgula):
-          <br />
-          Parametros:
-          <br />
-          <code>ra;course;status;name;admission;email;cpf;birthDate</code>
-        </p>
-
-        <div className={styles.uploadBox}>
-          <label htmlFor="fileUpload" className={styles.fileInputLabel}>
+      
+        <div className={styles.caixaUpload}>
+          <label htmlFor="fileUpload" className={styles.inputArquivoArea}>
             <input
               id="fileUpload"
               type="file"
@@ -97,37 +81,41 @@ export default function UploadStudentsScreen() {
               ref={fileInputRef}
               className={styles.fileInput}
             />
-            <div className={styles.uploadOverlay}>
+            <div className={styles.textoUpload}>
                 <CloudArrowUpIcon size={100} color="#005C6D" />
               <h3>Importe seu arquivo</h3>
-              <p>
-                {file
-                  ? `Arquivo selecionado: ${file.name}`
-                  : "Arraste e solte seu arquivo aqui ou clique para selecionar"}
-              </p>
+              <p>Arraste e solte seu arquivo aqui ou clique para selecionar</p>
             </div>
           </label>
+          {file && (
+            <div className={styles.containerArquivo}>
+              <img src="/iconDoc.svg" alt="" />
+              <p>{file.name}</p>
+            </div>
+          )}
+          <div className={styles.containerBotao}>
+          <button className={styles.btnEnviar} onClick={handleUpload}>Enviar arquivo</button>
+          <button className={styles.btnCancelar} onClick={handleCancel} color="#999999" >Cancelar</button>
         </div>
-
-        <div className={styles.actionsRow}>
-          <ButtonComp text="Enviar arquivo" onClick={handleUpload} />
-          <ButtonComp text="Cancelar" onClick={handleCancel} color="#999999" />
+          
         </div>
 
         {loading && <LoadingComp />}
 
         {result && (
-          <div className={styles.resultBox}>
+          <div className={styles.containerResultado}>
             <h3>Resultado do processamento</h3>
-            <p>📌 Total de registros: {result.total}</p>
-            <p>✅ Cadastrados com sucesso: {result.sucesso}</p>
-            <p>❌ Erros: {result.erros?.length || 0}</p>
+            <p>Total de registros: {result.total}</p>
+            <p>Cadastrados com sucesso:  <span className={styles.cadastrados}>{result.sucesso}</span></p>
+            <p>Erros: <span className={styles.numErros}>{result.erros?.length || 0}</span></p>
             {result.erros?.length > 0 && (
               <details>
                 <summary>Ver detalhes dos erros</summary>
-                <ul>
+                <ul className={styles.listaErros}>
                   {result.erros.map((err: any, idx: number) => (
-                    <li key={idx}>Linha {err.linha}: RA {err.ra} - {err.erro}</li>
+                    <li className={styles.itemErro} key={idx}>Linha {err.linha}: RA {err.ra} - <span className={styles.erros}>{err.erro}</span>
+                    </li>
+                    
                   ))}
                 </ul>
               </details>
