@@ -15,6 +15,7 @@ import { decodeToken } from "../../../utils/decodeToken";
 
 import styles from "./style.module.css";
 import layoutStyles from "../../../styles/layoutWithMenu.module.css";
+import { InputLogin } from "../../../components/inputLoginCadastro/InputLogin";
 
 export default function ProfileScreen() {
   const navigate = useNavigate();
@@ -119,8 +120,6 @@ export default function ProfileScreen() {
   setSaving(false);
   };
 
-  if (loading) return <LoadingComp />;
-
   return (
     <div className={layoutStyles.layoutContainer}>
       <div className={layoutStyles.menuWrapper}>
@@ -130,11 +129,8 @@ export default function ProfileScreen() {
         <div className={styles.container}>
 
           <TitleComp text="Meu Perfil" />
-
-          <button className={styles.backButton} onClick={() => navigate("/students")}>
-            <FaArrowLeft />
-          </button>
-
+          {loading ? (<LoadingComp />) : 
+          (
           <div className={styles.card}>
             <div className={styles.avatarContainer}>
               <div className={styles.avatar}>
@@ -169,33 +165,32 @@ export default function ProfileScreen() {
             ) : (
               <>
                 <div className={styles.form}>
-                  <InputComp
+                  <InputLogin
+                    label="Nome"
+                    placeholder="Seu nome"
+                    value={editName}
+                    onChangeText={setEditName}
+                  />
+                  <InputLogin
+                    label="E-mail"
+                    type="email"
+                    placeholder="Seu e-mail"
+                    value={editEmail}
+                    onChangeText={setEditEmail}
+                  />
+                  <InputLogin
                     label="Nova senha"
                     type="password"
                     placeholder="Digite a nova senha"
                     value={editPassword}
                     onChangeText={setEditPassword}
                   />
-                  <InputComp
+                  <InputLogin
                     label="Confirmar nova senha"
                     type="password"
                     placeholder="Confirme a nova senha"
                     value={editConfirmPassword}
                     onChangeText={setEditConfirmPassword}
-                  />
-                  
-                  <InputComp
-                    label="Nome"
-                    placeholder="Seu nome"
-                    value={editName}
-                    onChangeText={setEditName}
-                  />
-                  <InputComp
-                    label="E-mail"
-                    type="email"
-                    placeholder="Seu e-mail"
-                    value={editEmail}
-                    onChangeText={setEditEmail}
                   />
                   
                   <div className={styles.infoItem}>
@@ -220,7 +215,9 @@ export default function ProfileScreen() {
               </>
             )}
           </div>
-        </div>
+        )}
+
+      </div>
       </div>
     </div>
   );
