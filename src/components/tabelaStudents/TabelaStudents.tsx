@@ -6,11 +6,7 @@ type Props = {
   students: Student[];
 };
 
-const statusLabel: Record<string, string> = {
-  active: 'Ativo',
-  inactive: 'Inativo',
-  pending: 'Pendente',
-};
+
 
 const formatAdmission = (admission: Date | string | number) => {
   if (!admission) return '-';
@@ -32,6 +28,7 @@ function TabelaStudents({ students }: Props) {
               <th>Situação</th>
               <th>Ingresso</th>
               <th>Curso</th>
+              <th>Vencimento</th>
               <th>Nome</th>
               <th>CPF</th>
               <th>Nascimento</th>
@@ -49,26 +46,29 @@ function TabelaStudents({ students }: Props) {
               </tr>
             ) : (
               students.map((student) => (
+                 
                 <tr key={student.ra} className={styles.linhas}>
                   <td>{student.ra}</td>
                   <td>
+
                     <span
-                      className={`${styles.badge} ${
-                        student.status === 'Em curso' || student.status === 'Concluido'
-                          ? styles.badgeActive
-                          : styles.badgeInactive
-                          
-                      }`}
-                    >
-                      {statusLabel[student.status] ?? student.status}
-                    </span>
+                    className={`${styles.badge} ${
+                      ['em curso', 'concluido', 'ativo'].includes(
+                        student.status?.trim().toLowerCase()
+                      )
+                        ? styles.badgeActive
+                        : styles.badgeInactive
+                    }`}
+                  >
+                    {student.status || 'Desconhecido'}
+                  </span>
                   </td>
                   <td>{formatAdmission(student.admission)}</td>
                   <td>{student.course}</td>
+                  <td>{formatAdmission(student.dueDate)}</td>
                   <td>{student.name}</td>
                   <td>{student.cpf}</td>
                   <td>{formatAdmission(student.birthDate)}</td>
-                  
                   <td>{student.email}</td>
                   <td className={styles.colunaBotao}>
                     <button
