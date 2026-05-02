@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 
 import { useNavigate } from "react-router-dom";
 
@@ -19,6 +19,7 @@ import { toast } from 'react-toastify';
 import { ErrorModalComp } from '../../../components/errormodal/ErrorModalComp';
 import { LoadingComp } from '../../../components/loading/LoadingComp';
 import TabelaStudents from '../../../components/tabelaStudents/TabelaStudents';
+import { FiSearch } from 'react-icons/fi';
 
 export default function StudentsListScreen() {
   const navigate = useNavigate();
@@ -28,6 +29,8 @@ export default function StudentsListScreen() {
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
   const [error] = useState(null);
+  const [situacaoFilter, setSituacaoFilter] = useState('');
+  const [cursoFilter, setCursoFilter] = useState('');
   const [searchTerm, setSearchTerm] = useState("");
 
   const [messageError, setMessageError] = useState("");
@@ -35,7 +38,18 @@ export default function StudentsListScreen() {
   const [modalErrorVisible, setModalErrorVisible] = useState(false);
   const [modalAlertVisible, setModalAlertVisible] = useState(false);
 
+     const cursos = useMemo(() => {
+    const set = new Set(students.map((s) => s.course).filter(Boolean));
+    return Array.from(set).sort();
+  }, [students]);
 
+    const filteredStudents = useMemo(() => {
+    return students.filter((s) => {
+      const matchSituacao = !situacaoFilter || s.status === situacaoFilter;
+      const matchCurso = !cursoFilter || s.course === cursoFilter;
+      return matchSituacao && matchCurso;
+    });
+  }, [students, situacaoFilter, cursoFilter]);
 
   useEffect(() => {
     const fetchStudents = async () => {
@@ -65,12 +79,54 @@ export default function StudentsListScreen() {
 
       <TitleComp text='Listagem de Alunos' />
 
-      <SearchBarComp
-        label='Pesquisar por Aluno'
-        placeholder='Ex: Nome, CPF, E-mail, Curso, Status ou RA'
-        searchTerm={searchTerm}
-        setSearchTerm={setSearchTerm}
-      />
+      <div className={styles.filterBar}>
+
+        {/* barra de pesquisa */}
+        <div className={styles.searchArea} >
+      <div className={styles.searchBox}>
+        <input
+              type="text"
+              className={styles.searchInput}
+              placeholder="Busca por Nome, CPF, E-mail, ou RA"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              
+            />
+        <span className={styles.searchIcon}>
+          <FiSearch/>
+        </span>
+      </div>
+    </div >
+            {/* selects com os filtros */}
+            <div style={{ width: '30%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap' }}>
+
+            <select
+              className={styles.filterSelect}
+              value={situacaoFilter}
+              onChange={(e) => setSituacaoFilter(e.target.value)}
+            >
+              <option value="">Todas as situações</option>
+              <option value="Em curso">Em curso</option>
+              <option value="Trancado">Trancado</option>
+              <option value="Concluido">Concluído</option>
+              <option value="Desistente">Desistente</option>
+            </select>
+
+            <select
+              className={styles.filterSelect}
+              value={cursoFilter}
+              onChange={(e) => setCursoFilter(e.target.value)}
+            >
+              <option value="">Todos os cursos</option>
+              {cursos.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
+            </div>
+          </div>
+
 
 
       <ErrorModalComp
@@ -128,7 +184,7 @@ export default function StudentsListScreen() {
 
       <div className={styles.list}>
         <div className={styles.listHeader}>
-            Total:  <span className={styles.totalCount}>{students.length} aluno(s)
+            Total:  <span className={styles.totalCount}>{filteredStudents.length} aluno(s)
           </span>
         </div>
 
@@ -137,7 +193,7 @@ export default function StudentsListScreen() {
           <LoadingComp />
           </div>
         ) : (
-          <TabelaStudents students={students} />
+          <TabelaStudents students={filteredStudents} />
         )}
       </div>
 
