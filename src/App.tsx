@@ -6,9 +6,7 @@ import RegisterStudentScreen from "./screens/student/register/RegisterStudentScr
 import RedefinePasswordScreen from "./screens/recoverypassword/redefine/RedefinePasswordScreen";
 import SecurityCodeScreen from "./screens/recoverypassword/code/SecurityCodeScreen";
 import NewPasswordScreen from "./screens/recoverypassword/password/NewPasswordScreen";
-import StudentsListScreen from "./screens/student/list/ListStudentScreen";
 import UpdateStudentScreen from "./screens/student/update/UpdateStudentScreen";
-import Lista from "./screens/student/lista/Lista";
 import ListStudentScreen from "./screens/student/list/ListStudentScreen";
 import UploadStudentsScreen from "./screens/student/upload/UploadStudentsScreen";
 import ProfileScreen from "./screens/secretary/profile/ProfileScreen";
