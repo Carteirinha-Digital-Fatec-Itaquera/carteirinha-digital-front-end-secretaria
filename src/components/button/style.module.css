@@ -10,9 +10,11 @@
   font-weight: bold;
   cursor: pointer;
   box-shadow: 0 6px 10px rgba(0, 0, 1, 0.233);
-  transition: background-color 0.3s;
+  transition: background-color 0.3s, transform 0.2s ease; 
 }
 
 .button:hover {
   background-color: #022930ea;
+  transform: scale(1.05);
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.3);
 }
