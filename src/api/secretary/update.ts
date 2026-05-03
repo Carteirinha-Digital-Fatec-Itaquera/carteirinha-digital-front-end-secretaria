@@ -3,7 +3,7 @@ import { GLOBAL_VAR } from '../config/globalVar';
 export async function updateSecretary(id: number, data: {
   name: string;
   email: string;
-  birthDate: string;
+  birthDate?: string;
   dueDate: string;
   password?: string;
 }) {
