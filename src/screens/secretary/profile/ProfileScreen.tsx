@@ -1,12 +1,10 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { FaArrowLeft, FaEnvelope, FaClock, FaEdit, FaSave, FaTimes } from "react-icons/fa";
+import { FaEnvelope, FaClock } from "react-icons/fa";
 
 import { TitleComp } from "../../../components/title/TitleComp";
 import { LoadingComp } from "../../../components/loading/LoadingComp";
-import { InputComp } from "../../../components/input/InputComp";
 import { ButtonComp } from "../../../components/button/ButtonComp";
-import { DatePickerComp } from "../../../components/dataPicker/DatePickerComp";
 import MenuLateral from "../../../components/menuLateral/MenuLateral";
 
 import { findSecretaryById } from "../../../api/secretary/findById";
@@ -32,8 +30,6 @@ export default function ProfileScreen() {
   const [editName, setEditName] = useState("");
   const [editEmail, setEditEmail] = useState("");
   const [editDueDate, setEditDueDate] = useState("");
-
-  const [isCalendarDue, setIsCalendarDue] = useState(false);
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
