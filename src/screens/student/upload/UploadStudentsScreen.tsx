@@ -1,21 +1,15 @@
 import { useState, useRef } from "react";
-import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { FaArrowLeft } from "react-icons/fa";
 
 import styles from "./style.module.css";
 import layoutStyles from '../../../styles/layoutWithMenu.module.css';
 import { uploadStudentsFile } from "../../../api/secretary/uploadStudentsFile";
-import { HeaderComp } from "../../../components/header/HeaderComp";
 import { TitleComp } from "../../../components/title/TitleComp";
-import { ButtonComp } from "../../../components/button/ButtonComp";
 import { LoadingComp } from "../../../components/loading/LoadingComp";
 import MenuLateral from "../../../components/menuLateral/MenuLateral";
-import { IconBase } from "react-icons";
 import { CloudArrowUpIcon } from "@phosphor-icons/react";
 
 export default function UploadStudentsScreen() {
-  const navigate = useNavigate();
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
