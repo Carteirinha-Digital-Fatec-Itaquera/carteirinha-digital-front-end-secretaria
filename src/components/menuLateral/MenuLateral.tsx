@@ -1,6 +1,7 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import styles from "./style.module.css";
 import {  CloudArrowUpIcon, FilePlusIcon, SignOutIcon, UserCircleIcon, UserCirclePlusIcon, UserListIcon } from "@phosphor-icons/react";
+import { CameraIcon } from "@phosphor-icons/react";
 
 function MenuLateral(){
     const navigate = useNavigate();
@@ -13,12 +14,13 @@ function MenuLateral(){
         if (location.pathname === "/upload-alunos") return "registroImport";
         if (location.pathname.startsWith("/update")) return "listaAlunos";
         if (location.pathname === "/perfil") return "perfil";
+        if (location.pathname === "/fotos") return "fotos";
         return "listaAlunos";
     };
     
     const selected = getSelectedItem();
     
-    const handleMenuClick = (item: string, path: string) => {
+    const handleMenuClick = (path: string) => {
         navigate(path);
     };
 
@@ -35,7 +37,7 @@ function MenuLateral(){
                 <ul className={styles.estiloLista}>
                     <li 
                         className={`${styles.itemMenu} ${selected === "listaAlunos" ? styles.selected : ""}`}
-                        onClick={() => handleMenuClick("listaAlunos", "/students")}
+                        onClick={() => handleMenuClick("/students")}
                     >
                         <UserListIcon size={30} color="#ffffff" /><a href="" onClick={(e) => e.preventDefault()}>Lista de alunos</a>
                     </li>
@@ -59,14 +61,14 @@ function MenuLateral(){
                         <div className="accordion-body" style={{background: 'transparent', padding: '0.5rem'}}>
                             <li 
                                 className={`${styles.itemMenu} ${selected === "registroManual" ? styles.selected : ""}`}
-                                onClick={() => handleMenuClick("registroManual", "/register")}
+                                onClick={() => handleMenuClick("/register")}
                             >
                                 <FilePlusIcon size={30} color="#ffffff"  />
                                 <a href="" onClick={(e) => e.preventDefault()}>Manual</a>
                             </li>
                             <li 
                                 className={`${styles.itemMenu} ${selected === "registroImport" ? styles.selected : ""}`}
-                                onClick={() => handleMenuClick("registroImport", "/upload-alunos")}
+                                onClick={() => handleMenuClick("/upload-alunos")}
                             >
                                 <CloudArrowUpIcon size={30} color="#ffffff"  />
                                 <a href="" onClick={(e) => e.preventDefault()}>Importar</a>
@@ -78,16 +80,26 @@ function MenuLateral(){
 
                       <li 
                         className={`${styles.itemMenu} ${selected === "perfil" ? styles.selected : ""}`}
-                        onClick={() => handleMenuClick("perfil", "/perfil")}
+                        onClick={() => handleMenuClick("/perfil")}
                       >
                         <UserCircleIcon size={30} color="#ffffff" />
                         <a href="" onClick={(e) => e.preventDefault()}>Perfil</a>
                       </li>
 
-                       <li 
-                        className={`${styles.itemMenu} ${selected === "deslogar" ? styles.selected : ""}`}
-                        onClick={handleLogout}
-                      >
+                      
+                        <li
+                            className={`${styles.itemMenu} ${selected === "fotos" ? styles.selected : ""}`}
+                            onClick={() => handleMenuClick("/fotos")}
+                        >
+                        <CameraIcon size={30} color="#ffffff" />
+                         <a href="" onClick={(e) => e.preventDefault()}>Fotos pendentes</a>
+                        </li>
+
+                        <li 
+                            className={styles.itemMenu}
+                            onClick={handleLogout}
+                        >
+
                         <SignOutIcon size={30} color="#ffffff" />
                         <a href="" onClick={(e) => e.preventDefault()}>Deslogar</a>
                       </li>
