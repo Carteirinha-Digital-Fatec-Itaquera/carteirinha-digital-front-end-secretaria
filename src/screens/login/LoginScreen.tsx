@@ -3,7 +3,6 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaEnvelope } from "react-icons/fa";
 
-import { InputComp } from "../../components/input/InputComp";
 import { InputPasswordComp } from "../../components/inputpassword/InputPasswordComp";
 import { ButtonComp } from "../../components/button/ButtonComp";
 import { TitleComp } from "../../components/title/TitleComp";
