@@ -5,12 +5,12 @@ import type { ApiError, Ok } from '../../utils/Types'
 import { GLOBAL_VAR } from '../config/globalVar'
 
 export async function sendEmail(email: Email): Promise<Ok | ApiError> {
-  const response = await fetch(`${GLOBAL_VAR.BASE_URL}/redefinirsenha/secretaria/solicitarcodigo`, {
+  const response = await fetch(`${GLOBAL_VAR.BASE_URL}/autenticacao/forgot-password`, {
     method: 'POST',
     headers: {
-      'Content-Type': 'application/json'
+    'Content-Type': 'application/json'
     },
-    body: JSON.stringify(email)
+    body: JSON.stringify({ email: email.email, type: 'secretary' })
   })
 
   if (!response.ok) {
