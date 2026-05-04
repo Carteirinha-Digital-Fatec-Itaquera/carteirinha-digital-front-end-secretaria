@@ -1,8 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
 
-import { useNavigate } from "react-router-dom";
-
-import { SearchBarComp } from '../../../components/searchbar/SearchBarComp';
 import { TitleComp } from '../../../components/title/TitleComp';
 import MenuLateral from '../../../components/menuLateral/MenuLateral';
 
@@ -22,13 +19,10 @@ import TabelaStudents from '../../../components/tabelaStudents/TabelaStudents';
 import { FiSearch } from 'react-icons/fi';
 
 export default function StudentsListScreen() {
-  const navigate = useNavigate();
 
-  const [idStudentSelected, setIdStudentSelected] = useState<string>("");
-
+  const [idStudentSelected,] = useState<string>("")
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error] = useState(null);
   const [situacaoFilter, setSituacaoFilter] = useState('');
   const [cursoFilter, setCursoFilter] = useState('');
   const [searchTerm, setSearchTerm] = useState("");
@@ -98,7 +92,7 @@ export default function StudentsListScreen() {
       </div>
     </div >
             {/* selects com os filtros */}
-            <div style={{ width: '30%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap' }}>
+            <div style={{ width: '45%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap' }}>
 
             <select
               className={styles.filterSelect}
@@ -106,7 +100,7 @@ export default function StudentsListScreen() {
               onChange={(e) => setSituacaoFilter(e.target.value)}
             >
               <option value="">Todas as situações</option>
-              <option value="Em curso">Em curso</option>
+              <option value="Em curso">Em Curso</option>
               <option value="Trancado">Trancado</option>
               <option value="Concluido">Concluído</option>
               <option value="Desistente">Desistente</option>

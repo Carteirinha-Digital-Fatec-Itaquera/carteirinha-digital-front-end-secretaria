@@ -7,7 +7,6 @@ import { TitleComp } from "../../../components/title/TitleComp";
 import { ButtonComp } from "../../../components/button/ButtonComp";
 import { FooterComp } from "../../../components/footer/FooterComp";
 import { HeaderComp } from "../../../components/header/HeaderComp";
-import { InputComp } from "../../../components/input/InputComp";
 import { ErrorModalComp } from "../../../components/errormodal/ErrorModalComp";
 import { LoadingComp } from "../../../components/loading/LoadingComp";
 
@@ -77,8 +76,9 @@ export default function RedefinePasswordScreen() {
                 const emailToSend = new Email({ email })
                 const result = await sendEmail(emailToSend)
                 if ('ok' in result) {
-                  navigate(`/code/${email}`)
-                } else {
+                  setMessage("E-mail enviado! Verifique sua caixa de entrada e clique no link recebido.")
+                  setModalErrorVisible(true)
+                  } else {
                   setMessage(result.message)
                   setErrorFields(result.errorFields ?? [])
                   setModalErrorVisible(true)

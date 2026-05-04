@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import type { Student } from '../../domains/Student';
 import styles from './style.module.css';
-import { useState } from 'react';
+import { DotsThreeVerticalIcon } from '@phosphor-icons/react';
 
 type Props = {
   students: Student[];
@@ -9,11 +9,23 @@ type Props = {
 
 
 
-const formatAdmission = (admission: Date | string | number) => {
+const formatAdmissionYear = (admission: Date | string | number) => {
   if (!admission) return '-';
-  const date = new Date(admission);
-  if (!isNaN(date.getTime())) return date.toLocaleDateString('pt-BR');
-  return String(admission);
+  const str = String(admission);
+  
+  // Se já está no formato 20241 ou 20242, retorna direto
+  if (/^\d{5}$/.test(str)) return str;
+  
+  // Se é uma data, converte para semestre
+  const date = new Date(str);
+  if (!isNaN(date.getTime())) {
+    const year = date.getFullYear();
+    const month = date.getMonth() + 1; // 1-12
+    const semester = month <= 6 ? 1 : 2;
+    return `${year}${semester}`;
+  }
+
+  return str;
 };
 
 function TabelaStudents({ students }: Props) {
@@ -25,16 +37,15 @@ function TabelaStudents({ students }: Props) {
         <table className={`table mb-0 ${styles.tabela}`}>
           <thead className={styles.colunas}>
             <tr>
+              <th>Foto</th>
               <th>RA</th>
               <th>Situação</th>
               <th>Ingresso</th>
               <th>Curso</th>
-              <th>Vencimento</th>
               <th>Nome</th>
               <th>CPF</th>
-              <th>Nascimento</th>
-              
               <th>Email</th>
+              <th>Editar</th>
               <th></th>
             </tr>
           </thead>
@@ -49,37 +60,41 @@ function TabelaStudents({ students }: Props) {
               students.map((student) => (
                  
                 <tr key={student.ra} className={styles.linhas}>
-                  <td>{student.ra}</td>
-                  <td>
-
-                    <span
-                    className={`${styles.badge} ${
-                      ['em curso', 'concluido', 'ativo'].includes(
-                        student.status?.trim().toLowerCase()
-                      )
-                        ? styles.badgeActive
-                        : styles.badgeInactive
-                    }`}
-                  >
-                    {student.status || 'Desconhecido'}
-                  </span>
-                  </td>
-                  <td>{formatAdmission(student.admission)}</td>
-                  <td>{student.course}</td>
-                  <td>{formatAdmission(student.dueDate)}</td>
-                  <td>{student.name}</td>
-                  <td>{student.cpf}</td>
-                  <td>{formatAdmission(student.birthDate)}</td>
-                  <td>{student.email}</td>
-                  <td className={styles.colunaBotao}>
-                    <button
-                      className={styles.botaoGerenciar}
-                      onClick={() => navigate(`/update/${student.ra}`)}
-                    >
-                      Gerenciar
-                    </button>
-                  </td>
-                </tr>
+          <td>
+    {student.photo ? (
+      <img
+        src={`http://localhost:3000${student.photo}`}
+        alt="Foto"
+        style={{ width: 40, height: 40, borderRadius: '50%', objectFit: 'cover' }}
+      />
+    ) : (
+      <span style={{ color: '#aaa', fontSize: '0.8rem' }}>Sem foto</span>
+    )}
+  </td>
+  <td>{student.ra}</td>
+  <td>
+    <span className={`${styles.badge} ${
+      ['em curso', 'concluido', 'ativo'].includes(student.status?.trim().toLowerCase())
+        ? styles.badgeActive
+        : styles.badgeInactive
+    }`}>
+      {student.status || 'Desconhecido'}
+    </span>
+  </td>
+  <td>{formatAdmissionYear(student.admission)}</td>
+  <td>{student.course}</td>
+  <td>{student.name}</td>
+  <td>{student.cpf}</td>
+  <td>{student.email}</td>
+  <td className={styles.colunaBotao}>
+    <button
+      className={styles.botaoGerenciar}
+      onClick={() => navigate(`/update/${student.ra}`)}
+    >
+      <DotsThreeVerticalIcon size={35} color="#005C6D" weight="bold" className={styles.iconMenu}/>
+    </button>
+  </td>
+</tr>
               ))
             )}
           </tbody>

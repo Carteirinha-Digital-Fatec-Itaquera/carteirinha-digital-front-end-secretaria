@@ -1,9 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
-import logoFatec from "/fatec_ra_metropolitana_sp_capital_itaquera_cor.png";
-import logosGov from "/logos_cps_governo_com_slogan_horizontal_cor.png";
-
 import { InputComp } from "../../../components/input/InputComp";
 import { ButtonComp } from "../../../components/button/ButtonComp";
 import { TitleComp } from "../../../components/title/TitleComp";
@@ -24,6 +21,9 @@ import styles from "./style.module.css";
 import layoutStyles from "../../../styles/layoutWithMenu.module.css";
 
 import { FaBook, FaEnvelope, FaFlag, FaIdCard, FaUser, FaCalendarCheck } from "react-icons/fa";
+ 
+import { removePhoto } from "../../../api/student/removePhoto";
+import { FaTrash } from "react-icons/fa";
 
 const generateAdmissionOptions = (): string[] => {
   const currentYear = new Date().getFullYear();
@@ -46,7 +46,7 @@ const OPTIONS_COURSE = [
   "Refrigeração, Ventilação e Ar Condicionado",
 ];
 
-const OPTIONS_STATUS = ["Em curso", "Trancado", "Concluído", "Desistente"];
+const OPTIONS_STATUS = ["Em Curso", "Trancado", "Concluído", "Desistente"];
 
 interface SelectProps {
   label: string;
@@ -70,6 +70,7 @@ const SelectComp = ({ label, icon, value, options, onChange }: SelectProps) => (
 );
 
 export default function UpdateStudentScreen() {
+  const [photo, setPhoto] = useState<string | null>(null);
   const navigate = useNavigate();
   const { ra: paramRa } = useParams();
 
@@ -81,7 +82,6 @@ export default function UpdateStudentScreen() {
   const [course, setCourse] = useState("");
   const [birthDate, setBirthDate] = useState("");
   const [admission, setAdmission] = useState("");
-  const [dueDate, setDueDate] = useState("");
   const [status, setStatus] = useState("");
 
   const [isCalendarOpenBirthDate, setIsCalendarOpenBirthDate] = useState(false);
@@ -117,6 +117,7 @@ export default function UpdateStudentScreen() {
       return;
     }
 
+
     const loadStudent = async () => {
       try {
         const data = await findById(paramRa);
@@ -140,8 +141,9 @@ export default function UpdateStudentScreen() {
       setCourse(student.course ?? "");
       setBirthDate(formatISOToBR(student.birthDate ?? ""));
       setAdmission(student.admission ?? "");
-      setDueDate(formatISOToBR(student.dueDate ?? ""));
       setStatus(student.status ?? "");
+      setAdmission(student.admission ?? "");
+      setPhoto(student.photo ?? null);
     }
   }, [student]);
 
@@ -156,6 +158,29 @@ export default function UpdateStudentScreen() {
         <div className={styles.container}>
 
           <TitleComp text="Atualizar aluno" />
+
+{photo && (
+  <div className={styles.photoContainer}>
+    <img
+      src={`http://localhost:3000${photo}`}
+      alt="Foto do aluno"
+      className={styles.photoPreview}
+    />
+    <ButtonComp
+      text="Remover foto"
+      color="#bd0909"
+      onClick={async () => {
+        const result = await removePhoto(paramRa ?? "");
+        if ('ok' in result) {
+          setPhoto(null);
+        } else {
+          setMessageError(result.message);
+          setModalErrorVisible(true);
+        }
+      }}
+    />
+  </div>
+)}
 
           {loadingStudent ? (
             <LoadingComp />

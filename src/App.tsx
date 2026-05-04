@@ -6,11 +6,13 @@ import RegisterStudentScreen from "./screens/student/register/RegisterStudentScr
 import RedefinePasswordScreen from "./screens/recoverypassword/redefine/RedefinePasswordScreen";
 import SecurityCodeScreen from "./screens/recoverypassword/code/SecurityCodeScreen";
 import NewPasswordScreen from "./screens/recoverypassword/password/NewPasswordScreen";
-import StudentsListScreen from "./screens/student/list/ListStudentScreen";
 import UpdateStudentScreen from "./screens/student/update/UpdateStudentScreen";
 import ListStudentScreen from "./screens/student/list/ListStudentScreen";
 import UploadStudentsScreen from "./screens/student/upload/UploadStudentsScreen";
 import ProfileScreen from "./screens/secretary/profile/ProfileScreen";
+import ResetPasswordScreen from "./screens/recoverypassword/reset/ResetPasswordScreen";
+import PhotosScreen from "./screens/secretary/photos/PhotosScreen";
+
 
 export default function App() {
   return (
@@ -27,6 +29,8 @@ export default function App() {
         <Route path="/update/:ra" element={<UpdateStudentScreen />} />
         <Route path="/upload-alunos" element={<UploadStudentsScreen />} />
         <Route path="/perfil" element={<ProfileScreen />} />
+        <Route path="/reset-password" element={<ResetPasswordScreen />} />
+        <Route path="/fotos" element={<PhotosScreen />} />
       </Routes>
     </BrowserRouter>
   );

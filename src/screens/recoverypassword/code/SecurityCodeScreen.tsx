@@ -7,7 +7,6 @@ import { TitleComp } from "../../../components/title/TitleComp";
 import { ButtonComp } from "../../../components/button/ButtonComp";
 import { FooterComp } from "../../../components/footer/FooterComp";
 import { HeaderComp } from "../../../components/header/HeaderComp";
-import { InputComp } from "../../../components/input/InputComp";
 import { ErrorModalComp } from "../../../components/errormodal/ErrorModalComp";
 import { LoadingComp } from "../../../components/loading/LoadingComp";
 
