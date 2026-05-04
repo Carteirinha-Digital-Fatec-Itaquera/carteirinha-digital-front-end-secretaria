@@ -1,5 +1,6 @@
 export type Token = {
   token: string,
+  mustChangePassword: boolean,
 }
 
 export type ApiError = {

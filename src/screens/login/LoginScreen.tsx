@@ -90,7 +90,11 @@ export default function LoginScreen() {
                   const result = await login(auth)
                   if ('token' in result) {
                     sessionStorage.setItem("token", result.token)
+                    if (result.mustChangePassword) {
+                    navigate("/redefinir-senha")
+                    } else {
                     navigate("/students")
+                  }
                   } else {
                     setMessage(result.message)
                     setErrorFields(result.errorFields ?? [])

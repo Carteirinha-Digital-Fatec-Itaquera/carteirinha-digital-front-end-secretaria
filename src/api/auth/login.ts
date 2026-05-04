@@ -26,5 +26,8 @@ export async function login(auth: Auth): Promise<Token | ApiError> {
     };
   }
 
-  return { token: data.token }
+  return { 
+  token: data.token,
+  mustChangePassword: data.mustChangePassword ?? false, 
+}
 }

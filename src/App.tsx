@@ -12,7 +12,7 @@ import UploadStudentsScreen from "./screens/student/upload/UploadStudentsScreen"
 import ProfileScreen from "./screens/secretary/profile/ProfileScreen";
 import ResetPasswordScreen from "./screens/recoverypassword/reset/ResetPasswordScreen";
 import PhotosScreen from "./screens/secretary/photos/PhotosScreen";
-
+import ChangePasswordScreen from "./screens/changepassword/ChangePasswordScreen";
 
 export default function App() {
   return (
@@ -31,6 +31,7 @@ export default function App() {
         <Route path="/perfil" element={<ProfileScreen />} />
         <Route path="/reset-password" element={<ResetPasswordScreen />} />
         <Route path="/fotos" element={<PhotosScreen />} />
+        <Route path="/redefinir-senha" element={<ChangePasswordScreen />} />
       </Routes>
     </BrowserRouter>
   );
