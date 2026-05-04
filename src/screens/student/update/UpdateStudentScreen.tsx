@@ -162,7 +162,7 @@ export default function UpdateStudentScreen() {
 {photo && (
   <div className={styles.photoContainer}>
     <img
-      src={`http://localhost:3000${photo}`}
+     src={photo}
       alt="Foto do aluno"
       className={styles.photoPreview}
     />

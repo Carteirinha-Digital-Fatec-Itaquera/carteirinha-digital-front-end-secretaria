@@ -70,6 +70,7 @@
   outline: none;
   cursor: pointer;
   min-width: 170px;
+  width: 100%;
   appearance: auto;
   transition: border-color 0.2s ease;
 }
@@ -116,3 +117,9 @@
   color: #005C6D;
 }
 
+.filterSelects {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 30%;
+}
