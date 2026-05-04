@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import type { Student } from '../../domains/Student';
 import styles from './style.module.css';
+import { DotsThreeVerticalIcon } from '@phosphor-icons/react';
 
 type Props = {
   students: Student[];
@@ -44,6 +45,7 @@ function TabelaStudents({ students }: Props) {
               <th>Nome</th>
               <th>CPF</th>
               <th>Email</th>
+              <th>Editar</th>
               <th></th>
             </tr>
           </thead>
@@ -89,7 +91,7 @@ function TabelaStudents({ students }: Props) {
       className={styles.botaoGerenciar}
       onClick={() => navigate(`/update/${student.ra}`)}
     >
-      Gerenciar
+      <DotsThreeVerticalIcon size={35} color="#005C6D" weight="bold" className={styles.iconMenu}/>
     </button>
   </td>
 </tr>

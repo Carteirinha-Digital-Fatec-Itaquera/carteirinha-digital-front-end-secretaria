@@ -82,7 +82,7 @@
 .searchArea {
   display: flex;
   flex-direction: column;
-  width: 65%;
+  width: 50%;
 }
 
 .searchBox {

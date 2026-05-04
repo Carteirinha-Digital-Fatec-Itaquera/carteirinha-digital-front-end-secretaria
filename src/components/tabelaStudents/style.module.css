@@ -68,19 +68,7 @@
 }
 
 .botaoGerenciar {
-  padding: 6px 16px;
-  border: 2px solid var(--primaryColor, #2a9d8f);
-  background-color: transparent;
-  color: var(--primaryColor, #2a9d8f);
-  font-weight: 600;
-  font-size: 13px;
-  border-radius: 8px;
   cursor: pointer;
-  transition: all 0.2s ease;
-  white-space: nowrap;
-}
-
-.botaoGerenciar:hover {
-  background-color: var(--primaryColor, #2a9d8f);
-  color: #ffffff;
+  background-color: transparent;
+  border: none;
 }
