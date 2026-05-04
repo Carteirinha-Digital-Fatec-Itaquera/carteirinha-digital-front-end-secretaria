@@ -12,7 +12,7 @@ import { ButtonComp } from "../../../components/button/ButtonComp";
 import { LoadingComp } from "../../../components/loading/LoadingComp";
 import MenuLateral from "../../../components/menuLateral/MenuLateral";
 import { IconBase } from "react-icons";
-import { CloudArrowUpIcon } from "@phosphor-icons/react";
+import { CloudArrowUpIcon, WarningIcon } from "@phosphor-icons/react";
 
 export default function UploadStudentsScreen() {
   const navigate = useNavigate();
@@ -113,7 +113,7 @@ export default function UploadStudentsScreen() {
                 <summary>Ver detalhes dos erros</summary>
                 <ul className={styles.listaErros}>
                   {result.erros.map((err: any, idx: number) => (
-                    <li className={styles.itemErro} key={idx}>Linha {err.linha}: RA {err.ra} - <span className={styles.erros}>{err.erro}</span>
+                    <li className={styles.itemErro} key={idx}> <WarningIcon size={24} color="#aa2121" weight="fill"/> Linha {err.linha}: RA {err.ra} - <span className={styles.erros}>{err.erro}</span>
                     </li>
                     
                   ))}
