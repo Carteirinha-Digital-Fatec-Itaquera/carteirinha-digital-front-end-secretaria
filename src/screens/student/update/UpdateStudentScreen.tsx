@@ -46,7 +46,7 @@ const OPTIONS_COURSE = [
   "Refrigeração, Ventilação e Ar Condicionado",
 ];
 
-const OPTIONS_STATUS = ["Em Curso", "Trancado", "Concluído", "Desistente"];
+const OPTIONS_STATUS = ["Em curso", "Trancado", "Concluído", "Desistente"];
 
 interface SelectProps {
   label: string;

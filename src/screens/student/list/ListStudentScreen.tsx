@@ -100,7 +100,7 @@ export default function StudentsListScreen() {
               onChange={(e) => setSituacaoFilter(e.target.value)}
             >
               <option value="">Todas as situações</option>
-              <option value="Em curso">Em Curso</option>
+              <option value="Em curso">Em curso</option>
               <option value="Trancado">Trancado</option>
               <option value="Concluído">Concluido</option>
               <option value="Desistente">Desistente</option>
