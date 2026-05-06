@@ -10,6 +10,7 @@ export class Student {
     birthDate: string;
     dueDate: string;
     photo: string;
+    photoStatus!: string;
     qrcode: string;
     requestPending: boolean;
     photoForAnalysis: string;
