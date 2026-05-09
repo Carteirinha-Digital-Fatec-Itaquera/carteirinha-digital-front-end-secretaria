@@ -20,29 +20,33 @@
   max-width: 1500px;
   margin-top: 25px;
 }
-.listHeader{
+
+.listHeader {
   font-size: 16px;
   font-weight: 700;
   background-color: #a8c5c5;
   border-radius: 10px;
-  padding: 5px;
-  width: 200px;
+  padding: 5px 12px;
+  width: 100%;
+  max-width: 1500px;
   color: #000000;
   display: flex;
-  justify-content: center;
+  align-items: center;
+  justify-content: space-between;
   margin-bottom: 20px;
   column-gap: 7px;
-
 }
+
 .listHeader span{
   color: #0e6e81;
   font-size: 16px;
   font-weight: 600;
 }
-.listHeader:hover{
-  background-color: #86acac;
-  color: #000000;
-  cursor: default;
+
+.listHeader button:hover {
+  background-color: #2a9d8f !important;
+  color: #fff !important;
+  cursor: pointer;
 }
 .filterBar {
   display: flex;
