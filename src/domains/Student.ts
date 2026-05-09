@@ -30,6 +30,7 @@ export class Student {
         qrcode?: string;
         requestPending?: boolean;
         photoForAnalysis?: string;
+        photoStatus?: string;
     }) {
         this.id = props.id ?? "";
         this.ra = props.ra ?? "";
@@ -45,5 +46,6 @@ export class Student {
         this.qrcode = props.qrcode ?? "";
         this.requestPending = props.requestPending ?? false;
         this.photoForAnalysis = props.photoForAnalysis ?? ""
+        this.photoStatus = props.photoStatus ?? "";
     }
 }
