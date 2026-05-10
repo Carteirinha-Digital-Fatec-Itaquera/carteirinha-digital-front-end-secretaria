@@ -13,9 +13,7 @@ import { LoadingComp } from "../../components/loading/LoadingComp";
 import { ErrorModalComp } from "../../components/errormodal/ErrorModalComp";
 
 import { Secretary } from "../../domains/Secretary";
-
 import type { ErrorField } from "../../utils/Types";
-
 import { signup } from "../../api/auth/signup";
 
 import styles from "./style.module.css";
@@ -28,8 +26,6 @@ export default function FirstAccessScreen() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [passwordConfirm, setPasswordConfirm] = useState("")
-  const [code, setCode] = useState("")
-  const [step, setStep] = useState<'form' | 'verify'>('form')
   const [isSuccess, setIsSuccess] = useState(false)
 
   const [message, setMessage] = useState("")
@@ -39,9 +35,7 @@ export default function FirstAccessScreen() {
 
   return (
     <div className={styles.container}>
-
       <HeaderComp />
-
       <div className={styles.card}>
         <div className={styles.cardContent}>
 
@@ -59,144 +53,71 @@ export default function FirstAccessScreen() {
             }}
           />
 
-          {step === 'form' ? (
-            <>
-              <InputLogin
-                label="Nome"
-                placeholder="Ex: João da Silva"
-                icon={<FaUser />}
-                value={name}
-                onChangeText={setName}
-              />
+          <InputLogin
+            label="Nome"
+            placeholder="Ex: João da Silva"
+            icon={<FaUser />}
+            value={name}
+            onChangeText={setName}
+          />
 
-              <InputLogin
-                label="E-mail"
-                type="email"
-                placeholder="Ex: joao@cps.sp.gov.br"
-                icon={<FaEnvelope />}
-                value={email}
-                onChangeText={setEmail}
-              />
+          <InputLogin
+            label="E-mail"
+            type="email"
+            placeholder="Ex: joao@dominio.com"
+            icon={<FaEnvelope />}
+            value={email}
+            onChangeText={setEmail}
+          />
 
-              <InputPasswordComp
-                label="Senha"
-                value={password}
-                onChangeText={setPassword}
-              />
+          <InputPasswordComp
+            label="Senha"
+            value={password}
+            onChangeText={setPassword}
+          />
 
-              <InputPasswordComp
-                label="Repita a senha"
-                value={passwordConfirm}
-                onChangeText={setPasswordConfirm}
-              />
+          <InputPasswordComp
+            label="Repita a senha"
+            value={passwordConfirm}
+            onChangeText={setPasswordConfirm}
+          />
 
-              {onLoading ? (
-                <LoadingComp />
-              ) : (
-                <ButtonComp
-                  text="Cadastrar"
-                  onClick={async () => {
-                    setOnLoading(true)
-
-                    if (!email.endsWith('@cps.sp.gov.br')) {
-                      setMessage("Apenas e-mails com domínio @cps.sp.gov.br podem criar conta.")
-                      setModalErrorVisible(true)
-                      setOnLoading(false)
-                      return
-                    }
-
-                    if (password !== passwordConfirm) {
-                      setMessage("As senhas não são iguais.")
-                      setModalErrorVisible(true)
-                      setOnLoading(false)
-                      return
-                    }
-
-                    const response = await fetch(`${import.meta.env.VITE_BASE_URL}/autenticacao/enviar-codigo-secretaria`, {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ email })
-                    })
-
-                    if (response.ok) {
-                      setStep('verify')
-                    } else {
-                      setMessage('Erro ao enviar código de verificação.')
-                      setModalErrorVisible(true)
-                    }
-                    setOnLoading(false)
-                  }}
-                />
-              )}
-            </>
+          {onLoading ? (
+            <LoadingComp />
           ) : (
-            <>
-              <p style={{ fontSize: '14px', color: '#000', textAlign: 'center', margin: '16px 0' }}>
-                Enviamos um código para <strong>{email}</strong>. Digite abaixo para confirmar:
-              </p>
+            <ButtonComp
+              text="Cadastrar"
+              onClick={async () => {
+                setOnLoading(true)
 
-              <InputLogin
-                label="Código de verificação"
-                placeholder="Ex: 123456"
-                value={code}
-                onChangeText={setCode}
-              />
+                if (!email.endsWith('@cps.sp.gov.br')) {
+                  setMessage("E-mail inválido para cadastro.")
+                  setModalErrorVisible(true)
+                  setOnLoading(false)
+                  return
+                }
 
-              {onLoading ? (
-                <LoadingComp />
-              ) : (
-                <ButtonComp
-                  text="Confirmar código"
-                  onClick={async () => {
-                    setOnLoading(true)
+                if (password !== passwordConfirm) {
+                  setMessage("As senhas não são iguais.")
+                  setModalErrorVisible(true)
+                  setOnLoading(false)
+                  return
+                }
 
-                    const verifyResponse = await fetch(`${import.meta.env.VITE_BASE_URL}/autenticacao/verificar-codigo-secretaria`, {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ email, code })
-                    })
-
-                    const verifyResult = await verifyResponse.json() // ✅ lê o body
-
-                    if (!verifyResult) { // ✅ verifica o valor boolean retornado
-                        setMessage('Código inválido ou expirado.')
-                        setModalErrorVisible(true)
-                        setOnLoading(false)
-                      return
-                    }
-
-                    const secretary = new Secretary({ name, email, password })
-                    const result = await signup(secretary)
-                    if ('ok' in result) {
-                      setMessage("Conta criada com sucesso! Faça login para continuar.")
-                      setIsSuccess(true)
-                      setModalErrorVisible(true)
-                    } else {
-                      setMessage(result.message)
-                      setErrorFields(result.errorFields ?? [])
-                      setModalErrorVisible(true)
-                    }
-                    setOnLoading(false)
-                  }}
-                />
-              )}
-
-              <TextWithActionComp
-                text="Não recebeu o código?"
-                textClickable="Reenviar"
-                onAction={async () => {
-                  const response = await fetch(`${import.meta.env.VITE_BASE_URL}/autenticacao/enviar-codigo-secretaria`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email })
-                  })
-                  if (response.ok) {
-                    setMessage('Código reenviado com sucesso!')
-                    setModalErrorVisible(true)
-                  }
-                }}
-              />
-            </>
+                const secretary = new Secretary({ name, email, password })
+                const result = await signup(secretary)
+                if ('ok' in result) {
+                  setMessage("Conta criada com sucesso! Faça login para continuar.")
+                  setIsSuccess(true)
+                  setModalErrorVisible(true)
+                } else {
+                  setMessage(result.message)
+                  setErrorFields(result.errorFields ?? [])
+                  setModalErrorVisible(true)
+                }
+                setOnLoading(false)
+              }}
+            />
           )}
 
           <TextWithActionComp
