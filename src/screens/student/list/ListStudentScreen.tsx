@@ -93,8 +93,8 @@ export default function StudentsListScreen() {
       </div>
     </div >
             {/* selects com os filtros */}
-            <div style={{ width: '45%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap' }}>
-
+            <div className={styles.filterSelects}>
+              
             <select
               className={styles.filterSelect}
               value={situacaoFilter}

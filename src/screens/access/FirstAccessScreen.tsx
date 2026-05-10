@@ -13,9 +13,7 @@ import { LoadingComp } from "../../components/loading/LoadingComp";
 import { ErrorModalComp } from "../../components/errormodal/ErrorModalComp";
 
 import { Secretary } from "../../domains/Secretary";
-
 import type { ErrorField } from "../../utils/Types";
-
 import { signup } from "../../api/auth/signup";
 
 import styles from "./style.module.css";
@@ -28,6 +26,7 @@ export default function FirstAccessScreen() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [passwordConfirm, setPasswordConfirm] = useState("")
+  const [isSuccess, setIsSuccess] = useState(false)
 
   const [message, setMessage] = useState("")
   const [errorFields, setErrorFields] = useState<ErrorField[]>()
@@ -36,14 +35,23 @@ export default function FirstAccessScreen() {
 
   return (
     <div className={styles.container}>
-
       <HeaderComp />
-
       <div className={styles.card}>
-
         <div className={styles.cardContent}>
 
           <TitleComp text="Cadastro secretaria" />
+
+          <ErrorModalComp
+            visible={modalErrorVisible}
+            error={message}
+            fields={errorFields?.map((val: ErrorField) => val.description) ?? []}
+            onClose={() => {
+              setModalErrorVisible(false)
+              setMessage("")
+              setErrorFields([])
+              if (isSuccess) navigate("/login")
+            }}
+          />
 
           <InputLogin
             label="Nome"
@@ -74,17 +82,6 @@ export default function FirstAccessScreen() {
             onChangeText={setPasswordConfirm}
           />
 
-          <ErrorModalComp
-            visible={modalErrorVisible}
-            error={message}
-            fields={errorFields?.map((val: ErrorField) => { return val.description }) ?? []}
-            onClose={() => {
-              setModalErrorVisible(false)
-              setMessage("")
-              setErrorFields([])
-            }}
-          />
-
           {onLoading ? (
             <LoadingComp />
           ) : (
@@ -92,16 +89,27 @@ export default function FirstAccessScreen() {
               text="Cadastrar"
               onClick={async () => {
                 setOnLoading(true)
+
+                if (!email.endsWith('@cps.sp.gov.br')) {
+                  setMessage("E-mail inválido para cadastro.")
+                  setModalErrorVisible(true)
+                  setOnLoading(false)
+                  return
+                }
+
                 if (password !== passwordConfirm) {
                   setMessage("As senhas não são iguais.")
                   setModalErrorVisible(true)
                   setOnLoading(false)
                   return
                 }
+
                 const secretary = new Secretary({ name, email, password })
                 const result = await signup(secretary)
                 if ('ok' in result) {
-                  navigate("/login")
+                  setMessage("Conta criada com sucesso! Faça login para continuar.")
+                  setIsSuccess(true)
+                  setModalErrorVisible(true)
                 } else {
                   setMessage(result.message)
                   setErrorFields(result.errorFields ?? [])
@@ -115,9 +123,7 @@ export default function FirstAccessScreen() {
           <TextWithActionComp
             text="Já possui uma conta?"
             textClickable="Clique aqui"
-            onAction={() => {
-              navigate("/login");
-            }}
+            onAction={() => navigate("/login")}
           />
 
         </div>
