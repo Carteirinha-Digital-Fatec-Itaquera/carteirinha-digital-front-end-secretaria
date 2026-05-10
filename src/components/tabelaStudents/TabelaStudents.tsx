@@ -61,7 +61,7 @@ function TabelaStudents({ students }: Props) {
                  
                 <tr key={student.ra} className={styles.linhas}>
           <td>
-            {student.photo && student.photoStatus === 'APPROVED' ? 
+            {student.photo && student.photoForAnalysis === 'APPROVED' ? 
             (<img
                 src={student.photo}
                 alt="Foto"
