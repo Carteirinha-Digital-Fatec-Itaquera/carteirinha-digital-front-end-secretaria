@@ -23,7 +23,6 @@ import layoutStyles from "../../../styles/layoutWithMenu.module.css";
 import { FaBook, FaEnvelope, FaFlag, FaIdCard, FaUser, FaCalendarCheck } from "react-icons/fa";
  
 import { removePhoto } from "../../../api/student/removePhoto";
-import { FaTrash } from "react-icons/fa";
 
 const generateAdmissionOptions = (): string[] => {
   const currentYear = new Date().getFullYear();
