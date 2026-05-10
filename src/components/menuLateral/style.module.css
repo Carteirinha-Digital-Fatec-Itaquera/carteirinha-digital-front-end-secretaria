@@ -89,6 +89,20 @@
   white-space: nowrap;
 }
 
+.itemMenuAcordeao {
+  background-color: transparent;
+  display: flex;
+  width: 90%;
+  height: 45px;
+  border-radius: 15px;
+  align-items: center;
+  column-gap: 10px;
+  padding-left: 15px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  white-space: nowrap;
+}
+
 .itemMenu:hover {
   background-color: rgba(48, 48, 48, 0.3);
 }

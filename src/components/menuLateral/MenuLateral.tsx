@@ -90,7 +90,7 @@ function MenuLateral() {
             </li>
           ) : (
             <div className="accordion" id="accordionPanelsStayOpenExample" style={{ width: "100%" }}>
-              <div className="accordion-item" style={{ background: "transparent", border: "none", padding: "0" }}>
+              <div className="accordion-item" style={{ background: "transparent", border: "none", padding: "0", }}>
                 <h2 className="accordion-header">
                   <button
                     className={`accordion-button ${styles.accordionBtn} ${selected === "registroManual" || selected === "registroImport" ? styles.selected : ""}`}
@@ -105,7 +105,7 @@ function MenuLateral() {
                   </button>
                 </h2>
                 <div id="panelsStayOpen-collapseOne" className="accordion-collapse collapse">
-                  <div className="accordion-body" style={{ background: "transparent", padding: "0.5rem" }}>
+                  <div className="accordion-body" style={{ background: "transparent", padding: "0.5rem", display: "flex", flexDirection: "column", justifyContent: "flex-end", alignItems: 'flex-end'}}>
                     <li
                       className={`${styles.itemMenu} ${selected === "registroManual" ? styles.selected : ""}`}
                       onClick={(e) => { e.stopPropagation(); handleMenuClick("/register"); }}
