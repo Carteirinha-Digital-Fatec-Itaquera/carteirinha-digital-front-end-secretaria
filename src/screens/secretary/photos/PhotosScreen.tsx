@@ -70,7 +70,7 @@ export default function PhotosScreen() {
             <div className={styles.grid}>
               {photos.map((p) => (
                 <div key={p.ra} className={styles.card}>
-                  <img src={`http://localhost:3000${p.photo}`} alt={p.name} className={styles.photo} />
+                  <img src={p.photo} alt={p.name} className={styles.photo} />
                   <div className={styles.info}>
                     <p><strong>Nome:</strong> {p.name}</p>
                     <p><strong>RA:</strong> {p.ra}</p>

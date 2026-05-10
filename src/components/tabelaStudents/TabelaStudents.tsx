@@ -61,16 +61,16 @@ function TabelaStudents({ students }: Props) {
                  
                 <tr key={student.ra} className={styles.linhas}>
           <td>
-    {student.photo ? (
-      <img
-        src={`http://localhost:3000${student.photo}`}
-        alt="Foto"
-        style={{ width: 40, height: 40, borderRadius: '50%', objectFit: 'cover' }}
-      />
-    ) : (
-      <span style={{ color: '#aaa', fontSize: '0.8rem' }}>Sem foto</span>
-    )}
-  </td>
+            {student.photo && student.photoStatus === 'APPROVED' ? 
+            (<img
+                src={student.photo}
+                alt="Foto"
+                style={{ width: 40, height: 40, borderRadius: '50%', objectFit: 'cover' }}
+              />) : 
+              (
+                <span style={{ color: '#aaa', fontSize: '0.8rem' }}>Sem foto</span>
+              )}
+          </td>
   <td>{student.ra}</td>
   <td>
     <span className={`${styles.badge} ${

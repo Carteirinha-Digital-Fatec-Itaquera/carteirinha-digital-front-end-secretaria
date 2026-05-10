@@ -26,6 +26,8 @@ export default function RedefinePasswordScreen() {
   const [modalErrorVisible, setModalErrorVisible] = useState(false)
   const [onLoading, setOnLoading] = useState(false)
 
+  const [isSuccess, setIsSuccess] = useState(false)
+
   return (
     <div className={styles.container}>
       <HeaderComp />
@@ -63,6 +65,7 @@ export default function RedefinePasswordScreen() {
               setMessage("")
               setErrorFields([])
               setModalErrorVisible(false)
+              if (isSuccess) navigate("/login")
             }}
           />
 
@@ -77,6 +80,7 @@ export default function RedefinePasswordScreen() {
                 const result = await sendEmail(emailToSend)
                 if ('ok' in result) {
                   setMessage("E-mail enviado! Verifique sua caixa de entrada e clique no link recebido.")
+                  setIsSuccess(true)
                   setModalErrorVisible(true)
                   } else {
                   setMessage(result.message)

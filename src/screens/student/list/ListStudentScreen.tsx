@@ -17,6 +17,7 @@ import { ErrorModalComp } from '../../../components/errormodal/ErrorModalComp';
 import { LoadingComp } from '../../../components/loading/LoadingComp';
 import TabelaStudents from '../../../components/tabelaStudents/TabelaStudents';
 import { FiSearch } from 'react-icons/fi';
+import { downloadHistorico } from '../../../api/student/downloadHistorico'
 
 export default function StudentsListScreen() {
 
@@ -100,9 +101,9 @@ export default function StudentsListScreen() {
               onChange={(e) => setSituacaoFilter(e.target.value)}
             >
               <option value="">Todas as situações</option>
-              <option value="Em curso">Em Curso</option>
+              <option value="Em curso">Em curso</option>
               <option value="Trancado">Trancado</option>
-              <option value="Concluido">Concluído</option>
+              <option value="Concluído">Concluido</option>
               <option value="Desistente">Desistente</option>
             </select>
 
@@ -177,10 +178,22 @@ export default function StudentsListScreen() {
       />
 
       <div className={styles.list}>
-        <div className={styles.listHeader}>
-            Total:  <span className={styles.totalCount}>{filteredStudents.length} aluno(s)
-          </span>
-        </div>
+       <div className={styles.listHeader}>
+      <div>Total: <span className={styles.totalCount}>{filteredStudents.length} aluno(s)</span></div> 
+        <button
+        style={{ fontSize: '13px', padding: '6px 12px', cursor: 'pointer', borderRadius: '6px', border: '1px solid #2a9d8f', color: '#2a9d8f', background: 'transparent', whiteSpace: 'nowrap' }}
+        onClick={async () => {
+            try {
+            await downloadHistorico()
+          } catch {
+            setMessageError('Erro ao baixar histórico')
+            setModalErrorVisible(true)
+          }
+        }}
+        >
+         Ex-Alunos
+        </button>
+      </div>
 
         {loading ? (
           <div style={{ display: 'flex', justifyContent: 'center', marginTop: '2rem' }}>
