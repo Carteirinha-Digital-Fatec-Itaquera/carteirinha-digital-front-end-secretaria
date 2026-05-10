@@ -7,7 +7,6 @@ import { uploadStudentsFile } from "../../../api/secretary/uploadStudentsFile";
 import { TitleComp } from "../../../components/title/TitleComp";
 import { LoadingComp } from "../../../components/loading/LoadingComp";
 import MenuLateral from "../../../components/menuLateral/MenuLateral";
-import { IconBase } from "react-icons";
 import { CloudArrowUpIcon, WarningIcon } from "@phosphor-icons/react";
 
 export default function UploadStudentsScreen() {
