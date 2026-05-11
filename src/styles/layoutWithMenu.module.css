@@ -1,23 +1,24 @@
 .layoutContainer {
   display: flex;
   flex-direction: row;
-  min-height: 100vh;
+  height: 100vh;       
   width: 100%;
-  background-color: #F5F5F5;
+  overflow: hidden;     /* ← impede o scroll da página toda */
 }
 
 .menuWrapper {
   flex-shrink: 0;
-  width: 250px;
   height: 100vh;
-  overflow: hidden;
+  position: sticky;
+  top: 0;
 }
 
 .contentWrapper {
   flex: 1;
-  overflow-y: auto;
+  overflow-y: auto;     /* ← só o conteúdo scrolla */
+  height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
-
+  background-color: #f5f5f5;
 }
