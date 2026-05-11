@@ -93,8 +93,8 @@ export default function PhotosScreen() {
                   <ButtonComp text="Desselecionar todos" onClick={deselectAll} />
                 </div>
                 <div className={styles.bulkActionsRight}>
-                  <ButtonComp text={`Aprovar selecionados (${selected.size})`} onClick={handleApproveSelected} color="#2a9d8f" />
-                  <ButtonComp text={`Reprovar selecionados (${selected.size})`} onClick={handleRejectSelected} color="#bd0909" />
+                  <ButtonComp text={`Aprovar selecionados (${selected.size})`} onClick={handleApproveSelected} color="#0f5561" />
+                  <ButtonComp text={`Reprovar selecionados (${selected.size})`} onClick={handleRejectSelected} color="#640a0a" />
                 </div>
               </div>
 
@@ -105,13 +105,7 @@ export default function PhotosScreen() {
                     className={`${styles.card} ${selected.has(p.ra) ? styles.cardSelected : ''}`}
                     onClick={() => toggleSelect(p.ra)}
                   >
-                    <input
-                      type="checkbox"
-                      checked={selected.has(p.ra)}
-                      onChange={() => toggleSelect(p.ra)}
-                      onClick={e => e.stopPropagation()}
-                      className={styles.checkbox}
-                    />
+                    
                     <img src={p.photo} alt={p.name} className={styles.photo} />
                     <div className={styles.info}>
                       <p><strong>Nome:</strong> {p.name}</p>
@@ -119,6 +113,13 @@ export default function PhotosScreen() {
                       <p><strong>E-mail:</strong></p>
                       <p>{p.email}</p>
                     </div>
+                    <input
+                      type="checkbox"
+                      checked={selected.has(p.ra)}
+                      onChange={() => toggleSelect(p.ra)}
+                      onClick={e => e.stopPropagation()}
+                      className={styles.checkbox}
+                    />
                     <input
                       className={styles.reasonInput}
                       placeholder="Motivo da reprovação (opcional)"
@@ -130,8 +131,8 @@ export default function PhotosScreen() {
                       onClick={e => e.stopPropagation()}
                     />
                     <div className={styles.actions} onClick={e => e.stopPropagation()}>
-                      <ButtonComp text="Aprovar" onClick={() => handleApprove(p.ra)} />
-                      <ButtonComp text="Reprovar" onClick={() => handleReject(p.ra)} color="#bd0909" />
+                      <button style={{backgroundColor: '#0b5b74',}} onClick={() => handleApprove(p.ra)} >Aprovar</button>
+                      <button style={{backgroundColor: '#770d0d'}} onClick={() => handleReject(p.ra)}>Reprovar</button>
                     </div>
                   </div>
                 ))}

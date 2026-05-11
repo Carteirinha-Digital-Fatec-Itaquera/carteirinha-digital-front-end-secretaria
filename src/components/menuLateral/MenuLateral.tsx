@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import styles from "./style.module.css";
 import {
@@ -16,7 +16,16 @@ import { CameraIcon } from "@phosphor-icons/react";
 function MenuLateral() {
   const navigate = useNavigate();
   const location = useLocation();
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(() => window.innerWidth < 1200);
+
+  useEffect(() => {
+  const handleResize = () => {
+    setCollapsed(window.innerWidth < 1200);
+  };
+
+  window.addEventListener("resize", handleResize);
+  return () => window.removeEventListener("resize", handleResize);
+}, []);
 
   const getSelectedItem = () => {
     if (location.pathname === "/students") return "listaAlunos";

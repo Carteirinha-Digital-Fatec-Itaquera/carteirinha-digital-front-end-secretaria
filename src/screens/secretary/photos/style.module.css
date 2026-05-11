@@ -15,28 +15,27 @@
 }
 
 .grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
   gap: 1rem;
   width: 100%;
+  display: flex;
+  flex-wrap: wrap;
 }
 
 .card {
   background: #fff;
   border-radius: 12px;
   box-shadow: 0 4px 16px rgba(0,0,0,0.08);
-  padding: 1rem;
+  padding: 7px;
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  position: relative;
-  width: 100%;
-  box-sizing: border-box;
+  width: 240px;
+ 
 }
 
 .photo {
   width: 100%;
-  height: 200px;
+  height: 150px;
   object-fit: cover;
   border-radius: 8px;
 }
@@ -58,15 +57,21 @@
 
 .actions {
   display: flex;
-  gap: 0.75rem;
-  justify-content: center;
+  justify-content: space-between;
   align-items: center;
 }
 
 .actions button {
-  flex: 1;
-  font-size: 0.85rem;
-  padding: 0.4rem 0.75rem;
+ border: none;  border-radius: 8px;
+  font-weight: 500;
+  padding: 6px 14px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  color: #fff;
+  margin-top: 5px;
+}
+.actions button:hover {
+  opacity: 0.7;
 }
 
 .bulkActions {
@@ -78,6 +83,12 @@
   background: #e8f4f4;
   border-radius: 12px;
   padding: 12px 20px;
+}
+.bulkActionsRight button{
+  border-radius: 10px;
+}
+.bulkActionsLeft button{
+  border-radius: 10px;
 }
 
 .bulkActionsLeft {
@@ -103,10 +114,12 @@
 }
 
 .checkbox {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  width: 18px;
-  height: 18px;
+ position: absolute;
+  width: 25px;
+  height: 25px;
   cursor: pointer;
+}
+.checkbox:checked {
+  background-color: #1bb9a7;
+  color: #bb2f2f;
 }
