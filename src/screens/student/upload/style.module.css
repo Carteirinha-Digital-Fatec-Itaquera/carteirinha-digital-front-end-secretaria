@@ -159,8 +159,10 @@
 .itemErro{
   border-radius: 10px;
   padding: 10px;
-  background: #e7e7e7;
-    font-weight: 500;
+  background: #fdd8d8;
+  font-weight: 500;
+  border: 1px solid #f82121;
+  margin-top: 2px;
 }
 .erros{
   color: #CC092F;
