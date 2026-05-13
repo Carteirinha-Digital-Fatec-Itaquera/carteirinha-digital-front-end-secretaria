@@ -30,7 +30,7 @@
   flex-direction: column;
   gap: 0.75rem;
   width: 240px;
- 
+  position: relative; /* ← adicione isso */
 }
 
 .photo {
@@ -114,11 +114,14 @@
 }
 
 .checkbox {
- position: absolute;
+  position: absolute;
+  top: 10px;      /* ← posicione onde quiser dentro do card */
+  right: 10px;
   width: 25px;
   height: 25px;
   cursor: pointer;
 }
+
 .checkbox:checked {
   background-color: #1bb9a7;
   color: #bb2f2f;
