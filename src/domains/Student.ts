@@ -7,7 +7,7 @@ export class Student {
     course: string;
     status: string;
     admission: string;
-    birthDate: string;
+    birthDate?: string | null;
     dueDate: string;
     photo: string;
     photoStatus!: string;
@@ -24,7 +24,7 @@ export class Student {
         course?: string;
         status?: string;
         admission?: string;
-        birthDate?: string;
+        birthDate?: string|null;
         dueDate?: string;
         photo?: string;
         qrcode?: string;
@@ -40,7 +40,8 @@ export class Student {
         this.course = props.course ?? "";
         this.status = props.status ?? "";
         this.admission = props.admission ?? "";
-        this.birthDate = props.birthDate ?? "";
+        // this.birthDate = props.birthDate ?? "";
+        this.birthDate = null;
         this.dueDate = props.dueDate ?? "";
         this.photo = props.photo ?? "";
         this.qrcode = props.qrcode ?? "";

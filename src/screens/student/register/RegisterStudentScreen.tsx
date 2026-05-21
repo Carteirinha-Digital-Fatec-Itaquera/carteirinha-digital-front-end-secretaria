@@ -177,11 +177,11 @@ export default function RegisterStudentScreen() {
               if (parts.length !== 3) return dateStr;
               return `${parts[2]}-${parts[1]}-${parts[0]}`;
             };
-
             const result = await create(new Student({
               ra, name, email, cpf, course, status, 
               admission: formatDateToISO(admission),
-              birthDate: formatDateToISO(birthDate),
+              // birthDate: formatDateToISO(birthDate),
+              birthDate: null,
             }));
 
             if ('ok' in result) {
