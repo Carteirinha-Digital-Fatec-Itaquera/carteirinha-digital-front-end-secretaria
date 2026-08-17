@@ -46,7 +46,7 @@ export default function LoginScreen() {
           <InputLogin
             label="E-mail"
             type="email"
-            placeholder="Ex: joao@dominio.com"
+            placeholder="Ex: joao@cps.sp.gov.br"
             icon={<FaEnvelope />}
             value={email}
             onChangeText={setEmail}
