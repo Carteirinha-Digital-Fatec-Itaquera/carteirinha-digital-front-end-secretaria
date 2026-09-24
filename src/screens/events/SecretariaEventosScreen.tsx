@@ -124,12 +124,8 @@ export default function SecretariaEventosScreen() {
           <div className={styles.header}>
             <div>
               <h1 className={styles.title}>
-                Eventos
-              </h1>
-
-              <p className={styles.subtitle}>
                 Gerenciar Eventos
-              </p>
+              </h1>
             </div>
 
             <button
