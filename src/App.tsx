@@ -1,5 +1,4 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-
 import LoginScreen from "./screens/login/LoginScreen";
 import FirstAccessScreen from "./screens/access/FirstAccessScreen";
 import RegisterStudentScreen from "./screens/student/register/RegisterStudentScreen";
@@ -14,6 +13,7 @@ import ResetPasswordScreen from "./screens/recoverypassword/reset/ResetPasswordS
 import PhotosScreen from "./screens/secretary/photos/PhotosScreen";
 import ChangePasswordScreen from "./screens/changepassword/ChangePasswordScreen";
 import SecretariaEventosScreen  from "./screens/events/SecretariaEventosScreen";
+import  SecretariaNovoEvento  from "./screens/events/SecretariaNovoEventoScreen";
 
 export default function App() {
   return (
@@ -33,6 +33,7 @@ export default function App() {
         <Route path="/reset-password" element={<ResetPasswordScreen />} />
         <Route path="/fotos" element={<PhotosScreen />} />
         <Route path="/eventos" element={<SecretariaEventosScreen />} />
+        <Route path="/criar-evento" element={<SecretariaNovoEvento />} />
         <Route path="/redefinir-senha" element={<ChangePasswordScreen />} />
       </Routes>
     </BrowserRouter>

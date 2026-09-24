@@ -134,7 +134,7 @@ export default function SecretariaEventosScreen() {
 
             <button
               className={styles.addBtn}
-              onClick={() => navigate("/eventos/novo")}
+              onClick={() => navigate("/criar-evento")}
             >
               <Plus size={18} />
               Novo Evento
