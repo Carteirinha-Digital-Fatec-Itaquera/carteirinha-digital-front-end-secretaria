@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
 import {
   Calendar,
@@ -15,7 +15,6 @@ import { useNavigate } from "react-router-dom";
 import MenuLateral from "../../components/menuLateral/MenuLateral";
 
 import styles from "./style.module.css";
-
 import layoutStyles from "../../styles/layoutWithMenu.module.css";
 
 type EventStatus = "open" | "closed" | "finished";
@@ -42,14 +41,24 @@ const statusLabel: Record<EventStatus, string> = {
 export default function SecretariaEventosScreen() {
   const navigate = useNavigate();
 
-  const [events, setEvents] = useState<Event[]>([]);
+  const [events, setEvents] = useState<Event[]>([
+    {
+      id: "1",
+      title: "Semana de Tecnologia FATEC Itaquera",
+      speaker: "Carlos Eduardo Silva",
+      date: "2026-10-05",
+      location: "Auditório FATEC Itaquera",
+      startTime: "19:00",
+      endTime: "21:00",
+      workload: 2,
+      checkInStatus: "open",
+      checkOutStatus: "closed",
+    }
+  ]);
+
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    loadEvents();
-  }, []);
+  const [loading, setLoading] = useState(false);
 
   async function loadEvents() {
     try {
@@ -66,7 +75,6 @@ export default function SecretariaEventosScreen() {
       setEvents(data);
     } catch (error) {
       console.error("Erro ao carregar eventos:", error);
-      setEvents([]);
     } finally {
       setLoading(false);
     }
@@ -121,6 +129,7 @@ export default function SecretariaEventosScreen() {
 
       <div className={layoutStyles.contentWrapper}>
         <div className={styles.container}>
+
           <div className={styles.header}>
             <div>
               <h1 className={styles.title}>
@@ -138,8 +147,10 @@ export default function SecretariaEventosScreen() {
           </div>
 
           <div className={styles.filterBar}>
+
             <div className={styles.searchArea}>
               <div className={styles.searchBox}>
+
                 <input
                   type="text"
                   className={styles.searchInput}
@@ -151,10 +162,12 @@ export default function SecretariaEventosScreen() {
                 <span className={styles.searchIcon}>
                   <Search size={18} />
                 </span>
+
               </div>
             </div>
 
             <div className={styles.filterSelects}>
+
               <select
                 className={styles.filterSelect}
                 value={statusFilter}
@@ -176,11 +189,15 @@ export default function SecretariaEventosScreen() {
                   Encerrado
                 </option>
               </select>
+
             </div>
+
           </div>
 
           <div className={styles.list}>
+
             <div className={styles.listHeader}>
+
               <div>
                 Total:{" "}
                 <span className={styles.totalCount}>
@@ -194,16 +211,21 @@ export default function SecretariaEventosScreen() {
               >
                 Atualizar
               </button>
+
             </div>
 
             {loading ? (
+
               <div className={styles.empty}>
                 <p>
                   Carregando eventos...
                 </p>
               </div>
+
             ) : filteredEvents.length === 0 ? (
+
               <div className={styles.empty}>
+
                 <Calendar size={40} />
 
                 <h3>
@@ -213,16 +235,24 @@ export default function SecretariaEventosScreen() {
                 <p>
                   Não encontramos eventos com os filtros selecionados.
                 </p>
+
               </div>
+
             ) : (
+
               <div className={styles.eventsList}>
+
                 {filteredEvents.map((event) => (
+
                   <div
                     className={styles.eventCard}
                     key={event.id}
                   >
+
                     <div className={styles.eventHeader}>
+
                       <div>
+
                         <h2 className={styles.eventTitle}>
                           {event.title}
                         </h2>
@@ -231,10 +261,13 @@ export default function SecretariaEventosScreen() {
                           <User size={16} />
                           {event.speaker}
                         </div>
+
                       </div>
+
                     </div>
 
                     <div className={styles.eventMeta}>
+
                       <span>
                         <Calendar size={16} />
                         {formatDate(event.date)}
@@ -253,10 +286,13 @@ export default function SecretariaEventosScreen() {
                       <span>
                         {event.workload}h
                       </span>
+
                     </div>
 
                     <div className={styles.checkpoints}>
+
                       <div className={styles.checkpoint}>
+
                         <span>
                           Check-in
                         </span>
@@ -268,9 +304,11 @@ export default function SecretariaEventosScreen() {
                         >
                           {statusLabel[event.checkInStatus]}
                         </span>
+
                       </div>
 
                       <div className={styles.checkpoint}>
+
                         <span>
                           Check-out
                         </span>
@@ -282,10 +320,13 @@ export default function SecretariaEventosScreen() {
                         >
                           {statusLabel[event.checkOutStatus]}
                         </span>
+
                       </div>
+
                     </div>
 
                     <div className={styles.actions}>
+
                       <button
                         className={styles.manageBtn}
                         onClick={() =>
@@ -297,12 +338,19 @@ export default function SecretariaEventosScreen() {
                         <Settings size={17} />
                         Gerenciar Evento
                       </button>
+
                     </div>
+
                   </div>
+
                 ))}
+
               </div>
+
             )}
+
           </div>
+
         </div>
       </div>
     </div>
