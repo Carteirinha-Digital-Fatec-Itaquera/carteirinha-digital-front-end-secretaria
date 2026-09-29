@@ -14,6 +14,7 @@ import PhotosScreen from "./screens/secretary/photos/PhotosScreen";
 import ChangePasswordScreen from "./screens/changepassword/ChangePasswordScreen";
 import SecretariaEventosScreen  from "./screens/events/SecretariaEventosScreen";
 import  SecretariaNovoEvento  from "./screens/events/SecretariaNovoEventoScreen";
+import  SecretariaGerenciarEventoScreen  from "./screens/events/SecretariaGerenciarEventoScreen";
 
 export default function App() {
   return (
@@ -34,6 +35,7 @@ export default function App() {
         <Route path="/fotos" element={<PhotosScreen />} />
         <Route path="/eventos" element={<SecretariaEventosScreen />} />
         <Route path="/criar-evento" element={<SecretariaNovoEvento />} />
+        <Route path="/eventos/:id/gerenciar"element={<SecretariaGerenciarEventoScreen />}/>
         <Route path="/redefinir-senha" element={<ChangePasswordScreen />} />
       </Routes>
     </BrowserRouter>

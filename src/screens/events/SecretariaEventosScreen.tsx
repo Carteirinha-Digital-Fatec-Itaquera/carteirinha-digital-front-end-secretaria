@@ -335,8 +335,7 @@ export default function SecretariaEventosScreen() {
                           )
                         }
                       >
-                        <Settings size={17} />
-                        Gerenciar Evento
+                        Acessar Evento
                       </button>
 
                     </div>
