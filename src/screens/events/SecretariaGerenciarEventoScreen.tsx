@@ -14,6 +14,8 @@ import {
   DoorClosed,
   RefreshCw,
   AlertCircle,
+  Maximize2,
+  Minimize2,
 } from "lucide-react";
 
 import MenuLateral from "../../components/menuLateral/MenuLateral";
@@ -66,13 +68,23 @@ export default function SecretariaGerenciarEventoScreen() {
   const [activeCheckpoint, setActiveCheckpoint] = useState<
     "check-in" | "check-out" | null
   >(null);
-  const [qrToken, setQrToken] = useState<string | null>(null);
+  const [qrData, setQrData] = useState<{
+    qrToken: string;
+    qrUrl?: string;
+    expiresAtEpoch: number;
+  } | null>(null);
   const [qrLoading, setQrLoading] = useState(false);
+  const [qrError, setQrError] = useState<string | null>(null);
   const [secondsRemaining, setSecondsRemaining] = useState(20);
   const [actionLoading, setActionLoading] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   const isMountedRef = useRef(true);
+  const isFetchingRef = useRef(false);
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const serverOffsetMsRef = useRef<number>(0);
+  const fullscreenContainerRef = useRef<HTMLDivElement | null>(null);
 
   // Integração com Issue #7: hook de participantes reais
   const participants = useEventParticipants(id || "");
@@ -95,7 +107,7 @@ export default function SecretariaGerenciarEventoScreen() {
         setActiveCheckpoint("check-out");
       } else {
         setActiveCheckpoint(null);
-        setQrToken(null);
+        setQrData(null);
       }
     } catch (err: unknown) {
       const msg =
@@ -115,23 +127,64 @@ export default function SecretariaGerenciarEventoScreen() {
     };
   }, [loadEventData]);
 
-  // Busca e renovação do QR Code de presença
+  // Busca e renovação do QR Code de presença (com controle de sobreposição e latência)
   const fetchQrToken = useCallback(
     async (type: "check-in" | "check-out") => {
-      if (!id) return;
+      if (!id || isFetchingRef.current) return;
       try {
+        isFetchingRef.current = true;
         setQrLoading(true);
+        setQrError(null);
+
+        // Cancela requisição anterior se houver
+        if (abortControllerRef.current) {
+          abortControllerRef.current.abort();
+        }
+        const controller = new AbortController();
+        abortControllerRef.current = controller;
+
         const cpType: CheckpointType =
           type === "check-in" ? "CHECK_IN" : "CHECK_OUT";
-        const qrData = await getCheckpointQr(id, cpType);
+        const response = await getCheckpointQr(id, cpType, {
+          signal: controller.signal,
+        });
 
         if (!isMountedRef.current) return;
-        setQrToken(qrData.qrToken);
-        setSecondsRemaining(qrData.expiresInSeconds || 20);
+
+        const now = Date.now();
+        const serverTimeMs = response.serverTime
+          ? new Date(response.serverTime).getTime()
+          : now;
+        const serverOffsetMs = serverTimeMs - now;
+        serverOffsetMsRef.current = serverOffsetMs;
+
+        // Horário de expiração ajustado ao relógio local
+        const expiresAtEpoch =
+          new Date(response.expiresAt).getTime() - serverOffsetMs;
+        const initialRemainingSec = Math.max(
+          0,
+          Math.ceil((expiresAtEpoch - now) / 1000)
+        );
+
+        setQrData({
+          qrToken: response.qrToken,
+          qrUrl: response.qrUrl,
+          expiresAtEpoch,
+        });
+        setSecondsRemaining(initialRemainingSec > 0 ? initialRemainingSec : 20);
       } catch (err: unknown) {
         if (!isMountedRef.current) return;
+        if (err instanceof DOMException && err.name === "AbortError") {
+          return;
+        }
+        const msg =
+          err instanceof Error
+            ? err.message
+            : "Erro ao atualizar o QR Code";
+        setQrError(msg);
         console.error("Erro ao obter token do QR Code:", err);
       } finally {
+        isFetchingRef.current = false;
         if (isMountedRef.current) {
           setQrLoading(false);
         }
@@ -143,27 +196,110 @@ export default function SecretariaGerenciarEventoScreen() {
   // Inicia e renova timer do QR Code quando um checkpoint estiver ativo
   useEffect(() => {
     if (!activeCheckpoint) {
-      setQrToken(null);
+      setQrData(null);
+      setQrError(null);
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
       return;
     }
 
     void fetchQrToken(activeCheckpoint);
 
-    // Contagem regressiva em segundos
+    // Monitora a cada 500ms o tempo restante real baseado em expiresAtEpoch
     const timerId = setInterval(() => {
-      setSecondsRemaining((prev) => {
-        if (prev <= 1) {
-          void fetchQrToken(activeCheckpoint);
-          return 20;
+      setQrData((currentQr) => {
+        if (!currentQr) return null;
+
+        const now = Date.now();
+        const remainingMs = currentQr.expiresAtEpoch - now;
+        const remainingSec = Math.max(0, Math.ceil(remainingMs / 1000));
+        setSecondsRemaining(remainingSec);
+
+        // Se expirou, limpa imediatamente da tela para nunca exibir QR vencido
+        if (remainingMs <= 0) {
+          if (!isFetchingRef.current) {
+            void fetchQrToken(activeCheckpoint);
+          }
+          return null;
         }
-        return prev - 1;
+
+        // Renovação preventiva aos 15 segundos (5s antes do vencimento de 20s)
+        if (remainingMs <= 5000 && !isFetchingRef.current) {
+          void fetchQrToken(activeCheckpoint);
+        }
+
+        return currentQr;
       });
-    }, 1000);
+    }, 500);
+
+    // Retorno de aba oculta: atualiza imediatamente se estiver próximo ou já vencido
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        setQrData((currentQr) => {
+          if (!currentQr) {
+            void fetchQrToken(activeCheckpoint);
+            return null;
+          }
+          const remainingMs = currentQr.expiresAtEpoch - Date.now();
+          if (remainingMs <= 5000) {
+            void fetchQrToken(activeCheckpoint);
+          }
+          return currentQr;
+        });
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
 
     return () => {
       clearInterval(timerId);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
     };
   }, [activeCheckpoint, fetchQrToken]);
+
+  const toggleFullscreen = useCallback(async () => {
+    try {
+      if (!document.fullscreenElement) {
+        if (fullscreenContainerRef.current?.requestFullscreen) {
+          await fullscreenContainerRef.current.requestFullscreen();
+        }
+        setIsFullscreen(true);
+      } else {
+        if (document.exitFullscreen) {
+          await document.exitFullscreen();
+        }
+        setIsFullscreen(false);
+      }
+    } catch {
+      setIsFullscreen((prev) => !prev);
+    }
+  }, []);
+
+  const exitFullscreen = useCallback(async () => {
+    try {
+      if (document.fullscreenElement && document.exitFullscreen) {
+        await document.exitFullscreen();
+      }
+    } catch {
+      // Ignora erro ao sair de tela cheia
+    } finally {
+      setIsFullscreen(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    return () => {
+      document.removeEventListener("fullscreenchange", handleFullscreenChange);
+    };
+  }, []);
 
   async function handleOpenCheckpoint(type: "check-in" | "check-out") {
     if (!id || actionLoading) return;
@@ -194,7 +330,10 @@ export default function SecretariaGerenciarEventoScreen() {
       await closeCheckpoint(id, cpType);
       if (activeCheckpoint === type) {
         setActiveCheckpoint(null);
-        setQrToken(null);
+        setQrData(null);
+        if (isFullscreen) {
+          void exitFullscreen();
+        }
       }
       await loadEventData();
     } catch (err: unknown) {
@@ -206,11 +345,14 @@ export default function SecretariaGerenciarEventoScreen() {
     }
   }
 
+
   const checkInCp = event?.checkpoints?.find((c) => c.type === "CHECK_IN");
   const checkOutCp = event?.checkpoints?.find((c) => c.type === "CHECK_OUT");
 
   const checkInStatus = computeCheckpointStatus(checkInCp);
   const checkOutStatus = computeCheckpointStatus(checkOutCp);
+
+  const qrValue = qrData?.qrUrl || qrData?.qrToken || null;
 
   function getStatusClass(status: CheckpointDisplayStatus) {
     if (status === "open") return styles.statusOpen;
@@ -584,20 +726,31 @@ export default function SecretariaGerenciarEventoScreen() {
                   </p>
                 </div>
 
-                <div className={styles.liveIndicator}>
-                  <span />
-                  AO VIVO
+                <div className={styles.projectionActions}>
+                  <button
+                    type="button"
+                    className={styles.fullscreenButton}
+                    onClick={toggleFullscreen}
+                    title="Abrir em Tela Inteira / Telão"
+                  >
+                    <Maximize2 size={16} />
+                    Modo Telão
+                  </button>
+                  <div className={styles.liveIndicator}>
+                    <span />
+                    AO VIVO
+                  </div>
                 </div>
               </div>
 
               <div className={styles.projectionContent}>
                 <div className={styles.qrWrapper}>
                   <div className={styles.qrContainer}>
-                    {qrToken ? (
+                    {qrValue ? (
                       <QRCodeSVG
-                        value={qrToken}
-                        size={240}
-                        level="H"
+                        value={qrValue}
+                        size={250}
+                        level="M"
                         bgColor="#ffffff"
                         fgColor="#000000"
                         includeMargin
@@ -605,7 +758,16 @@ export default function SecretariaGerenciarEventoScreen() {
                     ) : (
                       <div className={styles.qrLoading}>
                         <RefreshCw size={34} className={styles.loadingIcon} />
-                        <span>Gerando QR Code...</span>
+                        <span>
+                          {qrLoading
+                            ? "Renovando QR Code..."
+                            : "Aguardando novo QR Code..."}
+                        </span>
+                        {qrError && (
+                          <span className={styles.qrErrorMessage}>
+                            {qrError}
+                          </span>
+                        )}
                       </div>
                     )}
                   </div>
@@ -661,6 +823,99 @@ export default function SecretariaGerenciarEventoScreen() {
               </div>
             </div>
           )}
+
+          {/* Modo Telão em Tela Cheia para Auditórios / Projetores */}
+          {isFullscreen && activeCheckpoint && (
+            <div
+              ref={fullscreenContainerRef}
+              className={styles.fullscreenOverlay}
+            >
+              <div className={styles.fullscreenTopBar}>
+                <div className={styles.fullscreenTitleGroup}>
+                  <span className={styles.fullscreenEyebrow}>
+                    <span
+                      className={styles.liveIndicator}
+                      style={{ padding: "3px 8px" }}
+                    >
+                      <span /> AO VIVO
+                    </span>
+                    {activeCheckpoint === "check-in"
+                      ? "Check-in (Entrada)"
+                      : "Check-out (Saída)"}
+                  </span>
+                  <h1 className={styles.fullscreenTitle}>{event.title}</h1>
+                </div>
+
+                <button
+                  type="button"
+                  className={styles.fullscreenExitButton}
+                  onClick={exitFullscreen}
+                >
+                  <Minimize2 size={18} />
+                  Sair do Telão (ESC)
+                </button>
+              </div>
+
+              <div className={styles.fullscreenCenter}>
+                <div className={styles.fullscreenQrCard}>
+                  {qrValue ? (
+                    <QRCodeSVG
+                      value={qrValue}
+                      size={400}
+                      level="M"
+                      bgColor="#ffffff"
+                      fgColor="#000000"
+                      includeMargin
+                    />
+                  ) : (
+                    <div
+                      className={styles.qrLoading}
+                      style={{ width: "400px", height: "400px" }}
+                    >
+                      <RefreshCw size={48} className={styles.loadingIcon} />
+                      <span style={{ fontSize: "18px" }}>
+                        {qrLoading
+                          ? "Renovando QR Code..."
+                          : "Aguardando novo QR Code..."}
+                      </span>
+                      {qrError && (
+                        <span className={styles.qrErrorMessage}>
+                          {qrError}
+                        </span>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                <div className={styles.fullscreenInstruction}>
+                  <strong>
+                    {activeCheckpoint === "check-in"
+                      ? "Aponte a câmera do celular para confirmar sua entrada"
+                      : "Aponte a câmera do celular para confirmar sua saída e presença"}
+                  </strong>
+                  <span>
+                    Toque no link ou escaneie pelo aplicativo da Carteirinha Digital.
+                  </span>
+                </div>
+              </div>
+
+              <div className={styles.fullscreenBottomBar}>
+                <div className={styles.fullscreenTimer}>
+                  <span>Renovação preventiva em:</span>
+                  <strong>{secondsRemaining}s</strong>
+                </div>
+                <div className={styles.fullscreenProgressTrack}>
+                  <div
+                    className={styles.fullscreenProgressBar}
+                    style={{
+                      width: `${Math.min(100, (secondsRemaining / 20) * 100)}%`,
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
 
           {/* Painel de Participantes (Issue #7) */}
           <div style={{ marginTop: "24px" }}>

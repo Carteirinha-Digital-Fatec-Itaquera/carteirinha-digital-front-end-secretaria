@@ -151,6 +151,27 @@ describe('Event, Checkpoint and Attendance Services', () => {
       expect(url).toMatch(/\/events\/evt-1\/checkpoints\/check-in\/qr$/);
       expect(init?.method).toBe('GET');
     });
+
+    it('getCheckpointQr supports optional qrUrl and serverTime for short link optimization', async () => {
+      const mockQr = {
+        qrToken: 'jwt.token.here',
+        qrUrl: 'https://carteirinha-digital-front-end-aluno.vercel.app/p/ref1234567890',
+        serverTime: '2026-10-10T10:00:00.000Z',
+        expiresInSeconds: 20,
+        expiresAt: '2026-10-10T10:00:20.000Z',
+        checkpointVersion: 2,
+      };
+      fetchMock.mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => mockQr,
+      });
+
+      const result = await getCheckpointQr('evt-1', 'CHECK_OUT');
+      expect(result.qrUrl).toBe('https://carteirinha-digital-front-end-aluno.vercel.app/p/ref1234567890');
+      expect(result.serverTime).toBe('2026-10-10T10:00:00.000Z');
+      expect(result.qrToken).toBe('jwt.token.here');
+    });
   });
 
   describe('attendanceService', () => {
