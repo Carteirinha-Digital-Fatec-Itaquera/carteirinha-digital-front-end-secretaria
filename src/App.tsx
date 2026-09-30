@@ -15,8 +15,10 @@ import PhotosScreen from "./screens/secretary/photos/PhotosScreen";
 import ChangePasswordScreen from "./screens/changepassword/ChangePasswordScreen";
 
 import RequireSecretarySession from "./components/auth/RequireSecretarySession";
-import EventsRouteScaffold from "./screens/events/EventsRouteScaffold";
-import CertificateRouteScaffold from "./screens/certificate/CertificateRouteScaffold";
+import SecretariaEventosScreen from "./screens/events/SecretariaEventosScreen";
+import SecretariaNovoEventoScreen from "./screens/events/SecretariaNovoEventoScreen";
+import SecretariaGerenciarEventoScreen from "./screens/events/SecretariaGerenciarEventoScreen";
+import CertificadoVerificarScreen from "./screens/certificate/CertificadoVerificarScreen";
 
 export default function App() {
   return (
@@ -42,13 +44,15 @@ export default function App() {
 
         {/* Rotas administrativas de eventos */}
         <Route element={<RequireSecretarySession />}>
-          <Route path="/eventos" element={<EventsRouteScaffold />} />
-          <Route path="/eventos/novo" element={<EventsRouteScaffold />} />
-          <Route path="/eventos/:id/gerenciar" element={<EventsRouteScaffold />} />
+          <Route path="/eventos" element={<SecretariaEventosScreen />} />
+          <Route path="/eventos/novo" element={<SecretariaNovoEventoScreen />} />
+          <Route path="/eventos/:id/gerenciar" element={<SecretariaGerenciarEventoScreen />} />
         </Route>
 
         {/* Rota publica de verificacao de certificado */}
-        <Route path="/certificado/verificar/:codigo" element={<CertificateRouteScaffold />} />
+        <Route path="/certificados/verificar" element={<CertificadoVerificarScreen />} />
+        <Route path="/certificados/verificar/:code" element={<CertificadoVerificarScreen />} />
+        <Route path="/certificado/verificar/:codigo" element={<CertificadoVerificarScreen />} />
       </Routes>
     </BrowserRouter>
   );

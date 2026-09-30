@@ -1,0 +1,131 @@
+.panel {
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  padding: 24px;
+  margin-top: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  font-family: 'Poppins', sans-serif;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.titleArea {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #333333;
+  margin: 0;
+}
+
+.badgeCount {
+  background-color: #f6ffed;
+  color: #389e0d;
+  border: 1px solid #b7eb8f;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 12px;
+}
+
+.drawButton {
+  background-color: #b22222;
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 20px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  min-width: 140px;
+  transition: background-color 0.2s, opacity 0.2s;
+}
+
+.drawButton:hover:not(:disabled) {
+  background-color: #8b0000;
+}
+
+.drawButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.emptyWarning {
+  background-color: #fffbe6;
+  border: 1px solid #ffe58f;
+  color: #ad6800;
+  padding: 12px 16px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+}
+
+.drawingState {
+  padding: 24px 16px;
+  text-align: center;
+  background-color: #fafafa;
+  border: 1px dashed #d9d9d9;
+  border-radius: 8px;
+  color: #555555;
+  font-size: 1.05rem;
+  font-weight: 500;
+}
+
+.winnerCard {
+  background: linear-gradient(135deg, #f6ffed 0%, #e6f7ff 100%);
+  border: 2px solid #52c41a;
+  border-radius: 8px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.winnerHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.winnerTitle {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #237804;
+  margin: 0;
+}
+
+.winnerDetails {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.fieldLabel {
+  font-size: 0.8rem;
+  color: #666666;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.fieldValue {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #222222;
+  margin-top: 2px;
+}
