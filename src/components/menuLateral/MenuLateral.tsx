@@ -191,8 +191,8 @@ function MenuLateral() {
 
       {!collapsed && (
         <img
-          src="/logos_cps_governo_com_slogan_horizontal_br 3.svg"
-          alt=""
+          src="/cps_logo_br.png"
+          alt="Centro Paula Souza"
           className={styles.logoCps}
         />
       )}

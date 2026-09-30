@@ -57,9 +57,11 @@
 }
 
 .logoCps {
-  width: 200px;
-  height: 95px;
+  width: 130px;
+  height: 70px;
+  object-fit: contain;
   align-self: center;
+  margin-bottom: 25px;
 }
 
 .estiloLista {

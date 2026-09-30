@@ -4,5 +4,7 @@
 }
 
 .logoBottom {
-  width: 300px;
+  width: 140px;
+  height: auto;
+  object-fit: contain;
 }

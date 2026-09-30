@@ -4,8 +4,8 @@ export function FooterComp() {
   return (
     <footer className={styles.footer}>
       <img
-        src="/logos_cps_governo_com_slogan_horizontal_cor.png"
-        alt="Logos Governo"
+        src="/cps_logo_cor.png"
+        alt="Centro Paula Souza"
         className={styles.logoBottom}
       />
     </footer>
