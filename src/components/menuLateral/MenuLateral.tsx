@@ -9,6 +9,7 @@ import {
   UserCirclePlusIcon,
   UserListIcon,
   SidebarSimpleIcon,
+  CalendarIcon,
 } from "@phosphor-icons/react";
 import { CameraIcon } from "@phosphor-icons/react";
 
@@ -34,6 +35,7 @@ function MenuLateral() {
     if (location.pathname.startsWith("/update")) return "listaAlunos";
     if (location.pathname === "/perfil") return "perfil";
     if (location.pathname === "/fotos") return "fotos";
+    if (location.pathname.startsWith("/eventos") || location.pathname === "/criar-evento") return "eventos";
     return "listaAlunos";
   };
 
@@ -153,6 +155,26 @@ function MenuLateral() {
           >
             <CameraIcon size={30} color="#ffffff" />
             {!collapsed && <a href="" onClick={(e) => e.preventDefault()}>Fotos pendentes</a>}
+          </li>
+
+          {/* Eventos */}
+          <li
+            className={`${styles.itemMenu} ${collapsed ? styles.itemMenuCollapsed : ""} ${selected === "eventos" ? styles.selected : ""}`}
+            onClick={(e) => { e.stopPropagation(); handleMenuClick("/eventos"); }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                e.stopPropagation();
+                handleMenuClick("/eventos");
+              }
+            }}
+            tabIndex={0}
+            role="button"
+            aria-label="Eventos"
+            title="Eventos"
+          >
+            <CalendarIcon size={30} color="#ffffff" />
+            {!collapsed && <a href="" onClick={(e) => e.preventDefault()} tabIndex={-1}>Eventos</a>}
           </li>
 
           {/* Deslogar */}

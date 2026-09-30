@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 import LoginScreen from "./screens/login/LoginScreen";
 import FirstAccessScreen from "./screens/access/FirstAccessScreen";
@@ -13,6 +13,10 @@ import ProfileScreen from "./screens/secretary/profile/ProfileScreen";
 import ResetPasswordScreen from "./screens/recoverypassword/reset/ResetPasswordScreen";
 import PhotosScreen from "./screens/secretary/photos/PhotosScreen";
 import ChangePasswordScreen from "./screens/changepassword/ChangePasswordScreen";
+
+import RequireSecretarySession from "./components/auth/RequireSecretarySession";
+import EventsRouteScaffold from "./screens/events/EventsRouteScaffold";
+import CertificateRouteScaffold from "./screens/certificate/CertificateRouteScaffold";
 
 export default function App() {
   return (
@@ -32,6 +36,19 @@ export default function App() {
         <Route path="/reset-password" element={<ResetPasswordScreen />} />
         <Route path="/fotos" element={<PhotosScreen />} />
         <Route path="/redefinir-senha" element={<ChangePasswordScreen />} />
+
+        {/* Alias de criacao de evento */}
+        <Route path="/criar-evento" element={<Navigate to="/eventos/novo" replace />} />
+
+        {/* Rotas administrativas de eventos */}
+        <Route element={<RequireSecretarySession />}>
+          <Route path="/eventos" element={<EventsRouteScaffold />} />
+          <Route path="/eventos/novo" element={<EventsRouteScaffold />} />
+          <Route path="/eventos/:id/gerenciar" element={<EventsRouteScaffold />} />
+        </Route>
+
+        {/* Rota publica de verificacao de certificado */}
+        <Route path="/certificado/verificar/:codigo" element={<CertificateRouteScaffold />} />
       </Routes>
     </BrowserRouter>
   );
