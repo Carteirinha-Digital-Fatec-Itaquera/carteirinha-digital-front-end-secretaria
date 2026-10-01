@@ -1,12 +1,24 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, Search, Calendar, Clock, MapPin, User, AlertCircle, RefreshCw } from "lucide-react";
+import {
+  Plus,
+  Search,
+  Calendar,
+  Clock,
+  MapPin,
+  User,
+  AlertCircle,
+  RefreshCw,
+  Edit2,
+  Ban,
+} from "lucide-react";
 
 import MenuLateral from "../../components/menuLateral/MenuLateral";
-import { getEvents } from "../../api/event/eventService";
+import { getEvents, cancelEvent } from "../../api/event/eventService";
 import type { EventView } from "../../domains/Event";
 import type { CheckpointType, CheckpointView } from "../../domains/Checkpoint";
 import { formatEventDate, formatEventTime, formatWorkload } from "../../utils/eventPresentation";
+import { CancelEventDialog } from "./components/CancelEventDialog";
 
 import styles from "./style.module.css";
 import layoutStyles from "../../styles/layoutWithMenu.module.css";
@@ -38,6 +50,8 @@ export default function SecretariaEventosScreen() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [cancellingEvent, setCancellingEvent] = useState<EventView | null>(null);
+  const [actionSuccess, setActionSuccess] = useState<string | null>(null);
 
   async function loadEvents() {
     try {
@@ -52,6 +66,14 @@ export default function SecretariaEventosScreen() {
     } finally {
       setLoading(false);
     }
+  }
+
+  async function handleConfirmCancel(reason: string) {
+    if (!cancellingEvent) return;
+    await cancelEvent(cancellingEvent.id, { reason });
+    setActionSuccess(`Evento "${cancellingEvent.title}" cancelado com sucesso.`);
+    setCancellingEvent(null);
+    await loadEvents();
   }
 
   useEffect(() => {
@@ -139,6 +161,40 @@ export default function SecretariaEventosScreen() {
             </div>
           </div>
 
+          {actionSuccess && (
+            <div
+              style={{
+                backgroundColor: "#ecfdf5",
+                color: "#065f46",
+                border: "1px solid #a7f3d0",
+                padding: "12px 18px",
+                borderRadius: "8px",
+                marginBottom: "16px",
+                fontSize: "14px",
+                fontWeight: 600,
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+              role="status"
+            >
+              <span>{actionSuccess}</span>
+              <button
+                type="button"
+                onClick={() => setActionSuccess(null)}
+                style={{
+                  background: "transparent",
+                  border: "none",
+                  cursor: "pointer",
+                  color: "#065f46",
+                  fontWeight: 700,
+                }}
+              >
+                ✕
+              </button>
+            </div>
+          )}
+
           <div className={styles.list}>
             <div className={styles.listHeader}>
               <div>
@@ -199,7 +255,20 @@ export default function SecretariaEventosScreen() {
                             {event.speaker}
                           </div>
                         </div>
+
+                        {event.status === "CANCELLED" && (
+                          <span className={styles.badgeCancelled}>
+                            <Ban size={13} />
+                            Cancelado
+                          </span>
+                        )}
                       </div>
+
+                      {event.status === "CANCELLED" && event.cancelReason && (
+                        <div className={styles.cancelReasonBox}>
+                          <strong>Motivo do cancelamento:</strong> {event.cancelReason}
+                        </div>
+                      )}
 
                       <div className={styles.eventMeta}>
                         <span>
@@ -238,7 +307,31 @@ export default function SecretariaEventosScreen() {
                         </div>
                       </div>
 
-                      <div className={styles.actions}>
+                      <div className={styles.actions} style={{ gap: "10px", alignItems: "center" }}>
+                        {event.status !== "CANCELLED" && (
+                          <>
+                            <button
+                              className={styles.editBtn}
+                              onClick={() => navigate(`/eventos/${event.id}/editar`)}
+                              type="button"
+                              title="Editar evento"
+                            >
+                              <Edit2 size={15} />
+                              Editar
+                            </button>
+
+                            <button
+                              className={styles.cancelActionBtn}
+                              onClick={() => setCancellingEvent(event)}
+                              type="button"
+                              title="Cancelar evento e revogar certificados"
+                            >
+                              <Ban size={15} />
+                              Cancelar
+                            </button>
+                          </>
+                        )}
+
                         <button
                           className={styles.manageBtn}
                           onClick={() => navigate(`/eventos/${event.id}/gerenciar`)}
@@ -255,6 +348,13 @@ export default function SecretariaEventosScreen() {
           </div>
         </div>
       </div>
+
+      <CancelEventDialog
+        isOpen={!!cancellingEvent}
+        eventTitle={cancellingEvent?.title || ""}
+        onClose={() => setCancellingEvent(null)}
+        onConfirm={handleConfirmCancel}
+      />
     </div>
   );
 }

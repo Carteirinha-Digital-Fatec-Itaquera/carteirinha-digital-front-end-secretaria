@@ -325,6 +325,82 @@ body {
   color: #ffffff;
 }
 
+.editBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 7px;
+  background: #ffffff;
+  color: #374151;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.editBtn:hover:not(:disabled) {
+  background: #f3f4f6;
+  border-color: #9ca3af;
+  color: #111827;
+}
+
+.editBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.cancelActionBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border: 1px solid #fecaca;
+  border-radius: 7px;
+  background: #fff5f5;
+  color: #dc2626;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.cancelActionBtn:hover:not(:disabled) {
+  background: #fee2e2;
+  border-color: #f87171;
+  color: #b91c1c;
+}
+
+.cancelActionBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.badgeCancelled {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  background-color: #fee2e2;
+  color: #b91c1c;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.cancelReasonBox {
+  margin-top: 10px;
+  padding: 8px 12px;
+  background-color: #fef2f2;
+  border-left: 3px solid #ef4444;
+  border-radius: 4px;
+  color: #7f1d1d;
+  font-size: 13px;
+}
+
 .empty {
   width: 100%;
   padding: 48px 20px;

@@ -15,6 +15,7 @@ function TestApp({ initialRoute = '/' }: { initialRoute?: string }) {
         <Route element={<RequireSecretarySession />}>
           <Route path="/eventos" element={<EventsRouteScaffold />} />
           <Route path="/eventos/novo" element={<EventsRouteScaffold />} />
+          <Route path="/eventos/:id/editar" element={<EventsRouteScaffold />} />
           <Route path="/eventos/:id/gerenciar" element={<EventsRouteScaffold />} />
         </Route>
 
@@ -46,6 +47,11 @@ describe('App Route Navigation and Security', () => {
       expect(screen.getByTestId('login-screen')).toBeInTheDocument();
     });
 
+    it('redirects /eventos/:id/editar to /login when unauthenticated', () => {
+      render(<TestApp initialRoute="/eventos/evt-123/editar" />);
+      expect(screen.getByTestId('login-screen')).toBeInTheDocument();
+    });
+
     it('redirects /eventos/:id/gerenciar to /login when unauthenticated', () => {
       render(<TestApp initialRoute="/eventos/evt-123/gerenciar" />);
       expect(screen.getByTestId('login-screen')).toBeInTheDocument();
@@ -68,6 +74,11 @@ describe('App Route Navigation and Security', () => {
       render(<TestApp initialRoute="/criar-evento" />);
       expect(screen.getByTestId('events-scaffold-title')).toHaveTextContent('Cadastrar Novo Evento');
       expect(screen.getByTestId('events-scaffold-path')).toHaveTextContent('/eventos/novo');
+    });
+
+    it('renders /eventos/:id/editar with event id in title', () => {
+      render(<TestApp initialRoute="/eventos/test-id-888/editar" />);
+      expect(screen.getByTestId('events-scaffold-title')).toHaveTextContent('Editar Evento test-id-888');
     });
 
     it('renders /eventos/:id/gerenciar with event id in title', () => {

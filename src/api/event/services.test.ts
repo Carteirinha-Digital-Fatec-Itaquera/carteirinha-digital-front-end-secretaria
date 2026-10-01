@@ -4,6 +4,7 @@ import {
   getEvent,
   createEvent,
   updateEvent,
+  cancelEvent,
 } from './eventService';
 import {
   openCheckpoint,
@@ -98,6 +99,23 @@ describe('Event, Checkpoint and Attendance Services', () => {
       const [url, init] = fetchMock.mock.calls[0];
       expect(url).toMatch(/\/events\/evt-1$/);
       expect(init?.method).toBe('PATCH');
+      expect(JSON.parse(init?.body as string)).toEqual(payload);
+    });
+
+    it('cancelEvent sends POST /events/:id/cancel with reason', async () => {
+      const payload = { reason: 'Motivo cancelamento' };
+      fetchMock.mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => ({ id: 'evt-1', status: 'CANCELLED', cancelReason: payload.reason }),
+      });
+
+      const result = await cancelEvent('evt-1', payload);
+      expect(result.status).toBe('CANCELLED');
+      expect(result.cancelReason).toBe(payload.reason);
+      const [url, init] = fetchMock.mock.calls[0];
+      expect(url).toMatch(/\/events\/evt-1\/cancel$/);
+      expect(init?.method).toBe('POST');
       expect(JSON.parse(init?.body as string)).toEqual(payload);
     });
   });

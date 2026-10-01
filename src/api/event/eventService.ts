@@ -3,6 +3,7 @@ import type {
   EventView,
   CreateEventRequest,
   UpdateEventRequest,
+  CancelEventRequest,
 } from '../../domains/Event';
 
 export async function getEvents(options?: RequestOptions): Promise<EventView[]> {
@@ -40,6 +41,18 @@ export async function updateEvent(
 ): Promise<EventView> {
   return apiRequest<EventView>(`/events/${encodeURIComponent(id)}`, {
     method: 'PATCH',
+    body: JSON.stringify(body),
+    signal: options?.signal,
+  });
+}
+
+export async function cancelEvent(
+  id: string,
+  body: CancelEventRequest,
+  options?: RequestOptions
+): Promise<EventView> {
+  return apiRequest<EventView>(`/events/${encodeURIComponent(id)}/cancel`, {
+    method: 'POST',
     body: JSON.stringify(body),
     signal: options?.signal,
   });
