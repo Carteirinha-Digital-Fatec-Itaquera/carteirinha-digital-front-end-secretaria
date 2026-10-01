@@ -16,10 +16,13 @@ import {
   AlertCircle,
   Maximize2,
   Minimize2,
+  Edit2,
+  Ban,
 } from "lucide-react";
 
 import MenuLateral from "../../components/menuLateral/MenuLateral";
-import { getEvent } from "../../api/event/eventService";
+import { getEvent, cancelEvent } from "../../api/event/eventService";
+import { CancelEventDialog } from "./components/CancelEventDialog";
 import {
   openCheckpoint,
   closeCheckpoint,
@@ -81,6 +84,29 @@ export default function SecretariaGerenciarEventoScreen() {
   const [actionLoading, setActionLoading] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
+  const [cancelSuccessMessage, setCancelSuccessMessage] = useState<string | null>(null);
+
+  const isCancelled = event?.status === "CANCELLED";
+
+  const handleConfirmCancel = async (reason: string) => {
+    if (!id) return;
+    try {
+      setActionLoading(true);
+      setActionError(null);
+      const updated = await cancelEvent(id, { reason });
+      setEvent(updated);
+      setIsCancelDialogOpen(false);
+      setActiveCheckpoint(null);
+      setCancelSuccessMessage("Evento cancelado com sucesso. Checkpoints fechados e certificados revogados.");
+      setTimeout(() => setCancelSuccessMessage(null), 6000);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Erro ao cancelar evento.";
+      setActionError(msg);
+    } finally {
+      setActionLoading(false);
+    }
+  };
 
   const isMountedRef = useRef(true);
   const isFetchingRef = useRef(false);
@@ -446,22 +472,112 @@ export default function SecretariaGerenciarEventoScreen() {
               Voltar para Eventos
             </button>
 
-            <button
-              type="button"
-              className={styles.refreshButton}
-              onClick={() => {
-                void loadEventData();
-                void participants.refresh();
-              }}
-              disabled={loadingEvent || participants.refreshing}
-            >
-              <RefreshCw
-                size={16}
-                className={participants.refreshing ? styles.spinning : ""}
-              />
-              Atualizar Painel
-            </button>
+            <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+              {!isCancelled && (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => navigate(`/eventos/${id}/editar`)}
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "6px",
+                      padding: "8px 14px",
+                      borderRadius: "6px",
+                      backgroundColor: "#f3f4f6",
+                      border: "1px solid #d1d5db",
+                      color: "#374151",
+                      fontSize: "13px",
+                      fontWeight: 600,
+                      cursor: "pointer",
+                    }}
+                  >
+                    <Edit2 size={15} />
+                    Editar Evento
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setIsCancelDialogOpen(true)}
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "6px",
+                      padding: "8px 14px",
+                      borderRadius: "6px",
+                      backgroundColor: "#fee2e2",
+                      border: "1px solid #fca5a5",
+                      color: "#b91c1c",
+                      fontSize: "13px",
+                      fontWeight: 600,
+                      cursor: "pointer",
+                    }}
+                  >
+                    <Ban size={15} />
+                    Cancelar Evento
+                  </button>
+                </>
+              )}
+
+              <button
+                type="button"
+                className={styles.refreshButton}
+                onClick={() => {
+                  void loadEventData();
+                  void participants.refresh();
+                }}
+                disabled={loadingEvent || participants.refreshing}
+              >
+                <RefreshCw
+                  size={16}
+                  className={participants.refreshing ? styles.spinning : ""}
+                />
+                Atualizar Painel
+              </button>
+            </div>
           </div>
+
+          {isCancelled && (
+            <div className={styles.cancelledBanner} role="alert">
+              <Ban size={28} style={{ flexShrink: 0, marginTop: "2px" }} />
+              <div>
+                <h3 className={styles.cancelledBannerTitle}>
+                  Evento Cancelado
+                </h3>
+                <p className={styles.cancelledBannerDesc}>
+                  Este evento foi formalmente cancelado. Todos os checkpoints foram encerrados e os certificados eventualmente emitidos foram <strong>revogados</strong>.
+                </p>
+                {event.cancelReason && (
+                  <p style={{ marginTop: "8px", fontWeight: 600 }}>
+                    Motivo: {event.cancelReason}
+                  </p>
+                )}
+                {event.cancelledAt && (
+                  <p style={{ marginTop: "4px", fontSize: "12px", opacity: 0.85 }}>
+                    Cancelado em: {new Date(event.cancelledAt).toLocaleString("pt-BR")}
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
+
+          {cancelSuccessMessage && (
+            <div
+              style={{
+                backgroundColor: "#ecfdf5",
+                color: "#065f46",
+                border: "1px solid #a7f3d0",
+                padding: "12px 18px",
+                borderRadius: "8px",
+                marginBottom: "20px",
+                fontSize: "14px",
+                fontWeight: 600,
+              }}
+              role="status"
+            >
+              ✅ {cancelSuccessMessage}
+            </div>
+          )}
 
           <div className={styles.pageHeader}>
             <div className={styles.header}>
@@ -620,7 +736,13 @@ export default function SecretariaGerenciarEventoScreen() {
                 </p>
 
                 <div className={styles.checkpointActions}>
-                  {checkInStatus === "closed" && (
+                  {isCancelled && checkInStatus === "closed" && (
+                    <div className={styles.blockedMessage}>
+                      Evento cancelado. Novos checkpoints não podem ser abertos.
+                    </div>
+                  )}
+
+                  {!isCancelled && checkInStatus === "closed" && (
                     <button
                       className={styles.openButton}
                       onClick={() => handleOpenCheckpoint("check-in")}
@@ -680,7 +802,14 @@ export default function SecretariaGerenciarEventoScreen() {
                 </p>
 
                 <div className={styles.checkpointActions}>
-                  {checkOutStatus === "closed" &&
+                  {isCancelled && checkOutStatus === "closed" && (
+                    <div className={styles.blockedMessage}>
+                      Evento cancelado. Novos checkpoints não podem ser abertos.
+                    </div>
+                  )}
+
+                  {!isCancelled &&
+                    checkOutStatus === "closed" &&
                     checkInStatus === "finished" && (
                       <button
                         className={styles.openButton}
@@ -693,7 +822,8 @@ export default function SecretariaGerenciarEventoScreen() {
                       </button>
                     )}
 
-                  {checkOutStatus === "closed" &&
+                  {!isCancelled &&
+                    checkOutStatus === "closed" &&
                     checkInStatus !== "finished" && (
                       <div className={styles.blockedMessage}>
                         Encerre o Check-in para abrir o Check-out.
@@ -975,6 +1105,14 @@ export default function SecretariaGerenciarEventoScreen() {
           </div>
         </div>
       </div>
+
+      <CancelEventDialog
+        isOpen={isCancelDialogOpen}
+        eventTitle={event?.title || ""}
+        onClose={() => setIsCancelDialogOpen(false)}
+        onConfirm={handleConfirmCancel}
+        isSubmitting={actionLoading}
+      />
     </div>
   );
 }

@@ -19,6 +19,9 @@ export interface EventView {
   endsAt: IsoDateTime;
   workloadMinutes: number;
   status: EventStatus;
+  cancelReason: string | null;
+  cancelledAt: IsoDateTime | null;
+  cancelledById: number | null;
   certificateEnabled: boolean;
   checkpoints: CheckpointView[];
   createdAt: IsoDateTime;
@@ -36,6 +39,11 @@ export interface CreateEventRequest {
   certificateEnabled?: boolean;
 }
 
+export interface CancelEventRequest {
+  reason: string;
+}
+
 export interface UpdateEventRequest extends Partial<CreateEventRequest> {
   status?: 'CANCELLED';
+  cancelReason?: string;
 }

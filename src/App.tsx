@@ -17,6 +17,7 @@ import ChangePasswordScreen from "./screens/changepassword/ChangePasswordScreen"
 import RequireSecretarySession from "./components/auth/RequireSecretarySession";
 import SecretariaEventosScreen from "./screens/events/SecretariaEventosScreen";
 import SecretariaNovoEventoScreen from "./screens/events/SecretariaNovoEventoScreen";
+import SecretariaEditarEventoScreen from "./screens/events/SecretariaEditarEventoScreen";
 import SecretariaGerenciarEventoScreen from "./screens/events/SecretariaGerenciarEventoScreen";
 import CertificadoVerificarScreen from "./screens/certificate/CertificadoVerificarScreen";
 
@@ -46,6 +47,7 @@ export default function App() {
         <Route element={<RequireSecretarySession />}>
           <Route path="/eventos" element={<SecretariaEventosScreen />} />
           <Route path="/eventos/novo" element={<SecretariaNovoEventoScreen />} />
+          <Route path="/eventos/:id/editar" element={<SecretariaEditarEventoScreen />} />
           <Route path="/eventos/:id/gerenciar" element={<SecretariaGerenciarEventoScreen />} />
         </Route>
 

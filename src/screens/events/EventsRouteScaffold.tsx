@@ -8,6 +8,8 @@ export function EventsRouteScaffold() {
   let title = 'Eventos';
   if (location.pathname === '/eventos/novo') {
     title = 'Cadastrar Novo Evento';
+  } else if (location.pathname.includes('/editar')) {
+    title = `Editar Evento ${id ?? ''}`.trim();
   } else if (location.pathname.includes('/gerenciar')) {
     title = `Gerenciar Evento ${id ?? ''}`.trim();
   }

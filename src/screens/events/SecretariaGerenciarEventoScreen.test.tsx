@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, waitFor, fireEvent, act } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent, act, within } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import SecretariaGerenciarEventoScreen from './SecretariaGerenciarEventoScreen';
 import * as eventService from '../../api/event/eventService';
@@ -30,6 +30,9 @@ describe('SecretariaGerenciarEventoScreen - QR Code & Projeção Telão', () => 
     workloadMinutes: 120,
     status: 'IN_PROGRESS' as const,
     certificateEnabled: true,
+    cancelReason: null,
+    cancelledAt: null,
+    cancelledById: null,
     createdAt: '2026-10-01T10:00:00.000Z',
     updatedAt: '2026-10-01T10:00:00.000Z',
     checkpoints: [
@@ -261,6 +264,104 @@ describe('SecretariaGerenciarEventoScreen - QR Code & Projeção Telão', () => 
     });
 
     expect(screen.queryByTestId('attendance-qr')).not.toBeInTheDocument();
+  });
+
+  it('exibe botões de editar e cancelar e permite cancelar evento abrindo modal', async () => {
+    const cancelSpy = vi.spyOn(eventService, 'cancelEvent').mockResolvedValue({
+      ...fakeEvent,
+      status: 'CANCELLED',
+      cancelReason: 'Auditório interditado para reparos',
+      cancelledAt: '2026-10-10T12:00:00.000Z',
+      cancelledById: 1,
+    });
+
+    render(
+      <MemoryRouter initialEntries={['/eventos/evt-test-100/gerenciar']}>
+        <Routes>
+          <Route path="/eventos/:id/gerenciar" element={<SecretariaGerenciarEventoScreen />} />
+          <Route path="/eventos/:id/editar" element={<div>Tela de Edição do Evento</div>} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /editar evento/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /cancelar evento/i })).toBeInTheDocument();
+    });
+
+    // Clica no botão Cancelar Evento
+    const cancelBtn = screen.getByRole('button', { name: /cancelar evento/i });
+    fireEvent.click(cancelBtn);
+
+    // Modal de cancelamento deve abrir
+    const dialog = screen.getByRole('dialog');
+    expect(dialog).toBeInTheDocument();
+    expect(within(dialog).getByText('Semana de Tecnologia 2026')).toBeInTheDocument();
+
+    const textarea = screen.getByPlaceholderText(/Informe o motivo formal do cancelamento/i);
+    fireEvent.change(textarea, { target: { value: 'Auditório interditado para reparos' } });
+
+    const confirmBtn = screen.getByRole('button', { name: 'Confirmar Cancelamento' });
+    fireEvent.click(confirmBtn);
+
+    await waitFor(() => {
+      expect(cancelSpy).toHaveBeenCalledWith('evt-test-100', {
+        reason: 'Auditório interditado para reparos',
+      });
+    });
+  });
+
+  it('exibe banner de evento cancelado e bloqueia abertura de checkpoints quando status é CANCELLED', async () => {
+    vi.spyOn(eventService, 'getEvent').mockResolvedValue({
+      ...fakeEvent,
+      status: 'CANCELLED',
+      cancelReason: 'Evento adiado indefinidamente',
+      cancelledAt: '2026-10-10T12:00:00.000Z',
+      cancelledById: 1,
+      checkpoints: [
+        {
+          id: 'cp-in',
+          eventId: 'evt-test-100',
+          type: 'CHECK_IN' as const,
+          isOpen: false,
+          version: 1,
+          openedAt: '2026-10-10T10:00:00.000Z',
+          closedAt: '2026-10-10T10:30:00.000Z',
+        },
+        {
+          id: 'cp-out',
+          eventId: 'evt-test-100',
+          type: 'CHECK_OUT' as const,
+          isOpen: false,
+          version: 1,
+          openedAt: null,
+          closedAt: null,
+        },
+      ],
+    });
+
+    render(
+      <MemoryRouter initialEntries={['/eventos/evt-test-100/gerenciar']}>
+        <Routes>
+          <Route path="/eventos/:id/gerenciar" element={<SecretariaGerenciarEventoScreen />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).toBeInTheDocument();
+      expect(screen.getByText('Evento Cancelado')).toBeInTheDocument();
+      expect(screen.getByText(/Evento adiado indefinidamente/i)).toBeInTheDocument();
+    });
+
+    // Botões de editar e cancelar da topBar não devem estar visíveis
+    expect(screen.queryByRole('button', { name: /editar evento/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /cancelar evento/i })).not.toBeInTheDocument();
+
+    // Mensagem de bloqueio nos checkpoints
+    expect(
+      screen.getByText(/Evento cancelado\. Novos checkpoints não podem ser abertos\./i)
+    ).toBeInTheDocument();
   });
 });
 
