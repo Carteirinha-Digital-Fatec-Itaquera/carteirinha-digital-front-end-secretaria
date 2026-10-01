@@ -18,11 +18,13 @@ import {
   Minimize2,
   Edit2,
   Ban,
+  Trash2,
 } from "lucide-react";
 
 import MenuLateral from "../../components/menuLateral/MenuLateral";
-import { getEvent, cancelEvent } from "../../api/event/eventService";
+import { getEvent, cancelEvent, deleteEvent } from "../../api/event/eventService";
 import { CancelEventDialog } from "./components/CancelEventDialog";
+import { DeleteEventDialog } from "./components/DeleteEventDialog";
 import {
   openCheckpoint,
   closeCheckpoint,
@@ -85,6 +87,7 @@ export default function SecretariaGerenciarEventoScreen() {
   const [actionError, setActionError] = useState<string | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [cancelSuccessMessage, setCancelSuccessMessage] = useState<string | null>(null);
 
   const isCancelled = event?.status === "CANCELLED";
@@ -103,6 +106,22 @@ export default function SecretariaGerenciarEventoScreen() {
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Erro ao cancelar evento.";
       setActionError(msg);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!id) return;
+    try {
+      setActionLoading(true);
+      setActionError(null);
+      await deleteEvent(id);
+      navigate("/eventos");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Erro ao excluir evento.";
+      setActionError(msg);
+      throw err;
     } finally {
       setActionLoading(false);
     }
@@ -518,6 +537,28 @@ export default function SecretariaGerenciarEventoScreen() {
                   </button>
                 </>
               )}
+
+              <button
+                type="button"
+                onClick={() => setIsDeleteDialogOpen(true)}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "6px",
+                  padding: "8px 14px",
+                  borderRadius: "6px",
+                  backgroundColor: "#fee2e2",
+                  border: "1px solid #fca5a5",
+                  color: "#b91c1c",
+                  fontSize: "13px",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                }}
+                title="Excluir evento permanentemente"
+              >
+                <Trash2 size={15} />
+                Excluir Evento
+              </button>
 
               <button
                 type="button"
@@ -1111,6 +1152,14 @@ export default function SecretariaGerenciarEventoScreen() {
         eventTitle={event?.title || ""}
         onClose={() => setIsCancelDialogOpen(false)}
         onConfirm={handleConfirmCancel}
+        isSubmitting={actionLoading}
+      />
+
+      <DeleteEventDialog
+        isOpen={isDeleteDialogOpen}
+        eventTitle={event?.title || ""}
+        onClose={() => setIsDeleteDialogOpen(false)}
+        onConfirm={handleConfirmDelete}
         isSubmitting={actionLoading}
       />
     </div>

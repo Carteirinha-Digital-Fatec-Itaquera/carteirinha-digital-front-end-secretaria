@@ -57,3 +57,16 @@ export async function cancelEvent(
     signal: options?.signal,
   });
 }
+
+export async function deleteEvent(
+  id: string,
+  options?: RequestOptions
+): Promise<{ message: string; id?: string }> {
+  return apiRequest<{ message: string; id?: string }>(
+    `/events/${encodeURIComponent(id)}`,
+    {
+      method: 'DELETE',
+      signal: options?.signal,
+    }
+  );
+}

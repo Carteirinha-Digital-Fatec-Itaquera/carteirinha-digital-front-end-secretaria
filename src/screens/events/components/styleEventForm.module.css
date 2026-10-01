@@ -3,12 +3,13 @@
   max-width: 960px;
   margin: 0 auto;
   padding: 16px;
+  padding-bottom: 40px;
   box-sizing: border-box;
 }
 
 @media screen and (min-width: 768px) {
   .formWrapper {
-    padding: 24px 32px;
+    padding: 24px 32px 48px;
   }
 }
 
@@ -173,13 +174,14 @@
   display: flex;
   justify-content: flex-end;
   gap: 14px;
-  margin-top: 10px;
+  margin-top: 24px;
+  padding-bottom: 24px;
 }
 
 .discardButton,
 .submitButton {
-  min-width: 130px;
-  padding: 10px 22px;
+  min-width: 140px;
+  padding: 12px 24px;
   border-radius: 20px;
   font-size: 14px;
   font-weight: bold;

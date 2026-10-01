@@ -5,6 +5,7 @@ import {
   createEvent,
   updateEvent,
   cancelEvent,
+  deleteEvent,
 } from './eventService';
 import {
   openCheckpoint,
@@ -117,6 +118,20 @@ describe('Event, Checkpoint and Attendance Services', () => {
       expect(url).toMatch(/\/events\/evt-1\/cancel$/);
       expect(init?.method).toBe('POST');
       expect(JSON.parse(init?.body as string)).toEqual(payload);
+    });
+
+    it('deleteEvent sends DELETE /events/:id', async () => {
+      fetchMock.mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => ({ message: 'Evento excluído com sucesso' }),
+      });
+
+      const result = await deleteEvent('evt-1');
+      expect(result.message).toBe('Evento excluído com sucesso');
+      const [url, init] = fetchMock.mock.calls[0];
+      expect(url).toMatch(/\/events\/evt-1$/);
+      expect(init?.method).toBe('DELETE');
     });
   });
 
