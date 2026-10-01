@@ -61,6 +61,71 @@ body {
   background: #23877b;
 }
 
+.tabsContainer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  max-width: 1500px;
+  margin-bottom: 20px;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.tabButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  font-size: 15px;
+  font-weight: 600;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-bottom: -2px;
+}
+
+.tabButton:hover:not(:disabled) {
+  color: #005c6d;
+}
+
+.tabButtonActive {
+  color: #005c6d;
+  border-bottom-color: #005c6d;
+  font-weight: 700;
+}
+
+.tabCount {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 700;
+  background: #e2e8f0;
+  color: #475569;
+}
+
+.tabButtonActive .tabCount {
+  background: #005c6d;
+  color: #ffffff;
+}
+
+.tabCountCancelled {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.tabButtonActive .tabCountCancelled {
+  background: #dc2626;
+  color: #ffffff;
+}
+
 .filterBar {
   display: flex;
   flex-direction: row;
@@ -120,21 +185,23 @@ body {
   margin-left: 10px;
 }
 
-.filterSelects {
+.filterSelects,
+.filterControls {
   display: flex;
   flex-direction: row;
-  width: 220px;
+  align-items: center;
+  gap: 12px;
   flex-shrink: 0;
 }
 
 .filterSelect {
-  width: 100%;
+  min-width: 190px;
   height: 45px;
   padding: 0 12px;
   border: 1.5px solid #b0cccc;
   border-radius: 9px;
   background: #ffffff;
-  font-size: 15px;
+  font-size: 14px;
   color: #2c3e50;
   outline: none;
   cursor: pointer;
@@ -474,6 +541,18 @@ body {
     width: 100%;
   }
 
+  .tabsContainer {
+    width: 100%;
+    overflow-x: auto;
+    padding-bottom: 2px;
+  }
+
+  .tabButton {
+    padding: 10px 14px;
+    font-size: 14px;
+    white-space: nowrap;
+  }
+
   .filterBar {
     flex-direction: column;
     align-items: stretch;
@@ -483,8 +562,11 @@ body {
     width: 100%;
   }
 
-  .filterSelects {
+  .filterSelects,
+  .filterControls {
     width: 100%;
+    flex-direction: column;
+    gap: 10px;
   }
 
   .filterSelect {

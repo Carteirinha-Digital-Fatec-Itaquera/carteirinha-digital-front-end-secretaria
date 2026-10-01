@@ -50,6 +50,8 @@ export default function SecretariaEventosScreen() {
   const [events, setEvents] = useState<EventView[]>([]);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [activeTab, setActiveTab] = useState<"active" | "cancelled">("active");
+  const [sortOrder, setSortOrder] = useState<"recent" | "oldest">("recent");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [cancellingEvent, setCancellingEvent] = useState<EventView | null>(null);
@@ -91,8 +93,29 @@ export default function SecretariaEventosScreen() {
     void loadEvents();
   }, []);
 
+  const counts = useMemo(() => {
+    let active = 0;
+    let cancelled = 0;
+    for (const evt of events) {
+      if (evt.status === "CANCELLED") {
+        cancelled++;
+      } else {
+        active++;
+      }
+    }
+    return { active, cancelled };
+  }, [events]);
+
   const filteredEvents = useMemo(() => {
-    return events.filter((event) => {
+    const list = events.filter((event) => {
+      // Filtro de aba: ativos vs cancelados
+      if (activeTab === "active" && event.status === "CANCELLED") {
+        return false;
+      }
+      if (activeTab === "cancelled" && event.status !== "CANCELLED") {
+        return false;
+      }
+
       const searchText = search.toLowerCase();
       const matchesSearch =
         event.title.toLowerCase().includes(searchText) ||
@@ -106,7 +129,22 @@ export default function SecretariaEventosScreen() {
 
       return checkInStatus === statusFilter || checkOutStatus === statusFilter;
     });
-  }, [events, search, statusFilter]);
+
+    // Ordenação por data: mais atuais primeiro por padrão
+    list.sort((a, b) => {
+      const timeA = new Date(a.startsAt).getTime();
+      const timeB = new Date(b.startsAt).getTime();
+      if (sortOrder === "recent") {
+        if (timeB !== timeA) return timeB - timeA;
+        return new Date(b.endsAt).getTime() - new Date(a.endsAt).getTime();
+      } else {
+        if (timeA !== timeB) return timeA - timeB;
+        return new Date(a.endsAt).getTime() - new Date(b.endsAt).getTime();
+      }
+    });
+
+    return list;
+  }, [events, activeTab, search, statusFilter, sortOrder]);
 
   function getStatusClass(status: CheckpointDisplayStatus) {
     if (status === "open") return styles.statusOpen;
@@ -140,6 +178,42 @@ export default function SecretariaEventosScreen() {
             </button>
           </div>
 
+          <div
+            className={styles.tabsContainer}
+            role="tablist"
+            aria-label="Filtrar por tipo de evento"
+          >
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeTab === "active"}
+              className={`${styles.tabButton} ${
+                activeTab === "active" ? styles.tabButtonActive : ""
+              }`}
+              onClick={() => setActiveTab("active")}
+            >
+              Eventos Ativos
+              <span className={styles.tabCount}>{counts.active}</span>
+            </button>
+
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeTab === "cancelled"}
+              className={`${styles.tabButton} ${
+                activeTab === "cancelled" ? styles.tabButtonActive : ""
+              }`}
+              onClick={() => setActiveTab("cancelled")}
+            >
+              Eventos Cancelados
+              <span
+                className={`${styles.tabCount} ${styles.tabCountCancelled}`}
+              >
+                {counts.cancelled}
+              </span>
+            </button>
+          </div>
+
           <div className={styles.filterBar}>
             <div className={styles.searchArea}>
               <div className={styles.searchBox}>
@@ -157,17 +231,31 @@ export default function SecretariaEventosScreen() {
               </div>
             </div>
 
-            <div className={styles.filterSelects}>
+            <div className={styles.filterControls}>
+              {activeTab === "active" && (
+                <select
+                  className={styles.filterSelect}
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  aria-label="Filtrar por status"
+                >
+                  <option value="all">Todos os status</option>
+                  <option value="open">Checkpoints Abertos</option>
+                  <option value="closed">Checkpoints Fechados</option>
+                  <option value="finished">Checkpoints Encerrados</option>
+                </select>
+              )}
+
               <select
                 className={styles.filterSelect}
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                aria-label="Filtrar por status"
+                value={sortOrder}
+                onChange={(e) =>
+                  setSortOrder(e.target.value as "recent" | "oldest")
+                }
+                aria-label="Ordenar por data"
               >
-                <option value="all">Todos os status</option>
-                <option value="open">Checkpoints Abertos</option>
-                <option value="closed">Checkpoints Fechados</option>
-                <option value="finished">Checkpoints Encerrados</option>
+                <option value="recent">Mais atuais primeiro</option>
+                <option value="oldest">Mais antigos primeiro</option>
               </select>
             </div>
           </div>
@@ -247,8 +335,16 @@ export default function SecretariaEventosScreen() {
             ) : filteredEvents.length === 0 ? (
               <div className={styles.empty}>
                 <Calendar size={40} />
-                <h3>Nenhum evento encontrado</h3>
-                <p>Não encontramos eventos com os filtros selecionados.</p>
+                <h3>
+                  {activeTab === "cancelled"
+                    ? "Nenhum evento cancelado"
+                    : "Nenhum evento encontrado"}
+                </h3>
+                <p>
+                  {activeTab === "cancelled"
+                    ? "Não há eventos cancelados no momento."
+                    : "Não encontramos eventos com os filtros selecionados."}
+                </p>
               </div>
             ) : (
               <div className={styles.eventsList}>

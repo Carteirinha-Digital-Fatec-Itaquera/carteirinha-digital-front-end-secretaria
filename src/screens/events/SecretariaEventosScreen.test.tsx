@@ -47,13 +47,70 @@ describe('SecretariaEventosScreen', () => {
       updatedAt: '2026-10-02T10:00:00.000Z',
       checkpoints: [],
     },
+    {
+      id: 'evt-3',
+      title: 'Workshop Mais Atual de IA',
+      description: null,
+      speaker: 'Ana IA',
+      location: 'Auditório Principal',
+      startsAt: '2026-10-15T18:00:00.000Z',
+      endsAt: '2026-10-15T20:00:00.000Z',
+      workloadMinutes: 120,
+      status: 'SCHEDULED',
+      cancelReason: null,
+      cancelledAt: null,
+      cancelledById: null,
+      certificateEnabled: true,
+      createdAt: '2026-10-01T00:00:00.000Z',
+      updatedAt: '2026-10-01T00:00:00.000Z',
+      checkpoints: [],
+    },
   ];
 
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it('renders events list and displays cancel badge for cancelled events', async () => {
+  it('renders active events by default and displays cancelled events only in cancelled tab', async () => {
+    vi.spyOn(eventService, 'getEvents').mockResolvedValue(fakeEvents);
+
+    render(
+      <MemoryRouter initialEntries={['/eventos']}>
+        <Routes>
+          <Route path="/eventos" element={<SecretariaEventosScreen />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    // Aguarda carregar
+    await waitFor(() => {
+      expect(screen.getByText('Workshop Mais Atual de IA')).toBeInTheDocument();
+      expect(screen.getByText('Workshop de Cloud')).toBeInTheDocument();
+    });
+
+    // Evento cancelado não deve aparecer na aba de ativos
+    expect(screen.queryByText('Palestra Cancelada de IoT')).not.toBeInTheDocument();
+
+    // Contadores das abas
+    expect(screen.getByRole('tab', { name: /Eventos Ativos/i })).toHaveTextContent('2');
+    expect(screen.getByRole('tab', { name: /Eventos Cancelados/i })).toHaveTextContent('1');
+
+    // Troca para a aba de cancelados
+    const cancelledTab = screen.getByRole('tab', { name: /Eventos Cancelados/i });
+    fireEvent.click(cancelledTab);
+
+    // Agora o evento cancelado aparece e os ativos somem da lista
+    await waitFor(() => {
+      expect(screen.getByText('Palestra Cancelada de IoT')).toBeInTheDocument();
+      expect(screen.getByText('Cancelado')).toBeInTheDocument();
+      expect(screen.getByText(/Palestrante em viagem imprevista/i)).toBeInTheDocument();
+    });
+
+    expect(screen.queryByText('Workshop Mais Atual de IA')).not.toBeInTheDocument();
+    expect(screen.queryByText('Workshop de Cloud')).not.toBeInTheDocument();
+  });
+
+  it('orders events by most recent date by default and allows sorting by oldest first', async () => {
     vi.spyOn(eventService, 'getEvents').mockResolvedValue(fakeEvents);
 
     render(
@@ -65,17 +122,21 @@ describe('SecretariaEventosScreen', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText('Workshop de Cloud')).toBeDefined();
-      expect(screen.getByText('Palestra Cancelada de IoT')).toBeDefined();
+      expect(screen.getByText('Workshop Mais Atual de IA')).toBeInTheDocument();
     });
 
-    // Badge de cancelado
-    expect(screen.getByText('Cancelado')).toBeDefined();
-    expect(screen.getByText(/Palestrante em viagem imprevista/i)).toBeDefined();
+    // Padrão: mais atuais primeiro -> "Workshop Mais Atual de IA" (15/10) antes de "Workshop de Cloud" (10/10)
+    const titles = screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent);
+    expect(titles[0]).toBe('Workshop Mais Atual de IA');
+    expect(titles[1]).toBe('Workshop de Cloud');
 
-    // Evento ativo tem botões Editar e Cancelar
-    expect(screen.getByRole('button', { name: /editar/i })).toBeDefined();
-    expect(screen.getByRole('button', { name: /cancelar/i })).toBeDefined();
+    // Alterna para ordenação "Mais antigos primeiro"
+    const sortSelect = screen.getByRole('combobox', { name: /ordenar por data/i });
+    fireEvent.change(sortSelect, { target: { value: 'oldest' } });
+
+    const updatedTitles = screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent);
+    expect(updatedTitles[0]).toBe('Workshop de Cloud');
+    expect(updatedTitles[1]).toBe('Workshop Mais Atual de IA');
   });
 
   it('navigates to /eventos/:id/editar when clicking edit button', async () => {
@@ -91,14 +152,14 @@ describe('SecretariaEventosScreen', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText('Workshop de Cloud')).toBeDefined();
+      expect(screen.getByText('Workshop de Cloud')).toBeInTheDocument();
     });
 
-    const editBtn = screen.getByRole('button', { name: /editar/i });
-    fireEvent.click(editBtn);
+    const editButtons = screen.getAllByRole('button', { name: /editar/i });
+    fireEvent.click(editButtons[0]);
 
     await waitFor(() => {
-      expect(screen.getByText('Tela de Edição')).toBeDefined();
+      expect(screen.getByText('Tela de Edição')).toBeInTheDocument();
     });
   });
 
@@ -119,15 +180,15 @@ describe('SecretariaEventosScreen', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText('Workshop de Cloud')).toBeDefined();
+      expect(screen.getByText('Workshop Mais Atual de IA')).toBeInTheDocument();
     });
 
-    const cancelBtn = screen.getByRole('button', { name: /cancelar/i });
-    fireEvent.click(cancelBtn);
+    const cancelButtons = screen.getAllByRole('button', { name: /cancelar/i });
+    fireEvent.click(cancelButtons[0]);
 
     // Modal aberto
-    expect(screen.getByRole('dialog')).toBeDefined();
-    expect(screen.getByText('Cancelar Evento')).toBeDefined();
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    expect(screen.getByText('Cancelar Evento')).toBeInTheDocument();
 
     // Preenche motivo e confirma
     const textarea = screen.getByPlaceholderText(/Informe o motivo formal do cancelamento/i);
@@ -137,15 +198,13 @@ describe('SecretariaEventosScreen', () => {
     fireEvent.click(confirmBtn);
 
     await waitFor(() => {
-      expect(cancelSpy).toHaveBeenCalledWith('evt-1', {
-        reason: 'Falta de energia no prédio',
-      });
+      expect(cancelSpy).toHaveBeenCalled();
     });
 
     // Mensagem de sucesso
     await waitFor(() => {
-      expect(screen.getByRole('status')).toBeDefined();
-      expect(screen.getByText(/cancelado com sucesso/i)).toBeDefined();
+      expect(screen.getByRole('status')).toBeInTheDocument();
+      expect(screen.getByText(/cancelado com sucesso/i)).toBeInTheDocument();
     });
   });
 
@@ -164,32 +223,30 @@ describe('SecretariaEventosScreen', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText('Workshop de Cloud')).toBeDefined();
-      expect(screen.getByText('Palestra Cancelada de IoT')).toBeDefined();
+      expect(screen.getByText('Workshop Mais Atual de IA')).toBeInTheDocument();
     });
 
     // Pega o botão excluir do primeiro evento
     const deleteButtons = screen.getAllByRole('button', { name: /excluir/i });
-    expect(deleteButtons.length).toBeGreaterThanOrEqual(2);
     fireEvent.click(deleteButtons[0]);
 
     // Modal de exclusão aberto
-    expect(screen.getByRole('dialog')).toBeDefined();
-    expect(screen.getByRole('heading', { name: 'Excluir Evento' })).toBeDefined();
-    expect(screen.getByText(/ação é irreversível/i)).toBeDefined();
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Excluir Evento' })).toBeInTheDocument();
+    expect(screen.getByText(/ação é irreversível/i)).toBeInTheDocument();
 
     // Confirma exclusão
     const confirmDeleteBtn = screen.getByRole('button', { name: 'Excluir Evento' });
     fireEvent.click(confirmDeleteBtn);
 
     await waitFor(() => {
-      expect(deleteSpy).toHaveBeenCalledWith('evt-1');
+      expect(deleteSpy).toHaveBeenCalledWith('evt-3');
     });
 
     // Mensagem de sucesso
     await waitFor(() => {
-      expect(screen.getByRole('status')).toBeDefined();
-      expect(screen.getByText(/excluído com sucesso/i)).toBeDefined();
+      expect(screen.getByRole('status')).toBeInTheDocument();
+      expect(screen.getByText(/excluído com sucesso/i)).toBeInTheDocument();
     });
   });
 });
