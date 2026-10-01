@@ -377,6 +377,32 @@ body {
   cursor: not-allowed;
 }
 
+.deleteActionBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border: 1px solid #e5e7eb;
+  border-radius: 7px;
+  background: #ffffff;
+  color: #b91c1c;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.deleteActionBtn:hover:not(:disabled) {
+  background: #fee2e2;
+  border-color: #fca5a5;
+  color: #991b1b;
+}
+
+.deleteActionBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .badgeCancelled {
   display: inline-flex;
   align-items: center;

@@ -148,4 +148,48 @@ describe('SecretariaEventosScreen', () => {
       expect(screen.getByText(/cancelado com sucesso/i)).toBeDefined();
     });
   });
+
+  it('opens delete dialog and deletes event when confirmed', async () => {
+    vi.spyOn(eventService, 'getEvents').mockResolvedValue(fakeEvents);
+    const deleteSpy = vi.spyOn(eventService, 'deleteEvent').mockResolvedValue({
+      message: 'Evento excluído com sucesso',
+    });
+
+    render(
+      <MemoryRouter initialEntries={['/eventos']}>
+        <Routes>
+          <Route path="/eventos" element={<SecretariaEventosScreen />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('Workshop de Cloud')).toBeDefined();
+      expect(screen.getByText('Palestra Cancelada de IoT')).toBeDefined();
+    });
+
+    // Pega o botão excluir do primeiro evento
+    const deleteButtons = screen.getAllByRole('button', { name: /excluir/i });
+    expect(deleteButtons.length).toBeGreaterThanOrEqual(2);
+    fireEvent.click(deleteButtons[0]);
+
+    // Modal de exclusão aberto
+    expect(screen.getByRole('dialog')).toBeDefined();
+    expect(screen.getByRole('heading', { name: 'Excluir Evento' })).toBeDefined();
+    expect(screen.getByText(/ação é irreversível/i)).toBeDefined();
+
+    // Confirma exclusão
+    const confirmDeleteBtn = screen.getByRole('button', { name: 'Excluir Evento' });
+    fireEvent.click(confirmDeleteBtn);
+
+    await waitFor(() => {
+      expect(deleteSpy).toHaveBeenCalledWith('evt-1');
+    });
+
+    // Mensagem de sucesso
+    await waitFor(() => {
+      expect(screen.getByRole('status')).toBeDefined();
+      expect(screen.getByText(/excluído com sucesso/i)).toBeDefined();
+    });
+  });
 });

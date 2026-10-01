@@ -11,14 +11,16 @@ import {
   RefreshCw,
   Edit2,
   Ban,
+  Trash2,
 } from "lucide-react";
 
 import MenuLateral from "../../components/menuLateral/MenuLateral";
-import { getEvents, cancelEvent } from "../../api/event/eventService";
+import { getEvents, cancelEvent, deleteEvent } from "../../api/event/eventService";
 import type { EventView } from "../../domains/Event";
 import type { CheckpointType, CheckpointView } from "../../domains/Checkpoint";
 import { formatEventDate, formatEventTime, formatWorkload } from "../../utils/eventPresentation";
 import { CancelEventDialog } from "./components/CancelEventDialog";
+import { DeleteEventDialog } from "./components/DeleteEventDialog";
 
 import styles from "./style.module.css";
 import layoutStyles from "../../styles/layoutWithMenu.module.css";
@@ -51,6 +53,7 @@ export default function SecretariaEventosScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [cancellingEvent, setCancellingEvent] = useState<EventView | null>(null);
+  const [deletingEvent, setDeletingEvent] = useState<EventView | null>(null);
   const [actionSuccess, setActionSuccess] = useState<string | null>(null);
 
   async function loadEvents() {
@@ -73,6 +76,14 @@ export default function SecretariaEventosScreen() {
     await cancelEvent(cancellingEvent.id, { reason });
     setActionSuccess(`Evento "${cancellingEvent.title}" cancelado com sucesso.`);
     setCancellingEvent(null);
+    await loadEvents();
+  }
+
+  async function handleConfirmDelete() {
+    if (!deletingEvent) return;
+    await deleteEvent(deletingEvent.id);
+    setActionSuccess(`Evento "${deletingEvent.title}" excluído com sucesso.`);
+    setDeletingEvent(null);
     await loadEvents();
   }
 
@@ -333,6 +344,16 @@ export default function SecretariaEventosScreen() {
                         )}
 
                         <button
+                          className={styles.deleteActionBtn}
+                          onClick={() => setDeletingEvent(event)}
+                          type="button"
+                          title="Excluir evento permanentemente"
+                        >
+                          <Trash2 size={15} />
+                          Excluir
+                        </button>
+
+                        <button
                           className={styles.manageBtn}
                           onClick={() => navigate(`/eventos/${event.id}/gerenciar`)}
                           type="button"
@@ -354,6 +375,13 @@ export default function SecretariaEventosScreen() {
         eventTitle={cancellingEvent?.title || ""}
         onClose={() => setCancellingEvent(null)}
         onConfirm={handleConfirmCancel}
+      />
+
+      <DeleteEventDialog
+        isOpen={!!deletingEvent}
+        eventTitle={deletingEvent?.title || ""}
+        onClose={() => setDeletingEvent(null)}
+        onConfirm={handleConfirmDelete}
       />
     </div>
   );
