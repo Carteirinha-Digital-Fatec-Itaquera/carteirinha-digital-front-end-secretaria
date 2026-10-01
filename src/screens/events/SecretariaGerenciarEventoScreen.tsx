@@ -36,6 +36,8 @@ import {
 import { useEventParticipants } from "./hooks/useEventParticipants";
 import { ParticipantsPanel } from "./components/ParticipantsPanel";
 import { RafflePanel } from "./components/RafflePanel";
+import { GLOBAL_VAR } from "../../api/config/globalVar";
+import { validatedAttendanceQrUrl } from "../../utils/attendanceQrLink";
 
 import styles from "./styleGerenciar.module.css";
 import layoutStyles from "../../styles/layoutWithMenu.module.css";
@@ -166,9 +168,19 @@ export default function SecretariaGerenciarEventoScreen() {
           Math.ceil((expiresAtEpoch - now) / 1000)
         );
 
+        const validUrl = response.qrUrl
+          ? validatedAttendanceQrUrl(response.qrUrl, GLOBAL_VAR.STUDENT_APP_URL)
+          : null;
+
+        if (!validUrl) {
+          setQrData(null);
+          setQrError("Não foi possível gerar o link de presença. Tente atualizar.");
+          return;
+        }
+
         setQrData({
           qrToken: response.qrToken,
-          qrUrl: response.qrUrl,
+          qrUrl: validUrl,
           expiresAtEpoch,
         });
         setSecondsRemaining(initialRemainingSec > 0 ? initialRemainingSec : 20);
@@ -352,7 +364,9 @@ export default function SecretariaGerenciarEventoScreen() {
   const checkInStatus = computeCheckpointStatus(checkInCp);
   const checkOutStatus = computeCheckpointStatus(checkOutCp);
 
-  const qrValue = qrData?.qrUrl || qrData?.qrToken || null;
+  const qrValue = qrData?.qrUrl
+    ? validatedAttendanceQrUrl(qrData.qrUrl, GLOBAL_VAR.STUDENT_APP_URL)
+    : null;
 
   function getStatusClass(status: CheckpointDisplayStatus) {
     if (status === "open") return styles.statusOpen;
@@ -754,19 +768,29 @@ export default function SecretariaGerenciarEventoScreen() {
                         bgColor="#ffffff"
                         fgColor="#000000"
                         includeMargin
+                        data-testid="attendance-qr"
+                        role="img"
+                        aria-label="QR Code de presença para câmera nativa"
                       />
                     ) : (
                       <div className={styles.qrLoading}>
                         <RefreshCw size={34} className={styles.loadingIcon} />
-                        <span>
+                        <span role={qrError ? "alert" : undefined}>
                           {qrLoading
                             ? "Renovando QR Code..."
-                            : "Aguardando novo QR Code..."}
+                            : qrError || "Aguardando novo QR Code..."}
                         </span>
                         {qrError && (
-                          <span className={styles.qrErrorMessage}>
-                            {qrError}
-                          </span>
+                          <button
+                            type="button"
+                            className={styles.manualRefresh}
+                            onClick={() => void fetchQrToken(activeCheckpoint)}
+                            disabled={qrLoading}
+                            style={{ marginTop: "12px" }}
+                          >
+                            <RefreshCw size={14} />
+                            Tentar novamente
+                          </button>
                         )}
                       </div>
                     )}
@@ -866,6 +890,9 @@ export default function SecretariaGerenciarEventoScreen() {
                       bgColor="#ffffff"
                       fgColor="#000000"
                       includeMargin
+                      data-testid="attendance-qr"
+                      role="img"
+                      aria-label="QR Code de presença para câmera nativa"
                     />
                   ) : (
                     <div
@@ -873,15 +900,22 @@ export default function SecretariaGerenciarEventoScreen() {
                       style={{ width: "400px", height: "400px" }}
                     >
                       <RefreshCw size={48} className={styles.loadingIcon} />
-                      <span style={{ fontSize: "18px" }}>
+                      <span role={qrError ? "alert" : undefined} style={{ fontSize: "18px" }}>
                         {qrLoading
                           ? "Renovando QR Code..."
-                          : "Aguardando novo QR Code..."}
+                          : qrError || "Aguardando novo QR Code..."}
                       </span>
                       {qrError && (
-                        <span className={styles.qrErrorMessage}>
-                          {qrError}
-                        </span>
+                        <button
+                          type="button"
+                          className={styles.manualRefresh}
+                          onClick={() => void fetchQrToken(activeCheckpoint)}
+                          disabled={qrLoading}
+                          style={{ marginTop: "16px" }}
+                        >
+                          <RefreshCw size={16} />
+                          Tentar novamente
+                        </button>
                       )}
                     </div>
                   )}

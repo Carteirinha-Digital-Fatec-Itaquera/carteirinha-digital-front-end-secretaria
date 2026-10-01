@@ -67,9 +67,10 @@ describe('SecretariaGerenciarEventoScreen - QR Code & Projeção Telão', () => 
   });
 
   it('exibe QR Code preferencialmente com qrUrl curto e botão Modo Telão', async () => {
+    const validRef = 'shortRef123456'.padEnd(22, '0');
     const getQrSpy = vi.spyOn(checkpointService, 'getCheckpointQr').mockResolvedValue({
       qrToken: 'legacy.jwt.token',
-      qrUrl: 'https://carteirinha-digital-front-end-aluno.vercel.app/p/shortRef123456',
+      qrUrl: `https://carteirinha-digital-front-end-aluno.vercel.app/p/${validRef}`,
       serverTime: new Date().toISOString(),
       expiresInSeconds: 20,
       expiresAt: new Date(Date.now() + 20000).toISOString(),
@@ -109,9 +110,10 @@ describe('SecretariaGerenciarEventoScreen - QR Code & Projeção Telão', () => 
 
     const getQrSpy = vi.spyOn(checkpointService, 'getCheckpointQr').mockImplementation(async () => {
       callCount++;
+      const ref = `mockRef${callCount}`.padEnd(22, '0');
       return {
         qrToken: `token-${callCount}`,
-        qrUrl: `https://carteirinha-digital-front-end-aluno.vercel.app/p/ref-${callCount}`,
+        qrUrl: `https://carteirinha-digital-front-end-aluno.vercel.app/p/${ref}`,
         serverTime: new Date(now).toISOString(),
         expiresInSeconds: 20,
         expiresAt: new Date(Date.now() + 20000).toISOString(),
@@ -145,9 +147,10 @@ describe('SecretariaGerenciarEventoScreen - QR Code & Projeção Telão', () => 
   it('limpa o QR Code da tela se expirar antes de renovar para evitar leituras inválidas', async () => {
     const now = Date.now();
     const getQrSpy = vi.spyOn(checkpointService, 'getCheckpointQr');
+    const expiringRef = 'expiringRef'.padEnd(22, '0');
     getQrSpy.mockResolvedValueOnce({
       qrToken: 'token-expiring',
-      qrUrl: 'https://carteirinha-digital-front-end-aluno.vercel.app/p/ref-expiring',
+      qrUrl: `https://carteirinha-digital-front-end-aluno.vercel.app/p/${expiringRef}`,
       serverTime: new Date(now).toISOString(),
       expiresInSeconds: 2,
       expiresAt: new Date(now + 2000).toISOString(),
@@ -177,6 +180,87 @@ describe('SecretariaGerenciarEventoScreen - QR Code & Projeção Telão', () => 
     expect(
       screen.getByText(/Renovando QR Code\.\.\.|Aguardando novo QR Code\.\.\./i)
     ).toBeInTheDocument();
+  });
+
+  it('renderiza o SVG com data-testid="attendance-qr" quando a qrUrl for válida', async () => {
+    const validRef = 'a'.repeat(22);
+    vi.spyOn(checkpointService, 'getCheckpointQr').mockResolvedValueOnce({
+      qrToken: 'legacy.jwt.token',
+      qrUrl: `https://carteirinha-digital-front-end-aluno.vercel.app/p/${validRef}`,
+      serverTime: new Date().toISOString(),
+      expiresInSeconds: 20,
+      expiresAt: new Date(Date.now() + 20000).toISOString(),
+      checkpointVersion: 1,
+    });
+
+    render(
+      <MemoryRouter initialEntries={['/eventos/evt-test-100/gerenciar']}>
+        <Routes>
+          <Route path="/eventos/:id/gerenciar" element={<SecretariaGerenciarEventoScreen />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId('attendance-qr')).toBeInTheDocument();
+    });
+  });
+
+  it('não renderiza o SVG e exibe erro com retry quando qrUrl estiver ausente mesmo se qrToken existir', async () => {
+    vi.spyOn(checkpointService, 'getCheckpointQr').mockResolvedValueOnce({
+      qrToken: 'legacy.jwt.token.only',
+      // qrUrl ausente
+      serverTime: new Date().toISOString(),
+      expiresInSeconds: 20,
+      expiresAt: new Date(Date.now() + 20000).toISOString(),
+      checkpointVersion: 1,
+    });
+
+    render(
+      <MemoryRouter initialEntries={['/eventos/evt-test-100/gerenciar']}>
+        <Routes>
+          <Route path="/eventos/:id/gerenciar" element={<SecretariaGerenciarEventoScreen />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(/Não foi possível gerar o link de presença\. Tente atualizar\./i)
+      ).toBeInTheDocument();
+    });
+
+    // Garante que o SVG com o QR não é renderizado com JWT silencioso
+    expect(screen.queryByTestId('attendance-qr')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Tentar novamente/i })).toBeInTheDocument();
+  });
+
+  it('não renderiza o SVG e exibe erro quando qrUrl tiver origem não autorizada', async () => {
+    const validRef = 'a'.repeat(22);
+    vi.spyOn(checkpointService, 'getCheckpointQr').mockResolvedValueOnce({
+      qrToken: 'legacy.jwt.token',
+      qrUrl: `https://malicious-site.com/p/${validRef}`,
+      serverTime: new Date().toISOString(),
+      expiresInSeconds: 20,
+      expiresAt: new Date(Date.now() + 20000).toISOString(),
+      checkpointVersion: 1,
+    });
+
+    render(
+      <MemoryRouter initialEntries={['/eventos/evt-test-100/gerenciar']}>
+        <Routes>
+          <Route path="/eventos/:id/gerenciar" element={<SecretariaGerenciarEventoScreen />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(/Não foi possível gerar o link de presença\. Tente atualizar\./i)
+      ).toBeInTheDocument();
+    });
+
+    expect(screen.queryByTestId('attendance-qr')).not.toBeInTheDocument();
   });
 });
 
