@@ -100,11 +100,88 @@ describe('SecretariaGerenciarEventoScreen - QR Code & Projeção Telão', () => 
     const telaoButton = screen.getByRole('button', { name: /Modo Telão/i });
     expect(telaoButton).toBeInTheDocument();
 
+    // Verifica que botão Fixar no Canto (PiP) está presente
+    const pipButton = screen.getByRole('button', { name: /Fixar no Canto \(PiP\)/i });
+    expect(pipButton).toBeInTheDocument();
+
     // Abre modo telão
     fireEvent.click(telaoButton);
 
     expect(screen.getByText('Sair do Telão (ESC)')).toBeInTheDocument();
     expect(screen.getByText('Renovação preventiva em:')).toBeInTheDocument();
+  });
+
+  it('exibe botão de Fixar no Canto (PiP) e ativa modo flutuante quando acionado', async () => {
+    vi.spyOn(window, 'open').mockReturnValue(null);
+    const validRef = 'shortRef123456'.padEnd(22, '0');
+    vi.spyOn(checkpointService, 'getCheckpointQr').mockResolvedValue({
+      qrToken: 'legacy.jwt.token',
+      qrUrl: `https://carteirinha-digital-front-end-aluno.vercel.app/p/${validRef}`,
+      serverTime: new Date().toISOString(),
+      expiresInSeconds: 20,
+      expiresAt: new Date(Date.now() + 20000).toISOString(),
+      checkpointVersion: 1,
+    });
+
+    render(
+      <MemoryRouter initialEntries={['/eventos/evt-test-100/gerenciar']}>
+        <Routes>
+          <Route path="/eventos/:id/gerenciar" element={<SecretariaGerenciarEventoScreen />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('Semana de Tecnologia 2026')).toBeInTheDocument();
+    });
+
+    const pipButton = await screen.findByRole('button', { name: /Fixar no Canto \(PiP\)/i });
+    expect(pipButton).toBeInTheDocument();
+
+    // Ao clicar, o PiP é aberto (com fallback flutuante)
+    fireEvent.click(pipButton);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('pip-qr-container')).toBeInTheDocument();
+    });
+
+    // O botão agora reflete o estado ativo "Fechar PiP"
+    expect(screen.getByRole('button', { name: /Fechar PiP/i })).toBeInTheDocument();
+  });
+
+  it('fecha o modo PiP quando o usuário clica no botão Fechar PiP', async () => {
+    vi.spyOn(window, 'open').mockReturnValue(null);
+    const validRef = 'shortRef123456'.padEnd(22, '0');
+    vi.spyOn(checkpointService, 'getCheckpointQr').mockResolvedValue({
+      qrToken: 'legacy.jwt.token',
+      qrUrl: `https://carteirinha-digital-front-end-aluno.vercel.app/p/${validRef}`,
+      serverTime: new Date().toISOString(),
+      expiresInSeconds: 20,
+      expiresAt: new Date(Date.now() + 20000).toISOString(),
+      checkpointVersion: 1,
+    });
+
+    render(
+      <MemoryRouter initialEntries={['/eventos/evt-test-100/gerenciar']}>
+        <Routes>
+          <Route path="/eventos/:id/gerenciar" element={<SecretariaGerenciarEventoScreen />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('Semana de Tecnologia 2026')).toBeInTheDocument();
+    });
+
+    const pipButton = await screen.findByRole('button', { name: /Fixar no Canto \(PiP\)/i });
+    fireEvent.click(pipButton);
+
+    expect(await screen.findByTestId('pip-qr-container')).toBeInTheDocument();
+
+    // Fecha clicando no botão que agora é "Fechar PiP"
+    fireEvent.click(screen.getByRole('button', { name: /Fechar PiP/i }));
+
+    expect(screen.queryByTestId('pip-qr-container')).not.toBeInTheDocument();
   });
 
   it('faz renovação preventiva aos 15 segundos sem requisições sobrepostas', async () => {

@@ -788,6 +788,40 @@
     background: #004450;
   }
 
+  .pipButton {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    background: #ffffff;
+    color: #005c6d;
+    border: 1px solid #005c6d;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .pipButton:hover {
+    background: #f0fdfa;
+    border-color: #0f766e;
+    color: #0f766e;
+  }
+
+  .pipButtonActive {
+    background: #0f766e;
+    color: #ffffff;
+    border-color: #0f766e;
+    box-shadow: 0 0 0 2px rgba(15, 118, 110, 0.2);
+  }
+
+  .pipButtonActive:hover {
+    background: #115e59;
+    border-color: #115e59;
+    color: #ffffff;
+  }
+
   .fullscreenOverlay {
     position: fixed;
     inset: 0;
