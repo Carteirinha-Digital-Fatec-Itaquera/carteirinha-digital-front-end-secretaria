@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate, useParams } from "react-router-dom";
 import { QRCodeSVG } from "qrcode.react";
 import {
@@ -19,6 +20,7 @@ import {
   Edit2,
   Ban,
   Trash2,
+  PictureInPicture2,
 } from "lucide-react";
 
 import MenuLateral from "../../components/menuLateral/MenuLateral";
@@ -39,8 +41,10 @@ import {
 } from "../../utils/eventPresentation";
 
 import { useEventParticipants } from "./hooks/useEventParticipants";
+import { usePictureInPicture } from "./hooks/usePictureInPicture";
 import { ParticipantsPanel } from "./components/ParticipantsPanel";
 import { RafflePanel } from "./components/RafflePanel";
+import { PictureInPictureQr } from "./components/PictureInPictureQr";
 import { GLOBAL_VAR } from "../../api/config/globalVar";
 import { validatedAttendanceQrUrl } from "../../utils/attendanceQrLink";
 
@@ -135,6 +139,9 @@ export default function SecretariaGerenciarEventoScreen() {
 
   // Integração com Issue #7: hook de participantes reais
   const participants = useEventParticipants(id || "");
+
+  // Integração Picture-in-Picture (PiP) para slides e apresentações
+  const pip = usePictureInPicture(activeCheckpoint);
 
   const loadEventData = useCallback(async () => {
     if (!id) return;
@@ -388,6 +395,7 @@ export default function SecretariaGerenciarEventoScreen() {
       if (activeCheckpoint === type) {
         setActiveCheckpoint(null);
         setQrData(null);
+        pip.closePip();
         if (isFullscreen) {
           void exitFullscreen();
         }
@@ -914,6 +922,21 @@ export default function SecretariaGerenciarEventoScreen() {
                 <div className={styles.projectionActions}>
                   <button
                     type="button"
+                    className={`${styles.pipButton} ${pip.isPipActive ? styles.pipButtonActive : ""}`}
+                    onClick={() => pip.togglePip("md")}
+                    title={
+                      pip.isPipActive
+                        ? "Fechar Picture-in-Picture"
+                        : "Fixar QR Code flutuante sobre apresentações e slides"
+                    }
+                    aria-pressed={pip.isPipActive}
+                  >
+                    <PictureInPicture2 size={16} />
+                    {pip.isPipActive ? "Fechar PiP" : "Fixar no Canto (PiP)"}
+                  </button>
+
+                  <button
+                    type="button"
                     className={styles.fullscreenButton}
                     onClick={toggleFullscreen}
                     title="Abrir em Tela Inteira / Telão"
@@ -1146,6 +1169,42 @@ export default function SecretariaGerenciarEventoScreen() {
           </div>
         </div>
       </div>
+
+      {/* Picture-in-Picture (Janela nativa Always-on-Top ou widget flutuante) */}
+      {pip.isPipActive && activeCheckpoint && event && (
+        <>
+          {pip.pipWindow &&
+            createPortal(
+              <PictureInPictureQr
+                eventTitle={event.title}
+                checkpointType={activeCheckpoint}
+                qrValue={qrValue}
+                secondsRemaining={secondsRemaining}
+                qrLoading={qrLoading}
+                qrError={qrError}
+                onRefresh={() => void fetchQrToken(activeCheckpoint)}
+                onClose={pip.closePip}
+                onSizeChange={pip.handleSizeChange}
+              />,
+              pip.pipWindow.document.body
+            )}
+
+          {pip.isFloating && (
+            <PictureInPictureQr
+              eventTitle={event.title}
+              checkpointType={activeCheckpoint}
+              qrValue={qrValue}
+              secondsRemaining={secondsRemaining}
+              qrLoading={qrLoading}
+              qrError={qrError}
+              onRefresh={() => void fetchQrToken(activeCheckpoint)}
+              onClose={pip.closePip}
+              onSizeChange={pip.handleSizeChange}
+              isFloating
+            />
+          )}
+        </>
+      )}
 
       <CancelEventDialog
         isOpen={isCancelDialogOpen}
