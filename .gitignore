@@ -27,3 +27,6 @@ dist-ssr
 
 uploads/
 dev-dist
+
+# Documentation
+/docs
