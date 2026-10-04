@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useId, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   FaBook,
@@ -53,12 +53,14 @@ const generateAdmissionOptions = (): string[] => {
 
 const OPTIONS_ADMISSION = generateAdmissionOptions();
 
-const SelectComp = ({ label, icon, value, options, onChange }: SelectProps) => (
+const SelectComp = ({ label, icon, value, options, onChange }: SelectProps) => {
+  const selectId = useId();
+  return (
   <div className={styles.selectContainer}>
-    <label className={styles.label}>{label}</label>
+    <label htmlFor={selectId} className={styles.label}>{label}</label>
     <div className={styles.inputContainer}>
       <span className={styles.icon}>{icon}</span>
-      <select
+      <select id={selectId} aria-label={label}
         className={styles.selectField}
         value={value}
         onChange={(e) => onChange(e.target.value)}
@@ -70,7 +72,8 @@ const SelectComp = ({ label, icon, value, options, onChange }: SelectProps) => (
       </select>
     </div>
   </div>
-);
+  );
+};
 
 export default function RegisterStudentScreen() {
   const navigate = useNavigate();

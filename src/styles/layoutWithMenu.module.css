@@ -1,24 +1,5 @@
-.layoutContainer {
-  display: flex;
-  flex-direction: row;
-  height: 100vh;       
-  width: 100%;
-  overflow: hidden;     /* ← impede o scroll da página toda */
-}
 
-.menuWrapper {
-  flex-shrink: 0;
-  height: 100vh;
-  position: sticky;
-  top: 0;
-}
-
-.contentWrapper {
-  flex: 1;
-  overflow-y: auto;     /* ← só o conteúdo scrolla */
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  background-color: #f5f5f5;
-}
+.layoutContainer { display: flex; align-items: flex-start; min-height: 100dvh; width: 100%; background: var(--app-color-background); }
+.menuWrapper { flex-shrink: 0; position: sticky; top: 0; height: 100dvh; z-index: 30; }
+.contentWrapper { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: stretch; }
+@media(max-width:767px) { .layoutContainer { flex-direction: column; } .menuWrapper { position: sticky; height: auto; width: 100%; } .contentWrapper { width: 100%; } }

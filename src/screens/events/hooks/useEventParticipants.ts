@@ -156,6 +156,8 @@ export function useEventParticipants(eventId: string): UseEventParticipantsResul
     setSummary(null);
     setError(null);
     setStale(false);
+    setLastUpdatedAt(null);
+    setRefreshing(false);
 
     void executeFetch(false);
 
@@ -165,6 +167,11 @@ export function useEventParticipants(eventId: string): UseEventParticipantsResul
       if (abortControllerRef.current) {
         abortControllerRef.current.abort();
       }
+      // O finally da consulta abortada não limpa estas referências. Libere-as
+      // para a próxima montagem de efeitos (StrictMode) ou troca de evento.
+      // A consulta antiga continua impedida de publicar dados pelo seu signal.
+      abortControllerRef.current = null;
+      inFlightPromiseRef.current = null;
     };
   }, [clearTimer, eventId, executeFetch]);
 

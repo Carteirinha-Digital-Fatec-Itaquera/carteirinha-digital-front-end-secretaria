@@ -1,10 +1,2 @@
-.container {
-  margin: 20px;
-  margin-top: 50px;
-}
-
-.title {
-  font-size: 36px;
-  color: var(--primaryColor);
-  font-weight: 700;
-}
+.container { width: 100%; margin: 0 0 24px; }
+.title { font-size: clamp(1.5rem, 2.5vw, 2rem); color: var(--app-color-primary); font-weight: 750; line-height: 1.25; letter-spacing: -.025em; margin: 0; overflow-wrap: anywhere; }

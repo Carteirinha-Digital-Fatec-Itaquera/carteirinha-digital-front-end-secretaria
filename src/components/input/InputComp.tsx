@@ -1,3 +1,4 @@
+import { useId } from 'react';
 import type { ReactNode } from "react";
 
 import styles from "./style.module.css";
@@ -19,17 +20,18 @@ export function InputComp({
   value,
   onChangeText,
 }: InputProps) {
+  const id = useId();
   return (
     <>
     <div className={styles.containerInput}>
-      <label className={styles.label}>{label}</label>
+      <label htmlFor={id} className={styles.label}>{label}</label>
       <div className={styles.inputArea}>
         {(icon != null) &&
           <span className={styles.icon}>
             {icon}
           </span>
         }
-        <input
+        <input id={id}
           type={type}
           value={value}
           onChange={(e) => onChangeText(e.target.value)}

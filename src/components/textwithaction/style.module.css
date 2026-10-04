@@ -1,17 +1,2 @@
-.container {
-  font-size: 14px;
-  margin: 20px;
-  color: #666;
-}
-
-.container a {
-  color: var(--primaryColor);
-  font-weight: bold;
-  text-decoration: none;
-}
-
-.container a:hover {
-  text-decoration: underline;
-}
-
-
+.container { font-size: .875rem; color: var(--app-color-muted); line-height: 1.7; margin: 0; }
+.container a { display: inline-flex; align-items: center; min-height: 44px; color: var(--app-color-primary); font-weight: 650; text-underline-offset: 4px; }

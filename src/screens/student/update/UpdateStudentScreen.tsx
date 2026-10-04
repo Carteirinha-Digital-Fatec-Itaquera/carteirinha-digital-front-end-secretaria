@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import { InputComp } from "../../../components/input/InputComp";
@@ -55,18 +55,21 @@ interface SelectProps {
   onChange: (value: string) => void;
 }
 
-const SelectComp = ({ label, icon, value, options, onChange }: SelectProps) => (
+const SelectComp = ({ label, icon, value, options, onChange }: SelectProps) => {
+  const selectId = useId();
+  return (
   <div className={styles.selectContainer}>
-    <label className={styles.label}>{label}</label>
+    <label htmlFor={selectId} className={styles.label}>{label}</label>
     <div className={styles.inputContainer}>
       <span className={styles.icon}>{icon}</span>
-      <select className={styles.selectField} value={value} onChange={(e) => onChange(e.target.value)}>
+      <select id={selectId} className={styles.selectField} value={value} onChange={(e) => onChange(e.target.value)}>
         <option value="" disabled>Selecione uma opção...</option>
         {options.map(opt => <option key={opt} value={opt}>{opt}</option>)}
       </select>
     </div>
   </div>
-);
+  );
+};
 
 export default function UpdateStudentScreen() {
   const [photo, setPhoto] = useState<string | null>(null);

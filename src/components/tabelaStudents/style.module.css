@@ -72,3 +72,11 @@
   background-color: transparent;
   border: none;
 }
+
+
+.tableWrapper { max-width: 100%; border: 1px solid var(--app-color-border); box-shadow: var(--app-shadow); overscroll-behavior-inline: contain; }
+.tabela { width: 100%; min-width: 1080px; border-collapse: collapse; }
+.colunas tr th { background: var(--app-color-primary-soft); color: var(--app-color-primary); padding: 16px; }
+.linhas td { padding: 16px; }
+.semAlunos { color: var(--app-color-muted); }
+.botaoGerenciar { display: inline-grid; place-items: center; width: 44px; height: 44px; border-radius: 12px; background: var(--app-color-primary-soft); }

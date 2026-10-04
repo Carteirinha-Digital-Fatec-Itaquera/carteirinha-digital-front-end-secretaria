@@ -1,0 +1,7 @@
+
+.container { width: 100%; min-height: 100dvh; padding-bottom: var(--app-space-32); background: var(--app-color-background); }
+.card { position: relative; width: calc(100% - 48px); max-width: 560px; margin: -40px auto 0; padding: var(--app-space-32); background: var(--app-color-surface); border: 1px solid var(--app-color-border); border-radius: var(--app-radius-card); box-shadow: var(--app-shadow); }
+.cardContent { width: 100%; display: flex; flex-direction: column; align-items: stretch; gap: var(--app-space-16); }
+.containerRetrieve { width: 100%; display: flex; justify-content: flex-end; }
+.backButton { position: static; display: grid; place-items: center; width: 44px; height: 44px; margin: var(--app-space-16); border: 1px solid var(--app-color-border); border-radius: var(--app-space-12); color: var(--app-color-primary); background: #fff; cursor: pointer; }
+@media(max-width:540px) { .card { width: calc(100% - var(--app-space-32)); padding: var(--app-space-24) var(--app-space-16); margin-top: -var(--app-space-32); } }

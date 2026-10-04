@@ -126,3 +126,14 @@
   background-color: #1bb9a7;
   color: #bb2f2f;
 }
+
+.container { padding: 32px; gap: 24px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(240px,1fr)); gap: 24px; }
+.card { width: 100%; padding: 16px; border: 1px solid var(--app-color-border); border-radius: 20px; box-shadow: var(--app-shadow); }
+.cardSelected { border: 2px solid var(--app-color-primary); }
+.bulkActions, .bulkActionsLeft, .bulkActionsRight, .actions { flex-wrap: wrap; gap: 12px; }
+.bulkActions { margin: 0; padding: 16px; border: 1px solid var(--app-color-border); }
+.checkbox { width: 44px; height: 44px; accent-color: var(--app-color-primary); }
+.empty { color: var(--app-color-muted); padding: 32px; background: #fff; border-radius: 20px; }
+.reasonInput { border-color: var(--app-color-input-border); }
+@media(max-width:767px) { .container { padding: 24px 16px; } .grid { grid-template-columns: repeat(auto-fill,minmax(min(100%,240px),1fr)); gap: 16px; } .bulkActionsRight, .bulkActionsLeft { width: 100%; } .bulkActions button { flex: 1; } }

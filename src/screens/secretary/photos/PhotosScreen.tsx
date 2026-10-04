@@ -118,10 +118,10 @@ export default function PhotosScreen() {
                       checked={selected.has(p.ra)}
                       onChange={() => toggleSelect(p.ra)}
                       onClick={e => e.stopPropagation()}
-                      className={styles.checkbox}
+                      aria-label={`Selecionar foto de ${p.name}`} className={styles.checkbox}
                     />
                     <input
-                      className={styles.reasonInput}
+                      aria-label={`Motivo da reprovação de ${p.name}`} className={styles.reasonInput}
                       placeholder="Motivo da reprovação (opcional)"
                       value={rejectionReason[p.ra] ?? ""}
                       onChange={(e) => {

@@ -1,7 +1,7 @@
 .container {
   width: 100%;
   min-height: 100vh;
-  background: #F5F5F5;
+  background: var(--app-color-background);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -116,7 +116,7 @@
   font-size: 18px;
   margin-left: 10px;
   cursor: pointer;
-  color: #005C6D;
+  color: var(--app-color-primary);
 }
 
 .filterSelects {
@@ -125,3 +125,12 @@
   gap: 12px;
   width: 100%;
 }
+
+.container { padding: 32px; min-height: auto; align-items: stretch; background: var(--app-color-background); }
+.filterBar { margin: 0 0 24px; background: #fff; border: 1px solid var(--app-color-border); padding: 24px; border-radius: 20px; }
+.searchInput { min-width: 0; }
+.searchBox, .filterSelect { border-color: var(--app-color-input-border); border-radius: 12px; }
+.filterSelects { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 16px; }
+.list { margin-top: 0; max-width: none; }
+.listHeader { padding: 16px; background: var(--app-color-primary-soft); flex-wrap: wrap; gap: 12px; border: 1px solid var(--app-color-border); }
+@media(max-width:767px) { .container { padding: 24px 16px; } .filterBar { padding: 16px; } .filterSelects { grid-template-columns: 1fr; } }

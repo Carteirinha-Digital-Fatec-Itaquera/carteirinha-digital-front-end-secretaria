@@ -86,7 +86,7 @@
 .recalcButton {
   background: none;
   border: none;
-  color: #005c6d;
+  color: var(--app-color-primary);
   font-size: 12px;
   font-weight: 600;
   text-decoration: underline;
@@ -126,7 +126,7 @@
   box-sizing: border-box;
   padding: 12px 16px;
   background-color: #ffffff;
-  border: 2px solid #005c6d;
+  border: 2px solid var(--app-color-primary);
   border-radius: 16px;
   outline: none;
   font-family: inherit;
@@ -191,8 +191,8 @@
 
 .discardButton {
   background: #ffffff;
-  border: 2px solid #005c6d;
-  color: #005c6d;
+  border: 2px solid var(--app-color-primary);
+  color: var(--app-color-primary);
 }
 
 .discardButton:hover:not(:disabled) {
@@ -200,8 +200,8 @@
 }
 
 .submitButton {
-  background: #005c6d;
-  border: 2px solid #005c6d;
+  background: var(--app-color-primary);
+  border: 2px solid var(--app-color-primary);
   color: #ffffff;
 }
 
@@ -225,3 +225,13 @@
     width: 100%;
   }
 }
+
+
+.formWrapper { max-width: 1200px; margin: 0; padding: 32px; background: var(--app-color-surface); border: 1px solid var(--app-color-border); border-radius: 20px; box-shadow: var(--app-shadow); }
+.textarea { border: 1px solid var(--app-color-input-border); border-radius: 12px; }
+.form { gap: 24px; }
+.gridTwoCols, .gridSchedule { gap: 24px; }
+.buttons { margin-top: 8px; padding-bottom: 0; flex-wrap: wrap; }
+.submitButton, .discardButton { border-radius: 12px; }
+.checkboxLabel { min-height: 44px; }
+@media(max-width:767px) { .formWrapper { padding: 24px 16px; } .form, .gridTwoCols, .gridSchedule { gap: 16px; } }

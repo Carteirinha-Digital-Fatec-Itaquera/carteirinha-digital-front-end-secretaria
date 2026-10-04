@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useId, useState } from "react";
 
 import styles from "./style.module.css";
 
@@ -11,29 +11,30 @@ type InputPasswordProps = {
 }
 
 export function InputPasswordComp({ label, value, onChangeText }: InputPasswordProps) {
+  const id = useId();
   const [showPassword, setShowPassword] = useState(false);
 
   return (
     <>
-      <label className={styles.label}>{label}</label>
+      <label htmlFor={id} className={styles.label}>{label}</label>
       <div className={styles.inputArea}>
         <span className={styles.icon}>
           <FaLock />
         </span>
 
-        <input
+        <input id={id}
           type={showPassword ? "text" : "password"}
           className={styles.input}
           value={value}
           onChange={(e) => onChangeText(e.target.value)}
         />
 
-        <span
+        <button type="button" aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"} aria-pressed={showPassword}
           className={styles.toggle}
           onClick={() => setShowPassword(!showPassword)}
         >
           {showPassword ? <FaEye /> : <FaEyeSlash />}
-        </span>
+        </button>
       </div>
     </>
   )
