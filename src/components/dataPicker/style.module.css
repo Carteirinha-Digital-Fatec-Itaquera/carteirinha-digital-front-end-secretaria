@@ -18,7 +18,7 @@
   align-items: center;
   height: 50px;
   background-color: #ffffff;
-  border: 2px solid #005C6D;
+  border: 2px solid var(--app-color-primary);
   border-radius: 50px;
   padding: 0 20px;
   box-sizing: border-box;
@@ -64,7 +64,7 @@
 }
 
 .calendarButton:hover {
-  color: #005C6D;
+  color: var(--app-color-primary);
 }
 
 .calendarWrapper {
@@ -72,7 +72,7 @@
   top: 100%;
   left: 0;
   background: rgb(252, 252, 252);
-  border: 2px solid #005C6D;
+  border: 2px solid var(--app-color-primary);
   border-radius: 8px;
   padding: 10px;
   margin-top: 10px;
@@ -104,7 +104,7 @@
   text-align: center;
   font-weight: bold;
   font-size: 14px;
-  color: #005C6D;
+  color: var(--app-color-primary);
   background: transparent;
   border: none !important;
   box-shadow: none !important;
@@ -117,7 +117,7 @@
   background: transparent;
   border: none !important;
   box-shadow: none !important;
-  color: #005C6D;
+  color: var(--app-color-primary);
   font-size: 16px;
   cursor: pointer;
   padding: 4px 6px;
@@ -145,7 +145,7 @@
   padding: 4px 0;
   font-size: 12px;
   font-weight: 600;
-  color: #005C6D;
+  color: var(--app-color-primary);
   border: none !important;
 }
 
@@ -174,7 +174,7 @@
 
 /* Dia selecionado */
 .calendarWrapper :global(.react-calendar__tile--active) {
-  background: #005C6D !important;
+  background: var(--app-color-primary) !important;
   color: #fff !important;
   border-radius: 4px;
 }
@@ -189,3 +189,10 @@
 .calendarWrapper :global(.react-calendar__month-view__days__day--neighboringMonth) {
   color: #aaa;
 }
+
+
+.datePickerContainer { min-width: 0; width: 100%; }
+.inputContainer { border: 1px solid var(--app-color-input-border); border-radius: 12px; }
+.dateInput { min-width: 0; }
+.calendarWrapper { max-width: 100%; z-index: 20; }
+.calendarWrapper :global(.react-calendar) { max-width: 100%; }

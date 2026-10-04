@@ -7,7 +7,7 @@
 
 .searchLabel {
   font-weight: bold;
-  color: #005C6D;
+  color: var(--app-color-primary);
   font-size: 16px;
 }
 
@@ -22,7 +22,7 @@
 
 }
 .searchBox:focus-within {
-  border-color: #005C6D; 
+  border-color: var(--app-color-primary);
   
 }
 .searchBox {
@@ -42,5 +42,5 @@
   font-size: 18px;
   margin-left: 10px;
   cursor: pointer;
-  color: #005C6D;
+  color: var(--app-color-primary);
 }

@@ -32,27 +32,26 @@ function TabelaStudents({ students }: Props) {
   const navigate = useNavigate();
 
   return (
-    <div className={styles.tableWrapper}>
-      <div className="table-responsive table-lg">
+    <div className={styles.tableWrapper} role="region" aria-label="Tabela de alunos com rolagem horizontal" tabIndex={0}>
+      <div>
         <table className={`table mb-0 ${styles.tabela}`}>
           <thead className={styles.colunas}>
             <tr>
-              <th>Foto</th>
-              <th>RA</th>
-              <th>Situação</th>
-              <th>Ingresso</th>
-              <th>Curso</th>
-              <th>Nome</th>
-              <th>CPF</th>
-              <th>Email</th>
-              <th>Editar</th>
-              <th></th>
+              <th scope="col">Foto</th>
+              <th scope="col">RA</th>
+              <th scope="col">Situação</th>
+              <th scope="col">Ingresso</th>
+              <th scope="col">Curso</th>
+              <th scope="col">Nome</th>
+              <th scope="col">CPF</th>
+              <th scope="col">Email</th>
+              <th scope="col">Editar</th>
             </tr>
           </thead>
           <tbody>
             {students.length === 0 ? (
               <tr>
-                <td colSpan={7} className={styles.semAlunos}>
+                <td colSpan={9} className={styles.semAlunos}>
                   Nenhum aluno encontrado.
                 </td>
               </tr>
@@ -88,7 +87,7 @@ function TabelaStudents({ students }: Props) {
   <td>{student.email}</td>
   <td className={styles.colunaBotao}>
     <button
-      className={styles.botaoGerenciar}
+      aria-label={`Editar aluno ${student.name}`} className={styles.botaoGerenciar}
       onClick={() => navigate(`/update/${student.ra}`)}
     >
       <DotsThreeVerticalIcon size={35} color="#005C6D" weight="bold" className={styles.iconMenu}/>

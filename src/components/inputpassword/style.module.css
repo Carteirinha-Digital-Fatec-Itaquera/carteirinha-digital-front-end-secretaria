@@ -1,54 +1,5 @@
-.label {
-  display: block;
-  text-align: left;
-  width: 100%;
-  font-size: 16px;
-  font-weight: 600;
-  color: #4E4E4E;
-  margin-left: 35px;
-  margin-top: 20px;
-}
-
-.inputArea {
-  display: flex;
-  align-items: center;
-  background: rgb(255, 255, 255);
-  border: 2px solid #005C6D;
-  border-radius: 25px;
-  padding: 12px 20px;
-  margin-top: 2px;
-  width: 100%;
-  box-sizing: border-box;
-}
-.inputArea:focus-within {
-  border-color: #5bb9ca; 
-  
-}
-.inputArea {
-  transition: border-color 0.3s ease;
-}
-
-.icon {
-  margin-right: 12px;
-  font-size: 18px;
-  color: #005C6D;
-}
-
-.input {
-  flex: 1;
-  border: none;
-  outline: none;
-  font-size: 16px;
-  background: white;
-}
-
-.input::placeholder {
-  color: #999;
-}
-
-.toggle {
-  cursor: pointer;
-  font-size: 18px;
-  color: #666;
-  margin-left: 10px;
-}
+.label { composes: label from "../input/style.module.css"; }
+.inputArea { composes: inputArea from "../input/style.module.css"; }
+.input { composes: input from "../input/style.module.css"; }
+.icon { composes: icon from "../input/style.module.css"; }
+.toggle { flex-shrink: 0; display: grid; place-items: center; width: 44px; height: 44px; padding: 0; background: transparent; color: var(--app-color-primary); border: 0; border-radius: 8px; cursor: pointer; }

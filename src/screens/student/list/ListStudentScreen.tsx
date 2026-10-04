@@ -82,7 +82,7 @@ export default function StudentsListScreen() {
         <input
               type="text"
               className={styles.searchInput}
-              placeholder="Busca por Nome, CPF, E-mail, ou RA"
+              aria-label="Buscar alunos por nome, CPF, e-mail ou RA" placeholder="Nome, CPF, e-mail ou RA"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               
@@ -97,7 +97,7 @@ export default function StudentsListScreen() {
               
             <select
               className={styles.filterSelect}
-              value={situacaoFilter}
+              aria-label="Filtrar por situação" value={situacaoFilter}
               onChange={(e) => setSituacaoFilter(e.target.value)}
             >
               <option value="">Todas as situações</option>
@@ -109,7 +109,7 @@ export default function StudentsListScreen() {
 
             <select
               className={styles.filterSelect}
-              value={cursoFilter}
+              aria-label="Filtrar por curso" value={cursoFilter}
               onChange={(e) => setCursoFilter(e.target.value)}
             >
               <option value="">Todos os cursos</option>

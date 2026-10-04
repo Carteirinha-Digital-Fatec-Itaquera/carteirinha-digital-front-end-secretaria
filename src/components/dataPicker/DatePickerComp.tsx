@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useId } from "react";
 import { FaCalendar } from "react-icons/fa";
 import Calendar from "react-calendar";
 import 'react-calendar/dist/Calendar.css';
@@ -32,6 +32,7 @@ interface DatePickerProps {
 
 // --- COMPONENTE DE DATA COM CALENDÁRIO ---
 export const DatePickerComp = ({ label, value, onChange, isOpen, onToggle }: DatePickerProps) => {
+  const id = useId();
   const maskDate = (v: string) => v.replace(/\D/g, "").replace(/(\d{2})(\d)/, "$1/$2").replace(/(\d{2})(\d)/, "$1/$2").substring(0, 10);
   
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -46,10 +47,10 @@ export const DatePickerComp = ({ label, value, onChange, isOpen, onToggle }: Dat
 
   return (
     <div className={styles.datePickerContainer}>
-      <label className={styles.label}>{label}</label>
+      <label htmlFor={id} className={styles.label}>{label}</label>
       <div className={styles.inputContainer}>
         <span className={styles.icon}><button
-          type="button"
+          type="button" aria-label={`Abrir calendário de ${label}`} aria-expanded={isOpen}
           className={styles.calendarButton}
           onClick={(e) => {
             e.preventDefault();
@@ -58,7 +59,7 @@ export const DatePickerComp = ({ label, value, onChange, isOpen, onToggle }: Dat
         >
           <FaCalendar />
         </button></span>
-        <input
+        <input id={id}
           type="text"
           className={styles.dateInput}
           value={value}

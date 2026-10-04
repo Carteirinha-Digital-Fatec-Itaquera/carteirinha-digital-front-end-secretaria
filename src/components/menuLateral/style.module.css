@@ -1,165 +1,26 @@
-.fundoMenu {
-  background-color: #005C6D;
-  height: 100vh;
-  width: 250px;
-  flex-shrink: 0;
-  justify-content: space-between;
-  display: flex;
-  flex-direction: column;
-  position: sticky; /* ← era fixed */
-  top: 0;
-  transition: width 0.3s ease;
-  overflow: hidden;
-}
 
-.fundoMenuCollapsed {
-  width: 60px;
-  cursor: pointer;
-}
-
-.logoRow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 10px 0 10px;
-  min-height: 70px;
-}
-
-.logoFatec {
-  width: 130px;
-  height: 70px;
-  object-fit: contain;
-}
-
-.collapseBtn {
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  padding: 6px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  transition: background-color 0.2s ease;
-}
-
-.collapseBtn:hover {
-  background-color: rgba(255, 255, 255, 0.15);
-}
-
-.divider {
-  width: 100%;
-  height: 1px;
-  background-color: rgba(255, 255, 255, 0.473);
-  margin-bottom: 35px;
-  margin-top: 10px;
-}
-
-.logoCps {
-  width: 130px;
-  height: 70px;
-  object-fit: contain;
-  align-self: center;
-  margin-bottom: 25px;
-}
-
-.estiloLista {
-  list-style: none;
-  display: flex;
-  flex-direction: column;
-  padding: 0;
-  align-items: center;
-  row-gap: 5px;
-}
-
-.estiloListaCollapsed {
-  align-items: center;
-  width: 100%;
-}
-
-.itemMenu {
-  background-color: transparent;
-  display: flex;
-  width: 90%;
-  height: 45px;
-  border-radius: 15px;
-  align-items: center;
-  column-gap: 10px;
-  padding-left: 15px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-  white-space: nowrap;
-}
-
-.itemMenuAcordeao {
-  background-color: transparent;
-  display: flex;
-  width: 90%;
-  height: 45px;
-  border-radius: 15px;
-  align-items: center;
-  column-gap: 10px;
-  padding-left: 15px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-  white-space: nowrap;
-}
-
-.itemMenu:hover {
-  background-color: rgba(48, 48, 48, 0.3);
-}
-
-.itemMenu.selected {
-  background-color: #f5f4f46a;
-}
-
-.itemMenu a {
-  text-decoration: none;
-  color: white;
-  font-size: 17px;
-}
-
-.itemMenuCollapsed {
-  width: 44px;
-  padding-left: 0;
-  justify-content: center;
-  border-radius: 12px;
-}
-
-.accordionBtn {
-  width: 90% !important;
-  height: 45px !important;
-  padding: 0 10px !important;
-  background-color: transparent !important;
-  color: white !important;
-  border: none !important;
-  border-radius: 15px !important;
-  transition: background-color 0.3s ease !important;
-  display: flex !important;
-  align-items: center !important;
-  gap: 10px !important;
-  cursor: pointer;
-  box-shadow: none !important;
-  font-size: 17px !important;
-  white-space: nowrap !important;
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
-  margin-left: 15px !important;
-}
-
-.accordionBtn.selected {
-  background-color: #f5f4f46a !important;
-}
-
-.accordionBtn:hover {
-  background-color: rgba(48, 48, 48, 0.3) !important;
-}
-
-.accordionBtn:focus {
-  box-shadow: none !important;
-}
-
-.accordionBtn::after {
-  filter: brightness(0) invert(1);
-}
+.fundoMenu { width: 256px; height: 100dvh; position: sticky; top: 0; display: flex; flex-direction: column; background: var(--app-color-primary); color: #fff; padding: 16px 12px; overflow-y: auto; }
+.collapsed { width: 76px; }
+.logoRow { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.logoFatec { width: 130px; height: 70px; object-fit: contain; }
+.collapseBtn, .mobileBar button { background: transparent; color: #fff; border: 1px solid #ffffff40; border-radius: 12px; display: grid; place-items: center; width: 44px; height: 44px; cursor: pointer; flex-shrink: 0; }
+.eyebrow { color: #d4e9ed; font-size: .6875rem; letter-spacing: .09em; text-transform: uppercase; margin: 20px 12px 16px; }
+.navigation { display: flex; flex-direction: column; gap: 8px; padding-top: 16px; }
+.itemMenu { display: flex; align-items: center; gap: 12px; min-height: 48px; width: 100%; padding: 12px; background: transparent; color: #fff; border: 1px solid transparent; border-radius: 12px; text-align: left; font-size: .875rem; font-weight: 500; cursor: pointer; }
+.itemMenu svg { flex-shrink: 0; }
+.itemMenu:hover { background: #ffffff15; }
+.selected { background: #fff; color: var(--app-color-primary); font-weight: 700; }
+.selected:hover { background: #eaf4f5; }
+.logout { margin-top: 16px; border-top-color: #ffffff35; }
+.brandFooter { display: flex; justify-content: center; padding: 32px 0 8px; margin-top: auto; }
+.logoCps { width: auto; height: 48px; max-width: 100%; object-fit: contain; }
+.collapsed .itemMenu { justify-content: center; }
+.collapsed .logoCps { height: 32px; max-width: 48px; }
+.mobileBar { display: flex; align-items: center; gap: 16px; width: 100%; background: var(--app-color-primary); color: #fff; padding: 12px 16px; }
+.mobileBar img { width: 100px; height: 44px; object-fit: contain; }
+.mobileBar span { font-weight: 600; font-size: .875rem; margin-left: auto; }
+.drawer { position: fixed; inset: 0 auto 0 0; margin: 0; border: 0; padding: 0; width: min(320px, calc(100vw - 32px)); max-width: none; height: 100dvh; max-height: none; background: var(--app-color-primary); color: #fff; }
+.drawer::backdrop { background: #152e3c99; }
+.drawerContent { display: flex; flex-direction: column; min-height: 100%; padding: max(16px, env(safe-area-inset-top)) 16px max(24px, env(safe-area-inset-bottom)); }
+.drawer .logoCps { height: 40px; }
+.fundoMenu :focus-visible, .drawer :focus-visible, .mobileBar :focus-visible { outline: 3px solid #ffc85c; outline-offset: 2px; }

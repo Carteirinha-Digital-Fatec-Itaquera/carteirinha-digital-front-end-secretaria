@@ -3,7 +3,7 @@
   min-height: 100%;
   height: auto;
   overflow: visible;
-  background: #F5F5F5;
+  background: var(--app-color-background);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -25,7 +25,7 @@
   gap: 8px;
   border: none;
   background: transparent;
-  color: #005C6D;
+  color: var(--app-color-primary);
   font-size: 14px;
   font-weight: bold;
   cursor: pointer;
@@ -86,7 +86,7 @@
   box-sizing: border-box;
   padding: 10px 20px;
   background-color: #ffffff;
-  border: 2px solid #005C6D;
+  border: 2px solid var(--app-color-primary);
   border-radius: 20px;
   outline: none;
   font-family: inherit;
@@ -139,8 +139,8 @@
 
 .cancelButton {
   background: #ffffff;
-  border: 2px solid #005C6D;
-  color: #005C6D;
+  border: 2px solid var(--app-color-primary);
+  color: var(--app-color-primary);
 }
 
 .cancelButton:hover {
@@ -148,8 +148,8 @@
 }
 
 .submitButton {
-  background: #005C6D;
-  border: 2px solid #005C6D;
+  background: var(--app-color-primary);
+  border: 2px solid var(--app-color-primary);
   color: #ffffff;
 }
 
@@ -198,3 +198,9 @@
     box-sizing: border-box;
   }
 }
+
+.container { padding: 32px; align-items: stretch; background: var(--app-color-background); }
+.topBar { width: 100%; padding: 0; margin-bottom: 24px; }
+.formContainer { align-items: stretch; }
+.formContainer h1 { text-align: left; margin: 0 0 24px; font-size: clamp(1.5rem,2.5vw,2rem); color: var(--app-color-primary); }
+@media(max-width:767px) { .container { padding: 24px 16px; } }

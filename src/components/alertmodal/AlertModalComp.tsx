@@ -1,3 +1,4 @@
+import Modal from '../modal/Modal';
 import { MdErrorOutline } from "react-icons/md";
 
 import styles from "./style.module.css";
@@ -22,7 +23,7 @@ export const AlertModalComp = ({
   if (!visible) return null;
 
   return (
-    <div className={styles.overlay}>
+    <Modal label="Confirmar ação">
       <div className={styles.modalContent}>
         <MdErrorOutline size={30} color="#005C6D" />
 
@@ -36,6 +37,6 @@ export const AlertModalComp = ({
           {textConfirm}
         </button>
       </div>
-    </div>
+    </Modal>
   );
 };

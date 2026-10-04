@@ -8,6 +8,7 @@ export function HeaderComp() {
         alt="Logo Fatec"
         className={styles.logoTop}
       />
+    <p className={styles.identity}>Secretaria acadêmica</p>
     </header>
   )
 }

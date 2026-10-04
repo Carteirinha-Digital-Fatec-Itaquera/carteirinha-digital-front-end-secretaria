@@ -499,7 +499,7 @@ export default function SecretariaGerenciarEventoScreen() {
               Voltar para Eventos
             </button>
 
-            <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+            <div className={styles.topBarActions}>
               {!isCancelled && (
                 <>
                   <button

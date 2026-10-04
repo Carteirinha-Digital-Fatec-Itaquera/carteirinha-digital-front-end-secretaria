@@ -972,4 +972,8 @@
     font-size: 12px;
     font-weight: 600;
     text-align: center;
-  }
+  }
+.container { max-width: 1600px; padding: 32px; }
+.topBar, .topBarActions, .projectionHeader, .projectionActions { flex-wrap: wrap; gap: 12px; }
+@media(max-width:767px) { .container { padding: 24px 16px; } .topBarActions { width: 100%; } .topBarActions button { flex: 1; } .projectionHeader { align-items: flex-start; } }
+@media(max-width:540px) { .topBarActions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); } .topBarActions button { justify-content: center; width: 100%; } }
