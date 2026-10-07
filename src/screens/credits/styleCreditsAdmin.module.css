@@ -1,0 +1,645 @@
+/* Estilos administrativos do módulo de créditos */
+.adminContainer {
+  display: flex;
+  min-height: 100vh;
+  min-height: 100dvh;
+  background-color: var(--app-color-background);
+}
+
+.mainContent {
+  flex: 1;
+  padding: 32px 40px;
+  max-width: 1360px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.pageHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 28px;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.headerText h1 {
+  font-size: 1.85rem;
+  font-weight: 800;
+  color: var(--app-color-text);
+  margin: 0 0 6px 0;
+  letter-spacing: -0.02em;
+}
+
+.headerText p {
+  font-size: 0.95rem;
+  color: var(--app-color-muted);
+  margin: 0;
+  max-width: 680px;
+}
+
+.versionBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  background-color: var(--app-color-primary-soft);
+  color: var(--app-color-primary);
+  margin-top: 8px;
+}
+
+.headerActions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.primaryButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background-color: var(--app-color-primary);
+  color: #fff;
+  border: none;
+  border-radius: var(--app-radius-control);
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+  min-height: 44px;
+  text-decoration: none;
+}
+
+.primaryButton:hover:not(:disabled) {
+  background-color: var(--app-color-primary-hover);
+}
+
+.primaryButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.secondaryButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 18px;
+  background-color: var(--app-color-surface);
+  color: var(--app-color-text);
+  border: 1px solid var(--app-color-border);
+  border-radius: var(--app-radius-control);
+  font-weight: 600;
+  font-size: 0.92rem;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+  min-height: 44px;
+  text-decoration: none;
+}
+
+.secondaryButton:hover:not(:disabled) {
+  background-color: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+.dangerButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 18px;
+  background-color: #fef2f2;
+  color: var(--app-color-danger);
+  border: 1px solid #fecaca;
+  border-radius: var(--app-radius-control);
+  font-weight: 600;
+  font-size: 0.92rem;
+  cursor: pointer;
+  min-height: 44px;
+}
+
+.dangerButton:hover:not(:disabled) {
+  background-color: #fee2e2;
+}
+
+/* Status Badges */
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.statusDraft {
+  background-color: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fde68a;
+}
+
+.statusPublished {
+  background-color: #d1fae5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+}
+
+.statusArchived {
+  background-color: #f1f5f9;
+  color: #475569;
+  border: 1px solid #e2e8f0;
+}
+
+.pendingChangesBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  background-color: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+}
+
+/* Filtros */
+.filterCard {
+  background: var(--app-color-surface);
+  border: 1px solid var(--app-color-border);
+  border-radius: var(--app-radius-card);
+  padding: 18px 24px;
+  margin-bottom: 24px;
+  box-shadow: var(--app-shadow);
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  align-items: flex-end;
+}
+
+.filterGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+  min-width: 200px;
+}
+
+.filterGroup label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--app-color-text);
+}
+
+.inputControl {
+  padding: 10px 14px;
+  border: 1px solid var(--app-color-input-border);
+  border-radius: var(--app-radius-control);
+  background-color: var(--app-color-surface);
+  color: var(--app-color-text);
+  font-size: 0.95rem;
+  width: 100%;
+}
+
+.inputControl:focus {
+  border-color: var(--app-color-primary);
+  outline: none;
+}
+
+/* Tabela de Contribuintes */
+.tableCard {
+  background: var(--app-color-surface);
+  border: 1px solid var(--app-color-border);
+  border-radius: var(--app-radius-card);
+  overflow: hidden;
+  box-shadow: var(--app-shadow);
+}
+
+.tableWrapper {
+  overflow-x: auto;
+  width: 100%;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.table th {
+  padding: 14px 20px;
+  background-color: #f8fafc;
+  color: var(--app-color-muted);
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--app-color-border);
+}
+
+.table td {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--app-color-border);
+  color: var(--app-color-text);
+  font-size: 0.92rem;
+  vertical-align: middle;
+}
+
+.table tr:last-child td {
+  border-bottom: none;
+}
+
+.table tr:hover {
+  background-color: #fbfdfe;
+}
+
+.personCell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.avatarThumb {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background-color: var(--app-color-primary-soft);
+  color: var(--app-color-primary);
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  font-size: 1rem;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.avatarThumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.nameInfo strong {
+  display: block;
+  font-size: 0.95rem;
+  color: var(--app-color-text);
+}
+
+.tagsList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tagItem {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background-color: #f1f5f9;
+  color: var(--app-color-text);
+  font-size: 0.78rem;
+  font-weight: 550;
+}
+
+.actionsCell {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.iconActionButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  min-height: 36px;
+  min-width: 36px;
+  border-radius: 8px;
+  border: 1px solid var(--app-color-border);
+  background-color: var(--app-color-surface);
+  color: var(--app-color-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.iconActionButton:hover {
+  color: var(--app-color-primary);
+  border-color: var(--app-color-primary);
+  background-color: var(--app-color-primary-soft);
+}
+
+/* Grid do Formulário de Edição */
+.formGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(360px, 1fr);
+  gap: 32px;
+  align-items: start;
+}
+
+@media (max-width: 1040px) {
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.formColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.previewColumn {
+  position: sticky;
+  top: 24px;
+}
+
+.blockCard {
+  background: var(--app-color-surface);
+  border: 1px solid var(--app-color-border);
+  border-radius: var(--app-radius-card);
+  padding: 24px;
+  box-shadow: var(--app-shadow);
+}
+
+.blockHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--app-color-border);
+}
+
+.blockHeader h2 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--app-color-text);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.formGroup {
+  margin-bottom: 18px;
+}
+
+.formGroup label {
+  display: block;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--app-color-text);
+  margin-bottom: 6px;
+}
+
+.formGroup small {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--app-color-muted);
+  margin-top: 4px;
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  cursor: pointer;
+  padding: 12px 14px;
+  border-radius: var(--app-radius-control);
+  background-color: #f8fafc;
+  border: 1px solid var(--app-color-border);
+  margin-top: 8px;
+}
+
+.checkboxLabel input[type='checkbox'] {
+  margin-top: 3px;
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+.checkboxText {
+  font-size: 0.88rem;
+  color: var(--app-color-text);
+  line-height: 1.45;
+}
+
+/* Upload de Foto */
+.photoRow {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  margin-top: 10px;
+}
+
+.photoPreviewFrame {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  background-color: var(--app-color-primary-soft);
+  color: var(--app-color-primary);
+  display: grid;
+  place-items: center;
+  font-size: 2rem;
+  font-weight: 700;
+  overflow: hidden;
+  border: 2px dashed var(--app-color-border);
+  flex-shrink: 0;
+}
+
+.photoPreviewFrame img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.photoActions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Sub-itens repetíveis (participações e links) */
+.subItemCard {
+  background-color: #fbfcfd;
+  border: 1px solid var(--app-color-border);
+  border-radius: var(--app-radius-control);
+  padding: 18px;
+  margin-bottom: 16px;
+  position: relative;
+}
+
+.subItemHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.subItemTitle {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--app-color-text);
+}
+
+.removeSubItemButton {
+  background: none;
+  border: none;
+  color: var(--app-color-danger);
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 4px 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.removeSubItemButton:hover {
+  text-decoration: underline;
+}
+
+/* Alertas e Conflitos */
+.conflictAlert {
+  background-color: #fff7ed;
+  border: 1px solid #fdba74;
+  border-radius: var(--app-radius-card);
+  padding: 20px;
+  margin-bottom: 24px;
+  color: #9a3412;
+}
+
+.conflictAlert h3 {
+  margin: 0 0 6px 0;
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.passwordRenewalAlert {
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: var(--app-radius-card);
+  padding: 20px;
+  margin-bottom: 24px;
+  color: var(--app-color-danger);
+}
+
+/* Modal Overlay */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(15, 23, 42, 0.6);
+  display: grid;
+  place-items: center;
+  z-index: 1000;
+  padding: 20px;
+  backdrop-filter: blur(2px);
+}
+
+.modalContent {
+  background: var(--app-color-surface);
+  border-radius: var(--app-radius-card);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  max-width: 600px;
+  width: 100%;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.modalHeader {
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--app-color-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modalHeader h2 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0;
+  color: var(--app-color-text);
+}
+
+.modalBody {
+  padding: 24px;
+  overflow-y: auto;
+}
+
+.modalFooter {
+  padding: 16px 24px;
+  border-top: 1px solid var(--app-color-border);
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  background-color: #f8fafc;
+}
+
+/* Histórico de auditoria */
+.timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.timelineItem {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+
+.timelineDot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background-color: var(--app-color-primary);
+  margin-top: 6px;
+  flex-shrink: 0;
+}
+
+.timelineContent {
+  background-color: #f8fafc;
+  border: 1px solid var(--app-color-border);
+  border-radius: var(--app-radius-control);
+  padding: 12px 16px;
+  flex: 1;
+}
+
+.timelineHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 4px;
+}
+
+.timelineAction {
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--app-color-text);
+}
+
+.timelineDate {
+  font-size: 0.8rem;
+  color: var(--app-color-muted);
+}
+
+.timelineAuthor {
+  font-size: 0.85rem;
+  color: var(--app-color-muted);
+}

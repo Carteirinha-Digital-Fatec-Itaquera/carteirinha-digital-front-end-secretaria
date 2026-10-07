@@ -23,6 +23,8 @@ import SecretariaEditarEventoScreen from "./screens/events/SecretariaEditarEvent
 import SecretariaGerenciarEventoScreen from "./screens/events/SecretariaGerenciarEventoScreen";
 import CertificadoVerificarScreen from "./screens/certificate/CertificadoVerificarScreen";
 import ProjectCreditsScreen from "./screens/credits/ProjectCreditsScreen";
+import CreditsManageScreen from "./screens/credits/CreditsManageScreen";
+import CreditsFormScreen from "./screens/credits/CreditsFormScreen";
 
 function SessionLifecycle() {
   const location = useLocation();
@@ -59,6 +61,11 @@ export default function App() {
           <Route path="/eventos/novo" element={<SecretariaNovoEventoScreen />} />
           <Route path="/eventos/:id/editar" element={<SecretariaEditarEventoScreen />} />
           <Route path="/eventos/:id/gerenciar" element={<SecretariaGerenciarEventoScreen />} />
+
+          {/* Rotas administrativas de creditos */}
+          <Route path="/creditos/gerenciar" element={<CreditsManageScreen />} />
+          <Route path="/creditos/novo" element={<CreditsFormScreen />} />
+          <Route path="/creditos/:id/editar" element={<CreditsFormScreen />} />
         </Route>
 
         <Route path="/reset-password" element={<ResetPasswordScreen />} />
