@@ -407,7 +407,7 @@ export default function CreditsFormScreen() {
         <div className={styles.pageHeader}>
           <div className={styles.headerText}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
-              <Link to="/creditos/gerenciar" className={styles.iconActionButton} title="Voltar à lista">
+              <Link to="/creditos" className={styles.iconActionButton} title="Voltar aos créditos">
                 <ArrowLeft size={18} />
               </Link>
               <h1>{isEditing ? `Editar Colaborador: ${name || '...'}` : 'Novo Colaborador'}</h1>

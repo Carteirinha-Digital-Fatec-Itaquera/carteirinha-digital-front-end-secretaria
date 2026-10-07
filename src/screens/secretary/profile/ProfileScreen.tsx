@@ -160,7 +160,7 @@ export default function ProfileScreen() {
 
                 <div style={{ marginTop: 20, paddingTop: 16, borderTop: '1px solid var(--app-color-border)', display: 'flex', flexDirection: 'column', gap: 10 }}>
                   <Link
-                    to="/creditos/gerenciar"
+                    to="/creditos"
                     style={{
                       display: 'inline-flex',
                       alignItems: 'center',
@@ -174,25 +174,7 @@ export default function ProfileScreen() {
                       textDecoration: 'none',
                     }}
                   >
-                    Gerenciar créditos do projeto
-                  </Link>
-                  <Link
-                    to="/creditos"
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      minHeight: 44,
-                      padding: '10px 16px',
-                      borderRadius: 'var(--app-radius-control)',
-                      background: 'var(--app-color-surface)',
-                      border: '1px solid var(--app-color-border)',
-                      color: 'var(--app-color-text)',
-                      fontWeight: 600,
-                      textDecoration: 'none',
-                    }}
-                  >
-                    Consultar catálogo público de créditos
+                    Créditos do projeto
                   </Link>
                 </div>
               </>

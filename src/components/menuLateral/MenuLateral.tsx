@@ -36,8 +36,7 @@ export default function MenuLateral() {
    {path:'/perfil',label:'Perfil',Icon:UserCircleIcon},
    {path:'/fotos',label:'Fotos pendentes',Icon:CameraIcon},
    {path:'/eventos',label:'Eventos',Icon:CalendarIcon},
-   {path:'/creditos/gerenciar',label:'Gerenciar créditos',Icon:UsersFourIcon},
-   {path:'/creditos',label:'Créditos do projeto',Icon:UserCircleIcon},
+   {path:'/creditos',label:'Créditos do projeto',Icon:UsersFourIcon},
  ];
  const narrow = !mobile && collapsed;
  const content = <>
@@ -51,7 +50,7 @@ export default function MenuLateral() {
       const active = location.pathname === path ||
         (path === '/students' && location.pathname.startsWith('/update')) ||
         (path === '/eventos' && location.pathname.startsWith('/eventos/')) ||
-        (path === '/creditos/gerenciar' && (location.pathname.startsWith('/creditos/gerenciar') || location.pathname.startsWith('/creditos/novo') || (location.pathname.startsWith('/creditos/') && location.pathname.includes('/editar'))));
+        (path === '/creditos' && (location.pathname === '/creditos' || location.pathname.startsWith('/creditos/')));
       return <button key={path} type="button" title={label} aria-label={label} aria-current={active ? 'page' : undefined} className={styles.itemMenu + (active ? ' ' + styles.selected : '')} onKeyDown={event => { if (event.key === 'Enter') { event.preventDefault(); handleMenuClick(path); } }} onClick={() => handleMenuClick(path)}><Icon size={24} aria-hidden="true" />{!narrow && <span>{label}</span>}</button>;
     })}
     <button type="button" className={styles.itemMenu + ' ' + styles.logout} title="Deslogar" aria-label="Deslogar" onClick={requestLogout}><SignOutIcon size={24} aria-hidden="true" />{!narrow && <span>Deslogar</span>}</button>
