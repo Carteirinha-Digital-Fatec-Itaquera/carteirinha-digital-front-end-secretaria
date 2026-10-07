@@ -1,3 +1,4 @@
+import { logoutSession } from '../../api/auth/session';
 import { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { CloudArrowUpIcon, FilePlusIcon, SignOutIcon, UserCircleIcon, UserListIcon, SidebarSimpleIcon, CalendarIcon, CameraIcon } from '@phosphor-icons/react';
@@ -24,7 +25,7 @@ export default function MenuLateral() {
  }, [mobile, open]);
  const closeMenu = () => { setOpen(false); trigger.current?.focus(); };
  const handleMenuClick = (route: string) => { navigate(route); setOpen(false); };
- const handleLogout = () => { sessionStorage.removeItem('token'); navigate('/login'); };
+ const handleLogout = () => { logoutSession(); navigate('/login', { replace: true }); };
  const items = [
    {path:'/students',label:'Lista de alunos',Icon:UserListIcon},
    {path:'/register',label:'Registrar aluno',Icon:FilePlusIcon},

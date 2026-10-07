@@ -1,5 +1,5 @@
+import { getSessionSnapshot, inspectSessionToken, expireSession } from '../../../api/auth/session';
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { FaEnvelope, FaClock } from "react-icons/fa";
 
 import { TitleComp } from "../../../components/title/TitleComp";
@@ -9,14 +9,12 @@ import MenuLateral from "../../../components/menuLateral/MenuLateral";
 
 import { findSecretaryById } from "../../../api/secretary/findById";
 import { updateSecretary } from "../../../api/secretary/update";
-import { decodeToken } from "../../../utils/decodeToken";
 
 import styles from "./style.module.css";
 import layoutStyles from "../../../styles/layoutWithMenu.module.css";
 import { InputLogin } from "../../../components/inputLoginCadastro/InputLogin";
 
 export default function ProfileScreen() {
-  const navigate = useNavigate();
 
   const [editPassword, setEditPassword] = useState("");
   const [editConfirmPassword, setEditConfirmPassword] = useState("");
@@ -50,12 +48,13 @@ export default function ProfileScreen() {
   useEffect(() => {
     const loadProfile = async () => {
       try {
-        const token = sessionStorage.getItem('token');
-        if (!token) { navigate('/login'); return; }
-
-        const payload = decodeToken(token);
-        const id = payload?.sub;
-        if (!id) { navigate('/login'); return; }
+        const context = getSessionSnapshot();
+        const payload = inspectSessionToken(context.token)?.payload;
+        const id = Number(payload?.sub);
+        if (!Number.isSafeInteger(id) || id <= 0) {
+          expireSession(context, 'unauthorized');
+          return;
+        }
 
         setSecretaryId(id);
         const data = await findSecretaryById(id);

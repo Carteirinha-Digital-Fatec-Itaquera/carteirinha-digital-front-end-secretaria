@@ -1,13 +1,10 @@
+import { privateFetch } from '../config/privateFetch';
 import { GLOBAL_VAR } from '../config/globalVar'
 
 export async function downloadHistorico(): Promise<void> {
-  const token = sessionStorage.getItem('token')
 
-  const response = await fetch(`${GLOBAL_VAR.BASE_URL}/estudantes/historico-excluidos`, {
+  const response = await privateFetch(`${GLOBAL_VAR.BASE_URL}/estudantes/historico-excluidos`, {
     method: 'GET',
-    headers: {
-      'Authorization': `Bearer ${token}`,
-    },
   })
 
   if (!response.ok) {

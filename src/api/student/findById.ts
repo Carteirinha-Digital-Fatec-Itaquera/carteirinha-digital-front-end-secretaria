@@ -1,12 +1,10 @@
+import { privateFetch } from '../config/privateFetch';
 import type { Student } from "../../domains/Student";
 
 import { GLOBAL_VAR } from "../config/globalVar"
 
 export async function findById(ra: string): Promise<Student | undefined> {
-  const response = await fetch(`${GLOBAL_VAR.BASE_URL}/estudantes/encontrar-por-ra/${ra}`, {
-    headers: {
-      Authorization: `Bearer ${sessionStorage.getItem('token')}`
-    },
+  const response = await privateFetch(`${GLOBAL_VAR.BASE_URL}/estudantes/encontrar-por-ra/${ra}`, {
     method: 'GET',
   });
 

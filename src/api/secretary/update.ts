@@ -1,3 +1,4 @@
+import { privateFetch } from '../config/privateFetch';
 import { GLOBAL_VAR } from '../config/globalVar';
 
 export async function updateSecretary(id: number, data: {
@@ -7,10 +8,10 @@ export async function updateSecretary(id: number, data: {
   dueDate: string;
   password?: string;
 }) {
-  const response = await fetch(`${GLOBAL_VAR.BASE_URL}/secretaria/atualizar/${id}`, {
+  const response = await privateFetch(`${GLOBAL_VAR.BASE_URL}/secretaria/atualizar/${id}`, {
     method: 'PUT',
     headers: {
-      Authorization: `Bearer ${sessionStorage.getItem('token')}`,
+
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(data),

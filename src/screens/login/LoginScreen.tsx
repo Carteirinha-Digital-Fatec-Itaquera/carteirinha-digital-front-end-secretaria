@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { acknowledgeSessionNotice, startSession } from '../../api/auth/session';
+import { useSecretarySession } from '../../api/auth/useSecretarySession';
+import { useEffect, useState } from "react";
 
 import { useNavigate } from "react-router-dom";
 import { FaEnvelope } from "react-icons/fa";
@@ -23,6 +25,12 @@ import { InputLogin } from "../../components/inputLoginCadastro/InputLogin";
 
 export default function LoginScreen() {
   const navigate = useNavigate();
+  const session = useSecretarySession();
+  const [showSessionNotice, setShowSessionNotice] = useState(session.notice);
+  if (session.notice && !showSessionNotice) setShowSessionNotice(true);
+  useEffect(() => {
+    if (showSessionNotice) acknowledgeSessionNotice();
+  }, [showSessionNotice]);
 
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -42,6 +50,7 @@ export default function LoginScreen() {
         <div className={styles.cardContent}>
 
           <TitleComp text="Login secretaria" />
+          {showSessionNotice && <p role="alert" className="sessionNotice">Sua sessão expirou. Entre novamente.</p>}
 
           <InputLogin
             label="E-mail"
@@ -89,11 +98,18 @@ export default function LoginScreen() {
                   const auth = new Auth({ email, password })
                   const result = await login(auth)
                   if ('token' in result) {
-                    sessionStorage.setItem("token", result.token)
+                    try {
+                      startSession(result.token);
+                    } catch (error) {
+                      setMessage(error instanceof Error ? error.message : 'Não foi possível iniciar a sessão.');
+                      setModalErrorVisible(true);
+                      setOnLoading(false);
+                      return;
+                    }
                     if (result.mustChangePassword) {
-                    navigate("/redefinir-senha")
+                    navigate("/redefinir-senha", { replace: true })
                     } else {
-                    navigate("/students")
+                    navigate("/students", { replace: true })
                   }
                   } else {
                     setMessage(result.message)

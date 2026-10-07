@@ -26,7 +26,7 @@ describe('apiRequest helper', () => {
   });
 
   it('sends Authorization header when token is present in sessionStorage', async () => {
-    sessionStorage.setItem('token', 'secret-secretary-jwt');
+    sessionStorage.setItem('token', 'eyJhbGciOiJIUzI1NiJ9.eyJleHAiOjQxMDI0NDQ4MDB9.c2lnbmF0dXJl');
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
       status: 200,
@@ -42,12 +42,12 @@ describe('apiRequest helper', () => {
     const [url, init] = fetchMock.mock.calls[0];
     expect(url).toMatch(/\/events$/);
     const headers = init.headers as Headers;
-    expect(headers.get('Authorization')).toBe('Bearer secret-secretary-jwt');
+    expect(headers.get('Authorization')).toBe('Bearer eyJhbGciOiJIUzI1NiJ9.eyJleHAiOjQxMDI0NDQ4MDB9.c2lnbmF0dXJl');
     expect(headers.get('Cache-Control')).toBe('no-store');
   });
 
   it('does NOT send Authorization header when authenticated is false', async () => {
-    sessionStorage.setItem('token', 'secret-secretary-jwt');
+    sessionStorage.setItem('token', 'eyJhbGciOiJIUzI1NiJ9.eyJleHAiOjQxMDI0NDQ4MDB9.c2lnbmF0dXJl');
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
       status: 200,
@@ -68,7 +68,7 @@ describe('apiRequest helper', () => {
   });
 
   it('sets Content-Type to application/json for object bodies', async () => {
-    sessionStorage.setItem('token', 'valid-token');
+    sessionStorage.setItem('token', 'eyJhbGciOiJIUzI1NiJ9.eyJleHAiOjQxMDI0NDQ4MDB9.c2lnbmF0dXJl');
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
       status: 201,
@@ -87,7 +87,7 @@ describe('apiRequest helper', () => {
   });
 
   it('throws ApiRequestError with response message and status on HTTP errors', async () => {
-    sessionStorage.setItem('token', 'valid-token');
+    sessionStorage.setItem('token', 'eyJhbGciOiJIUzI1NiJ9.eyJleHAiOjQxMDI0NDQ4MDB9.c2lnbmF0dXJl');
     const fetchMock = vi.fn().mockResolvedValue({
       ok: false,
       status: 404,
@@ -105,7 +105,7 @@ describe('apiRequest helper', () => {
   });
 
   it('handles non-JSON error responses gracefully without masking the error', async () => {
-    sessionStorage.setItem('token', 'valid-token');
+    sessionStorage.setItem('token', 'eyJhbGciOiJIUzI1NiJ9.eyJleHAiOjQxMDI0NDQ4MDB9.c2lnbmF0dXJl');
     const fetchMock = vi.fn().mockResolvedValue({
       ok: false,
       status: 502,
@@ -123,7 +123,7 @@ describe('apiRequest helper', () => {
   });
 
   it('returns undefined on status 204 No Content', async () => {
-    sessionStorage.setItem('token', 'valid-token');
+    sessionStorage.setItem('token', 'eyJhbGciOiJIUzI1NiJ9.eyJleHAiOjQxMDI0NDQ4MDB9.c2lnbmF0dXJl');
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
       status: 204,

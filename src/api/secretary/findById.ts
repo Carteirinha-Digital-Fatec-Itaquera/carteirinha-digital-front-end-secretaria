@@ -1,10 +1,8 @@
+import { privateFetch } from '../config/privateFetch';
 import { GLOBAL_VAR } from '../config/globalVar';
 
 export async function findSecretaryById(id: number) {
-  const response = await fetch(`${GLOBAL_VAR.BASE_URL}/secretaria/encontrar-por-id/${id}`, {
-    headers: {
-      Authorization: `Bearer ${sessionStorage.getItem('token')}`,
-    },
+  const response = await privateFetch(`${GLOBAL_VAR.BASE_URL}/secretaria/encontrar-por-id/${id}`, {
     method: 'GET',
   });
 

@@ -1,3 +1,4 @@
+import { startSession, logoutSession } from '../../../api/auth/session';
 import { act, renderHook, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { useEventParticipants } from './useEventParticipants';
@@ -138,3 +139,6 @@ describe('useEventParticipants Hook', () => {
     });
   });
 });
+
+beforeEach(() => startSession('eyJhbGciOiJIUzI1NiJ9.eyJleHAiOjQxMDI0NDQ4MDB9.c2lnbmF0dXJl'));
+afterEach(() => { act(() => logoutSession()); });

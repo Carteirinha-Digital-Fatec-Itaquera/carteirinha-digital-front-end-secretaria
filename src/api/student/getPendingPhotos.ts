@@ -1,11 +1,8 @@
+import { privateFetch } from '../config/privateFetch';
 import { GLOBAL_VAR } from '../config/globalVar';
 
 export async function getPendingPhotos() {
-  const token = sessionStorage.getItem('token');
-  const response = await fetch(`${GLOBAL_VAR.BASE_URL}/secretaria/fotos-pendentes`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+  const response = await privateFetch(`${GLOBAL_VAR.BASE_URL}/secretaria/fotos-pendentes`, {
     method: 'GET',
   });
 
