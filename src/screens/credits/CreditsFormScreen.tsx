@@ -8,19 +8,18 @@ import {
   Trash2,
   AlertTriangle,
   CheckCircle,
-  Camera,
   History,
   AlertCircle,
 } from 'lucide-react';
 import MenuLateral from '../../components/menuLateral/MenuLateral';
+import MessageModal from '../../components/messageModal/MessageModal';
+import { useCreditMessages } from './useCreditMessages';
 import CreditsHistoryModal from './CreditsHistoryModal';
 import {
   createContributorDraft,
   getAdminContributor,
   updateContributor,
   publishContributor,
-  uploadContributorPhoto,
-  removeContributorPhoto,
 } from '../../api/projectCredits/projectCreditsAdminService';
 import { ApiRequestError } from '../../api/config/apiRequest';
 import type {
@@ -52,6 +51,7 @@ interface FormLink {
 }
 
 export default function CreditsFormScreen() {
+  const { messageDialog, closeMessage, notify, confirm } = useCreditMessages();
   const { id } = useParams<{ id?: string }>();
   const isEditing = Boolean(id);
   const navigate = useNavigate();
@@ -64,8 +64,6 @@ export default function CreditsFormScreen() {
   const [status, setStatus] = useState<'DRAFT' | 'PUBLISHED' | 'ARCHIVED'>('DRAFT');
   const [name, setName] = useState('');
   const [profileConfirmed, setProfileConfirmed] = useState(false);
-  const [photoConfirmed, setPhotoConfirmed] = useState(false);
-  const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const [participations, setParticipations] = useState<FormParticipation[]>([
     { semester: '', course: '', rolesString: '', contribution: '', confirmed: true },
   ]);
@@ -96,8 +94,6 @@ export default function CreditsFormScreen() {
       setPublishedVersion(data.publishedVersion);
       setStatus(data.status);
       setProfileConfirmed(data.profileConfirmed);
-      setPhotoConfirmed(data.photoConfirmed);
-      setPhotoUrl(data.photoUrl || null);
 
       setParticipations(
         data.participations.map((p) => ({
@@ -113,7 +109,7 @@ export default function CreditsFormScreen() {
         data.links.map((l) => ({
           kind: l.kind,
           label: l.label,
-          url: l.href,
+          url: l.url,
           confirmed: l.confirmed ?? true,
         })),
       );
@@ -139,59 +135,6 @@ export default function CreditsFormScreen() {
       loadContributor();
     }
   }, [isEditing, loadContributor]);
-
-  // Photo handlers
-  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    if (!id) {
-      alert('Salve o rascunho inicial do colaborador antes de anexar uma foto.');
-      return;
-    }
-
-    if (file.size > 2 * 1024 * 1024) {
-      alert('A imagem excede o limite máximo de 2 MB.');
-      return;
-    }
-
-    try {
-      setSubmitting(true);
-      const res = await uploadContributorPhoto(id, file, version);
-      setPhotoUrl(res.photoUrl);
-      setVersion(res.draftVersion);
-      setSuccessMessage('Foto enviada com sucesso para o rascunho!');
-    } catch (err: unknown) {
-      if (err instanceof ApiRequestError && err.status === 409) {
-        setVersionConflict(true);
-        return;
-      }
-      alert(err instanceof Error ? err.message : 'Erro no envio da foto');
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  const handlePhotoRemove = async () => {
-    if (!id || !photoUrl) return;
-    if (!window.confirm('Deseja remover a foto deste colaborador?')) return;
-
-    try {
-      setSubmitting(true);
-      const res = await removeContributorPhoto(id, version);
-      setPhotoUrl(null);
-      setVersion(res.draftVersion);
-      setSuccessMessage('Foto removida do rascunho com sucesso!');
-    } catch (err: unknown) {
-      if (err instanceof ApiRequestError && err.status === 409) {
-        setVersionConflict(true);
-        return;
-      }
-      alert(err instanceof Error ? err.message : 'Erro ao remover foto');
-    } finally {
-      setSubmitting(false);
-    }
-  };
 
   // Repeater handlers
   const addParticipation = () => {
@@ -245,7 +188,6 @@ export default function CreditsFormScreen() {
     return {
       name: name.trim(),
       profileConfirmed,
-      photoConfirmed,
       participations: formattedParticipations,
       links: formattedLinks,
     };
@@ -254,7 +196,7 @@ export default function CreditsFormScreen() {
   // Save Draft
   const handleSaveDraft = async () => {
     if (!name.trim()) {
-      alert('Informe o nome do colaborador antes de salvar o rascunho.');
+      notify('Informe o nome do colaborador antes de salvar o rascunho.');
       return;
     }
 
@@ -270,7 +212,6 @@ export default function CreditsFormScreen() {
         const created = await createContributorDraft({
           name: payload.name,
           profileConfirmed: payload.profileConfirmed,
-          photoConfirmed: payload.photoConfirmed,
         });
 
         // If there were participations or links added before initial creation, save them now
@@ -313,40 +254,40 @@ export default function CreditsFormScreen() {
   // Publish
   const handlePublish = async () => {
     if (!name.trim()) {
-      alert('O nome do colaborador é obrigatório para publicação.');
+      notify('O nome do colaborador é obrigatório para publicação.');
       return;
     }
 
     if (!profileConfirmed) {
-      alert('Você deve confirmar a autorização do colaborador para a divulgação dos dados.');
+      notify('Você deve confirmar a autorização do colaborador para a divulgação dos dados.');
       return;
     }
 
     const payload = buildPayload();
     if (payload.participations.length === 0) {
-      alert('O colaborador deve ter ao menos um semestre com participação registrada para ser publicado.');
+      notify('O colaborador deve ter ao menos um semestre com participação registrada para ser publicado.');
       return;
     }
 
     for (const p of payload.participations) {
       if (!isValidSemester(p.semester)) {
-        alert(`O semestre "${p.semester}" é inválido. Utilize o formato YYYY.1 ou YYYY.2 (ex: 2026.1).`);
+        notify(`O semestre "${p.semester}" é inválido. Utilize o formato YYYY.1 ou YYYY.2 (ex: 2026.1).`);
         return;
       }
       if (p.roles.length === 0) {
-        alert(`Informe ao menos uma função/papel para o semestre ${p.semester}.`);
+        notify(`Informe ao menos uma função/papel para o semestre ${p.semester}.`);
         return;
       }
     }
 
     for (const l of payload.links) {
       if (!isApprovedProjectCreditHref({ kind: l.kind, label: l.label, href: l.url })) {
-        alert(`O link "${l.url}" é inválido ou inseguro. Certifique-se de usar HTTPS válido.`);
+        notify(`O link "${l.url}" é inválido ou inseguro. Certifique-se de usar HTTPS válido.`);
         return;
       }
     }
 
-    if (!window.confirm(`Deseja publicar as informações de ${name.trim()} na Carteirinha Digital?`)) {
+    if (!(await confirm(`Deseja publicar as informações de ${name.trim()} na Carteirinha Digital?`))) {
       return;
     }
 
@@ -363,7 +304,6 @@ export default function CreditsFormScreen() {
         const created = await createContributorDraft({
           name: payload.name,
           profileConfirmed: true,
-          photoConfirmed: payload.photoConfirmed,
         });
         targetId = created.id;
         targetVersion = created.draftVersion;
@@ -379,7 +319,6 @@ export default function CreditsFormScreen() {
       const published = await publishContributor(targetId, {
         expectedVersion: updated.draftVersion,
         profileConfirmed: true,
-        photoConfirmed: payload.photoConfirmed,
       });
 
       setVersion(published.draftVersion);
@@ -415,7 +354,7 @@ export default function CreditsFormScreen() {
     return {
       id: id || 'preview-temp-id',
       name: name.trim() || 'Nome do Colaborador',
-      photoUrl: photoUrl || null,
+      photoUrl: null,
       participations: participations
         .filter((p) => p.semester.trim())
         .map((p) => ({
@@ -435,12 +374,13 @@ export default function CreditsFormScreen() {
           href: l.url.trim(),
         })),
     };
-  }, [id, name, photoUrl, participations, links, previewTab, rawDetail]);
+  }, [id, name, participations, links, previewTab, rawDetail]);
 
   if (loading) {
     return (
       <div className={styles.adminContainer}>
         <MenuLateral />
+      <MessageModal visible={Boolean(messageDialog)} tone={messageDialog?.confirmation ? 'warning' : 'error'} title={messageDialog?.confirmation ? 'Confirmar publicação' : 'Confira as informações'} message={messageDialog?.message ?? ''} confirmText={messageDialog?.confirmation ? 'Confirmar' : 'OK'} cancelText={messageDialog?.confirmation ? 'Cancelar' : undefined} onConfirm={() => closeMessage(true)} onCancel={() => closeMessage(false)} onDismiss={() => closeMessage(false)} />
         <main className={styles.mainContent}>
           <p style={{ textAlign: 'center', padding: '60px 0', color: 'var(--app-color-muted)' }}>
             Carregando dados do colaborador...
@@ -453,6 +393,7 @@ export default function CreditsFormScreen() {
   return (
     <div className={styles.adminContainer}>
       <MenuLateral />
+      <MessageModal visible={Boolean(messageDialog)} tone={messageDialog?.confirmation ? 'warning' : 'error'} title={messageDialog?.confirmation ? 'Confirmar publicação' : 'Confira as informações'} message={messageDialog?.message ?? ''} confirmText={messageDialog?.confirmation ? 'Confirmar' : 'OK'} cancelText={messageDialog?.confirmation ? 'Cancelar' : undefined} onConfirm={() => closeMessage(true)} onCancel={() => closeMessage(false)} onDismiss={() => closeMessage(false)} />
       <main className={styles.mainContent}>
         {/* Header */}
         <div className={styles.pageHeader}>
@@ -592,7 +533,7 @@ export default function CreditsFormScreen() {
         <div className={styles.formGrid}>
           {/* Coluna do Formulário */}
           <div className={styles.formColumn}>
-            {/* Bloco 1: Identificação & Foto */}
+            {/* Bloco 1: Identificação */}
             <section className={styles.blockCard}>
               <div className={styles.blockHeader}>
                 <h2>1. Identificação do Colaborador</h2>
@@ -606,44 +547,20 @@ export default function CreditsFormScreen() {
                   className={styles.inputControl}
                   placeholder="Ex: Wellington Silva"
                   value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  onChange={(e) => { setName(e.target.value); setProfileConfirmed(false); }}
                   required
                 />
               </div>
 
-              <div className={styles.formGroup}>
-                <label>Foto do Perfil (opcional, JPG/PNG/WebP até 2 MB)</label>
+              <div className={styles.formGroup} aria-label="Foto de perfil demonstrativa">
+                <label>Foto de perfil — em breve</label>
                 <div className={styles.photoRow}>
-                  <div className={styles.photoPreviewFrame}>
-                    {photoUrl ? (
-                      <img src={photoUrl} alt="Prévia da foto" />
-                    ) : (
-                      <span>{name ? name.trim().charAt(0).toUpperCase() : '?'}</span>
-                    )}
+                  <div className={styles.photoPreviewFrame} aria-hidden="true">
+                    <span>{name.trim().charAt(0).toLocaleUpperCase('pt-BR') || '?'}</span>
                   </div>
                   <div className={styles.photoActions}>
-                    <label className={styles.secondaryButton} style={{ cursor: 'pointer' }}>
-                      <Camera size={16} />
-                      {photoUrl ? 'Substituir Foto' : 'Selecionar Imagem'}
-                      <input
-                        type="file"
-                        accept="image/jpeg,image/png,image/webp"
-                        style={{ display: 'none' }}
-                        onChange={handlePhotoUpload}
-                        disabled={submitting}
-                      />
-                    </label>
-                    {photoUrl && (
-                      <button
-                        type="button"
-                        className={styles.removeSubItemButton}
-                        onClick={handlePhotoRemove}
-                        disabled={submitting}
-                      >
-                        <Trash2 size={14} /> Remover Foto
-                      </button>
-                    )}
-                    <small>A imagem será convertida para retrato seguro 256x256 WebP.</small>
+                    <button type="button" className={styles.secondaryButton} disabled>Selecionar imagem</button>
+                    <small>Área demonstrativa. O envio de fotos ainda não está disponível.</small>
                   </div>
                 </div>
               </div>
@@ -656,8 +573,8 @@ export default function CreditsFormScreen() {
                     onChange={(e) => setProfileConfirmed(e.target.checked)}
                   />
                   <span className={styles.checkboxText}>
-                    <strong>Termo de Autorização e Consentimento LGPD:</strong> Confirmo que o
-                    colaborador autorizou expressamente a divulgação de seu nome, foto e links
+                    <strong>Autorização para publicação:</strong> Confirmo que o
+                    colaborador autorizou expressamente a divulgação de seu nome, curso, participações e links
                     profissionais nesta aplicação acadêmica da FATEC Itaquera.
                   </span>
                 </label>

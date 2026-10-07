@@ -12,6 +12,8 @@ import {
   Users,
 } from 'lucide-react';
 import MenuLateral from '../../components/menuLateral/MenuLateral';
+import MessageModal from '../../components/messageModal/MessageModal';
+import { useCreditMessages } from './useCreditMessages';
 import CreditsHistoryModal from './CreditsHistoryModal';
 import {
   listAdminContributors,
@@ -29,6 +31,7 @@ import { formatSemester } from '../../utils/projectCreditContact';
 import styles from './styleCreditsAdmin.module.css';
 
 export default function CreditsManageScreen() {
+  const { messageDialog, closeMessage, notify, confirm } = useCreditMessages();
   const navigate = useNavigate();
   const [contributors, setContributors] = useState<AdminProjectContributorSummary[]>([]);
   const [loading, setLoading] = useState(true);
@@ -62,11 +65,11 @@ export default function CreditsManageScreen() {
       };
 
       const res = await listAdminContributors(query);
-      setContributors(res.contributors);
+      setContributors(res.items);
 
       // Collect semesters for filter dropdown
       const sems = new Set<string>();
-      res.contributors.forEach((c) => c.semesters.forEach((s) => sems.add(s)));
+      res.items.forEach((c) => c.semesters.forEach((s) => sems.add(s)));
       setAvailableSemesters(Array.from(sems).sort((a, b) => b.localeCompare(a)));
     } catch (err: unknown) {
       if (err instanceof ApiRequestError) {
@@ -95,7 +98,7 @@ export default function CreditsManageScreen() {
   };
 
   const handleQuickPublish = async (c: AdminProjectContributorSummary) => {
-    if (!window.confirm(`Deseja publicar imediatamente as alterações de "${c.name}"?`)) {
+    if (!(await confirm(`Deseja publicar imediatamente as alterações de "${c.name}"?`))) {
       return;
     }
 
@@ -108,11 +111,11 @@ export default function CreditsManageScreen() {
       await loadContributors();
     } catch (err: unknown) {
       if (err instanceof ApiRequestError && err.status === 409) {
-        alert('Conflito de versão detectado. Os dados foram modificados por outro usuário. Recarregando lista...');
+        notify('Conflito de versão detectado. Os dados foram modificados por outro usuário. Recarregando lista...');
         await loadContributors();
         return;
       }
-      alert(err instanceof Error ? err.message : 'Erro ao publicar colaborador');
+      notify(err instanceof Error ? err.message : 'Erro ao publicar colaborador');
     } finally {
       setActionLoading(false);
     }
@@ -132,12 +135,12 @@ export default function CreditsManageScreen() {
       await loadContributors();
     } catch (err: unknown) {
       if (err instanceof ApiRequestError && err.status === 409) {
-        alert('Conflito de versão detectado. Recarregando...');
+        notify('Conflito de versão detectado. Recarregando...');
         await loadContributors();
         setArchiveTarget(null);
         return;
       }
-      alert(err instanceof Error ? err.message : 'Erro ao arquivar colaborador');
+      notify(err instanceof Error ? err.message : 'Erro ao arquivar colaborador');
     } finally {
       setActionLoading(false);
     }
@@ -155,12 +158,12 @@ export default function CreditsManageScreen() {
       await loadContributors();
     } catch (err: unknown) {
       if (err instanceof ApiRequestError && err.status === 409) {
-        alert('Conflito de versão detectado. Recarregando...');
+        notify('Conflito de versão detectado. Recarregando...');
         await loadContributors();
         setRestoreTarget(null);
         return;
       }
-      alert(err instanceof Error ? err.message : 'Erro ao restaurar colaborador');
+      notify(err instanceof Error ? err.message : 'Erro ao restaurar colaborador');
     } finally {
       setActionLoading(false);
     }
@@ -169,6 +172,7 @@ export default function CreditsManageScreen() {
   return (
     <div className={styles.adminContainer}>
       <MenuLateral />
+      <MessageModal visible={Boolean(messageDialog)} tone={messageDialog?.confirmation ? 'warning' : 'error'} title={messageDialog?.confirmation ? 'Confirmar publicação' : 'Confira as informações'} message={messageDialog?.message ?? ''} confirmText={messageDialog?.confirmation ? 'Confirmar' : 'OK'} cancelText={messageDialog?.confirmation ? 'Cancelar' : undefined} onConfirm={() => closeMessage(true)} onCancel={() => closeMessage(false)} onDismiss={() => closeMessage(false)} />
       <main className={styles.mainContent}>
         <div className={styles.pageHeader}>
           <div className={styles.headerText}>
@@ -304,15 +308,11 @@ export default function CreditsManageScreen() {
                         <td>
                           <div className={styles.personCell}>
                             <div className={styles.avatarThumb}>
-                              {c.photoUrl ? (
-                                <img src={c.photoUrl} alt="" />
-                              ) : (
-                                <span>{initials}</span>
-                              )}
+                              <span>{initials}</span>
                             </div>
                             <div className={styles.nameInfo}>
                               <strong>{c.name}</strong>
-                              {c.hasDraftChanges && c.status === 'PUBLISHED' && (
+                              {c.hasUnpublishedChanges && c.status === 'PUBLISHED' && (
                                 <span className={styles.pendingChangesBadge}>
                                   Alterações não publicadas
                                 </span>
@@ -376,7 +376,7 @@ export default function CreditsManageScreen() {
                               <Edit2 size={16} />
                             </button>
 
-                            {(c.status === 'DRAFT' || c.hasDraftChanges) && (
+                            {(c.status === 'DRAFT' || c.hasUnpublishedChanges) && (
                               <button
                                 type="button"
                                 className={styles.iconActionButton}

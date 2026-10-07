@@ -8,12 +8,13 @@ export type ProjectCreditContactKind =
 export type ProjectCreditStatus = 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
 
 export type ProjectCreditAuditAction =
-  | 'DRAFT_CREATED'
+  | 'CREATED'
+  | 'UPDATED'
   | 'DRAFT_SAVED'
   | 'PUBLISHED'
   | 'ARCHIVED'
   | 'RESTORED'
-  | 'PHOTO_UPDATED'
+  | 'PHOTO_REPLACED'
   | 'PHOTO_REMOVED';
 
 export interface ProjectCreditContact {
@@ -53,7 +54,7 @@ export interface AdminProjectContributorSummary {
   status: ProjectCreditStatus;
   draftVersion: number;
   publishedVersion: number | null;
-  hasDraftChanges: boolean;
+  hasUnpublishedChanges: boolean;
   photoUrl?: string | null;
   semesters: string[];
   roles: string[];
@@ -77,7 +78,7 @@ export interface AdminProjectContributorDetail {
   createdAt: string;
   updatedAt: string;
   participations: ProjectCreditParticipation[];
-  links: ProjectCreditContact[];
+  links: AdminProjectCreditLink[];
   publishedSnapshot?: unknown | null;
 }
 
@@ -90,3 +91,5 @@ export interface AdminAuditLogItem {
   beforeSnapshot?: unknown | null;
   afterSnapshot?: unknown | null;
 }
+
+export interface AdminProjectCreditLink { id?: string; kind: ProjectCreditContactKind; label: string; url: string; confirmed: boolean; order?: number; }

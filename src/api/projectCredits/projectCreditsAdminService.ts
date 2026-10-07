@@ -8,7 +8,7 @@ import type {
 } from '../../domains/ProjectCredits';
 
 export interface AdminContributorsListResponse {
-  contributors: AdminProjectContributorSummary[];
+  items: AdminProjectContributorSummary[];
   total: number;
   page: number;
   limit: number;
@@ -25,14 +25,12 @@ export interface AdminContributorsQuery {
 export interface CreateContributorDto {
   name: string;
   profileConfirmed?: boolean;
-  photoConfirmed?: boolean;
 }
 
 export interface UpdateContributorDto {
   expectedVersion: number;
   name?: string;
   profileConfirmed?: boolean;
-  photoConfirmed?: boolean;
   participations?: Array<{
     semester: string;
     course?: string | null;
@@ -53,7 +51,6 @@ export interface UpdateContributorDto {
 export interface PublishContributorDto {
   expectedVersion: number;
   profileConfirmed: boolean;
-  photoConfirmed?: boolean;
 }
 
 export interface ArchiveContributorDto {
@@ -66,7 +63,7 @@ export interface RestoreContributorDto {
 }
 
 export interface ContributorHistoryResponse {
-  history: AdminAuditLogItem[];
+  items: AdminAuditLogItem[];
   total: number;
   page: number;
   limit: number;
@@ -77,7 +74,7 @@ export async function listAdminContributors(
   signal?: AbortSignal,
 ): Promise<AdminContributorsListResponse> {
   const params = new URLSearchParams();
-  if (query.search) params.set('search', query.search);
+  if (query.search) params.set('q', query.search);
   if (query.status && query.status !== 'ALL') params.set('status', query.status);
   if (query.semester && query.semester !== 'ALL') params.set('semester', query.semester);
   if (query.page) params.set('page', String(query.page));
@@ -86,11 +83,13 @@ export async function listAdminContributors(
   const qs = params.toString();
   const path = qs ? `/project-credits/admin/contributors?${qs}` : '/project-credits/admin/contributors';
 
-  return apiRequest<AdminContributorsListResponse>(path, {
+  const result = await apiRequest<AdminContributorsListResponse>(path, {
     method: 'GET',
     authenticated: true,
     signal,
   });
+  if (!Array.isArray(result.items) || !Number.isFinite(result.total)) throw new Error("Resposta de lista de créditos incompatível com a API.");
+  return result;
 }
 
 export async function getAdminContributor(
@@ -126,7 +125,7 @@ export async function updateContributor(
     {
       method: 'PATCH',
       authenticated: true,
-      body: JSON.stringify(dto),
+      body: JSON.stringify({ ...dto, links: dto.links?.map(link => ({ ...link, kind: link.kind === 'portfolio' ? 'EXTERNAL' : link.kind.toUpperCase() })) }),
     },
   );
 }
@@ -169,39 +168,6 @@ export async function restoreContributor(
       method: 'POST',
       authenticated: true,
       body: JSON.stringify(dto),
-    },
-  );
-}
-
-export async function uploadContributorPhoto(
-  id: string,
-  file: File,
-  expectedVersion: number,
-): Promise<{ photoUrl: string; draftVersion: number }> {
-  const formData = new FormData();
-  formData.append('photo', file);
-  formData.append('expectedVersion', String(expectedVersion));
-
-  return apiRequest<{ photoUrl: string; draftVersion: number }>(
-    `/project-credits/admin/contributors/${encodeURIComponent(id)}/photo`,
-    {
-      method: 'POST',
-      authenticated: true,
-      body: formData,
-    },
-  );
-}
-
-export async function removeContributorPhoto(
-  id: string,
-  expectedVersion: number,
-): Promise<{ draftVersion: number }> {
-  return apiRequest<{ draftVersion: number }>(
-    `/project-credits/admin/contributors/${encodeURIComponent(id)}/photo`,
-    {
-      method: 'DELETE',
-      authenticated: true,
-      body: JSON.stringify({ expectedVersion }),
     },
   );
 }

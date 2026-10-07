@@ -15,12 +15,13 @@ interface CreditsHistoryModalProps {
 }
 
 const ACTION_LABELS: Record<string, string> = {
-  DRAFT_CREATED: 'Rascunho Criado',
+  CREATED: 'Rascunho Criado',
+  UPDATED: 'Cadastro Atualizado',
   DRAFT_SAVED: 'Rascunho Salvo',
   PUBLISHED: 'Publicação Aprovada',
   ARCHIVED: 'Colaborador Arquivado',
   RESTORED: 'Restaurado para Rascunho',
-  PHOTO_UPDATED: 'Foto Atualizada',
+  PHOTO_REPLACED: 'Foto Atualizada',
   PHOTO_REMOVED: 'Foto Removida',
 };
 
@@ -116,13 +117,13 @@ export default function CreditsHistoryModal({
             <div className={styles.conflictAlert}>
               <p>{error}</p>
             </div>
-          ) : data?.history.length === 0 ? (
+          ) : data?.items.length === 0 ? (
             <p style={{ textAlign: 'center', padding: '24px 0', color: 'var(--app-color-muted)' }}>
               Nenhum registro de alteração encontrado.
             </p>
           ) : (
             <div className={styles.timeline}>
-              {data?.history.map((item: AdminAuditLogItem) => (
+              {data?.items.map((item: AdminAuditLogItem) => (
                 <div key={item.id} className={styles.timelineItem}>
                   <div className={styles.timelineDot} />
                   <div className={styles.timelineContent}>
