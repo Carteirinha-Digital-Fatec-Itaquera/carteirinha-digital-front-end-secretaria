@@ -20,6 +20,7 @@ import SecretariaNovoEventoScreen from "./screens/events/SecretariaNovoEventoScr
 import SecretariaEditarEventoScreen from "./screens/events/SecretariaEditarEventoScreen";
 import SecretariaGerenciarEventoScreen from "./screens/events/SecretariaGerenciarEventoScreen";
 import CertificadoVerificarScreen from "./screens/certificate/CertificadoVerificarScreen";
+import ProjectCreditsScreen from "./screens/credits/ProjectCreditsScreen";
 
 export default function App() {
   return (
@@ -37,6 +38,7 @@ export default function App() {
         <Route path="/upload-alunos" element={<UploadStudentsScreen />} />
         <Route path="/perfil" element={<ProfileScreen />} />
         <Route path="/reset-password" element={<ResetPasswordScreen />} />
+        <Route path="/creditos" element={<ProjectCreditsScreen />} />
         <Route path="/fotos" element={<PhotosScreen />} />
         <Route path="/redefinir-senha" element={<ChangePasswordScreen />} />
 
