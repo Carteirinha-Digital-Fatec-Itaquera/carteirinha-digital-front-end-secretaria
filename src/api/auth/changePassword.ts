@@ -1,3 +1,4 @@
+import { privateFetch } from '../config/privateFetch';
 import type { ApiError, Ok } from '../../utils/Types'
 import { GLOBAL_VAR } from '../config/globalVar'
 
@@ -7,13 +8,11 @@ interface ChangePasswordPayload {
 }
 
 export async function changePassword(payload: ChangePasswordPayload): Promise<Ok | ApiError> {
-  const token = sessionStorage.getItem('token')
 
-  const response = await fetch(`${GLOBAL_VAR.BASE_URL}/autenticacao/reset-password`, {
+  const response = await privateFetch(`${GLOBAL_VAR.BASE_URL}/autenticacao/reset-password`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,  // AuthGuard exige o token
     },
     body: JSON.stringify({ newPassword: payload.newPassword }),
   })

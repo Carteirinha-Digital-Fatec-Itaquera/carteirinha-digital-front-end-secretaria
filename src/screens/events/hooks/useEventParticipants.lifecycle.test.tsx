@@ -1,5 +1,6 @@
+import { startSession, logoutSession } from '../../../api/auth/session';
 import { act, cleanup, renderHook, waitFor } from '@testing-library/react';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import * as service from '../../../api/attendance/attendanceService';
 import type { AttendanceView } from '../../../domains/Attendance';
 import { useEventParticipants } from './useEventParticipants';
@@ -23,7 +24,7 @@ describe('ciclo de vida do carregamento de participantes', () => {
     expect(result.current.summary).toEqual(summary);
   });
 
-  it('consulta o novo evento mesmo enquanto a consulta anterior está pendente', async () => {
+  it('consulta o novo evento mesmo enquanto a consulta anterior estÃ¡ pendente', async () => {
     let resolveOld!: (rows: AttendanceView[]) => void;
     const requests = vi.spyOn(service, 'getEventAttendances')
       .mockImplementationOnce(() => new Promise(resolve => { resolveOld = resolve; }))
@@ -38,7 +39,7 @@ describe('ciclo de vida do carregamento de participantes', () => {
     expect(requests).toHaveBeenCalledTimes(2);
   });
 
-  it('continua o polling após StrictMode e exibe check-in e check-out', async () => {
+  it('continua o polling apÃ³s StrictMode e exibe check-in e check-out', async () => {
     vi.useFakeTimers();
     let rows: AttendanceView[] = [];
     const requests = vi.spyOn(service, 'getEventAttendances').mockImplementation(async () => rows);
@@ -58,4 +59,24 @@ describe('ciclo de vida do carregamento de participantes', () => {
     expect(result.current.summary?.confirmedCount).toBe(1);
     expect(requests).toHaveBeenCalledTimes(4);
   });
+});
+
+beforeEach(() => startSession('eyJhbGciOiJIUzI1NiJ9.eyJleHAiOjQxMDI0NDQ4MDB9.c2lnbmF0dXJl'));
+afterEach(() => { act(() => logoutSession()); });
+
+it('limpa dados e interrompe polling e retomada de visibilidade após logout', async () => {
+  vi.useFakeTimers();
+  const requests = vi.spyOn(service, 'getEventAttendances').mockResolvedValue([attendance]);
+  vi.spyOn(service, 'getAttendanceSummary').mockResolvedValue(summary);
+  const { result } = renderHook(() => useEventParticipants('event-1'));
+  await act(async () => { await Promise.resolve(); });
+  expect(result.current.items).toHaveLength(1);
+  act(() => logoutSession());
+  expect(result.current.items).toEqual([]);
+  expect(result.current.summary).toBeNull();
+  await act(async () => {
+    document.dispatchEvent(new Event('visibilitychange'));
+    await vi.advanceTimersByTimeAsync(60000);
+  });
+  expect(requests).toHaveBeenCalledTimes(1);
 });

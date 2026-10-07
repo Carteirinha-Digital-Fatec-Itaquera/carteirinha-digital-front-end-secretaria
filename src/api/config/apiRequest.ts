@@ -1,3 +1,4 @@
+import { privateFetch, SessionRequestError } from './privateFetch';
 import { GLOBAL_VAR } from './globalVar';
 
 export type RequestOptions = {
@@ -33,15 +34,7 @@ export async function apiRequest<T>(
   const headers = new Headers(customHeaders);
   headers.set('Cache-Control', 'no-store');
 
-  if (authenticated) {
-    const token = sessionStorage.getItem('token');
-    if (!token) {
-      throw new ApiRequestError(401, 'Sessão expirada ou não autenticada', 'UNAUTHORIZED');
-    }
-    headers.set('Authorization', `Bearer ${token}`);
-  } else {
-    headers.delete('Authorization');
-  }
+  if (!authenticated) headers.delete('Authorization');
 
   if (fetchOptions.body && !(fetchOptions.body instanceof FormData)) {
     if (!headers.has('Content-Type')) {
@@ -49,10 +42,15 @@ export async function apiRequest<T>(
     }
   }
 
-  const response = await fetch(url, {
-    ...fetchOptions,
-    headers,
-  });
+  let response: Response;
+  try {
+    response = await (authenticated ? privateFetch : fetch)(url, { ...fetchOptions, headers });
+  } catch (error) {
+    if (error instanceof SessionRequestError) {
+      throw new ApiRequestError(401, error.message, error.code);
+    }
+    throw error;
+  }
 
   if (!response.ok) {
     let errorData: { message?: string; error?: string; code?: string } | null = null;

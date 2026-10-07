@@ -1,13 +1,10 @@
+import { privateFetch } from '../config/privateFetch';
 import { GLOBAL_VAR } from '../config/globalVar';
 import { type ApiError, type Ok } from '../../utils/Types';
 
 export async function removePhoto(ra: string): Promise<Ok | ApiError> {
-  const token = sessionStorage.getItem('token');
-  const response = await fetch(`${GLOBAL_VAR.BASE_URL}/estudantes/remover-foto/${ra}`, {
+  const response = await privateFetch(`${GLOBAL_VAR.BASE_URL}/estudantes/remover-foto/${ra}`, {
     method: 'PATCH',
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
   });
 
   if (response.ok) return { ok: '' };

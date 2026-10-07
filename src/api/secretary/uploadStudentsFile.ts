@@ -1,16 +1,13 @@
+import { privateFetch } from '../config/privateFetch';
 import { GLOBAL_VAR } from "../config/globalVar";
 import { type ApiError, type Ok } from "../../utils/Types";
 
 export async function uploadStudentsFile(file: File): Promise<Ok | ApiError> {
-  const token = sessionStorage.getItem("token");
   const formData = new FormData();
   formData.append("file", file);
 
-  const response = await fetch(`${GLOBAL_VAR.BASE_URL}/secretaria/upload-alunos`, {
+  const response = await privateFetch(`${GLOBAL_VAR.BASE_URL}/secretaria/upload-alunos`, {
     method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
     body: formData,
   });
 

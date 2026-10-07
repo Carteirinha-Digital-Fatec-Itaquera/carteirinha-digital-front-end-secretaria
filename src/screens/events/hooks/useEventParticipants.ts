@@ -1,3 +1,4 @@
+import { subscribeSession, getSessionSnapshot, checkSession } from '../../../api/auth/session';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { AttendanceSummary, AttendanceView } from '../../../domains/Attendance';
 import { getAttendanceSummary, getEventAttendances } from '../../../api/attendance/attendanceService';
@@ -41,6 +42,7 @@ export function useEventParticipants(eventId: string): UseEventParticipantsResul
 
   const scheduleNextPoll = useCallback(() => {
     clearTimer();
+    if (!checkSession().token) return;
     if (typeof document !== 'undefined' && document.visibilityState !== 'visible') {
       return;
     }
@@ -51,6 +53,7 @@ export function useEventParticipants(eventId: string): UseEventParticipantsResul
 
   const executeFetch = useCallback(
     async (isManualRefresh: boolean): Promise<AttendanceView[]> => {
+      if (!checkSession().token) return [];
       // Se ja existe uma requisicao em andamento, retorna a promise em voo para evitar sobreposicao
       if (inFlightPromiseRef.current) {
         return inFlightPromiseRef.current;
@@ -104,8 +107,10 @@ export function useEventParticipants(eventId: string): UseEventParticipantsResul
 
           let errorMessage = 'Não foi possível carregar os dados de presença.';
           if (err instanceof ApiRequestError) {
-            if (err.status === 401 || err.status === 403) {
-              errorMessage = 'Sessão expirada ou sem permissão para acessar os dados deste evento.';
+            if (err.status === 401) {
+              errorMessage = 'Sua sessão expirou. Entre novamente.';
+            } else if (err.status === 403) {
+              errorMessage = 'Sem permissão para acessar os dados deste evento.';
             } else if (err.message) {
               errorMessage = err.message;
             }
@@ -174,6 +179,21 @@ export function useEventParticipants(eventId: string): UseEventParticipantsResul
       inFlightPromiseRef.current = null;
     };
   }, [clearTimer, eventId, executeFetch]);
+
+  useEffect(() => subscribeSession(() => {
+    if (!getSessionSnapshot().token) {
+      clearTimer();
+      abortControllerRef.current?.abort();
+      inFlightPromiseRef.current = null;
+      setItems([]);
+      setSummary(null);
+      setLastUpdatedAt(null);
+      setError(null);
+      setStale(false);
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }), [clearTimer]);
 
   // Listener para visibilitychange da aba
   useEffect(() => {

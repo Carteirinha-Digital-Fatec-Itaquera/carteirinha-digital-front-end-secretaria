@@ -24,7 +24,7 @@ describe('Event, Checkpoint and Attendance Services', () => {
 
   beforeEach(() => {
     sessionStorage.clear();
-    sessionStorage.setItem('token', 'test-token');
+    sessionStorage.setItem('token', 'eyJhbGciOiJIUzI1NiJ9.eyJleHAiOjQxMDI0NDQ4MDB9.c2lnbmF0dXJl');
     vi.restoreAllMocks();
     fetchMock = vi.fn();
     globalThis.fetch = fetchMock as unknown as typeof fetch;

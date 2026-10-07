@@ -1,3 +1,4 @@
+import { privateFetch } from '../config/privateFetch';
 import { GLOBAL_VAR } from '../config/globalVar';
 
 import { type ApiError, type Ok } from '../../utils/Types';
@@ -5,10 +6,9 @@ import { type ApiError, type Ok } from '../../utils/Types';
 import type { Student } from '../../domains/Student';
 
 export async function update(ra: string, student: Student): Promise<Ok | ApiError> {
-  const token = sessionStorage.getItem('token')
-  const response = await fetch(`${GLOBAL_VAR.BASE_URL}/estudantes/atualizar/${ra}`, {
+  const response = await privateFetch(`${GLOBAL_VAR.BASE_URL}/estudantes/atualizar/${ra}`, {
     headers: {
-      Authorization: `Bearer ${token}`,
+
       'Content-Type': 'application/json'
     },
     method: 'PUT',

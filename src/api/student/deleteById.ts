@@ -1,13 +1,10 @@
+import { privateFetch } from '../config/privateFetch';
 import { GLOBAL_VAR } from '../config/globalVar';
 
 import { type ApiError, type Ok } from '../../utils/Types';
 
 export async function deleteById(id: string): Promise<Ok | ApiError> {
-  const token = sessionStorage.getItem('token')
-  const response = await fetch(`${GLOBAL_VAR.BASE_URL}/estudantes/deletar/${id}`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+  const response = await privateFetch(`${GLOBAL_VAR.BASE_URL}/estudantes/deletar/${id}`, {
     method: 'DELETE',
   });
 

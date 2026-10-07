@@ -1,3 +1,4 @@
+import { startSession, logoutSession } from './api/auth/session';
 import { describe, it, expect, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { MemoryRouter, Routes, Route, Navigate } from 'react-router-dom';
@@ -27,6 +28,7 @@ function TestApp({ initialRoute = '/' }: { initialRoute?: string }) {
 
 describe('App Route Navigation and Security', () => {
   beforeEach(() => {
+    logoutSession();
     sessionStorage.clear();
   });
 
@@ -60,7 +62,7 @@ describe('App Route Navigation and Security', () => {
 
   describe('Administrative events routes with authenticated session', () => {
     beforeEach(() => {
-      sessionStorage.setItem('token', 'valid-sec-jwt');
+      startSession('eyJhbGciOiJIUzI1NiJ9.eyJleHAiOjQxMDI0NDQ4MDB9.c2lnbmF0dXJl');
     });
 
     it('renders /eventos with MenuLateral and active events item', () => {
