@@ -1,7 +1,4 @@
-import Modal from '../modal/Modal';
-import { MdErrorOutline } from "react-icons/md";
-
-import styles from "./style.module.css";
+import MessageModal from '../messageModal/MessageModal';
 
 type ErrorModalProps = {
   visible: boolean;
@@ -15,24 +12,15 @@ export const ErrorModalComp = ({
   error,
   fields = [],
   onClose,
-}: ErrorModalProps) => {
-  if (!visible) return null;
-
-  return (
-    <Modal label="Não foi possível concluir" onDismiss={onClose}>
-      <div className={styles.modalContent}>
-        <MdErrorOutline size={30} color="#B00020" />
-
-        <p role="alert" className={styles.errorText}>{error}</p>
-
-        {fields.map((field) => (
-          <p key={field} className={styles.fieldText}>• {field}</p>
-        ))}
-
-        <button className={styles.closeButton} onClick={onClose}>
-          Fechar
-        </button>
-      </div>
-    </Modal>
-  );
-};
+}: ErrorModalProps) => (
+  <MessageModal
+    visible={visible}
+    tone="error"
+    title="Não foi possível concluir"
+    message={error}
+    details={fields}
+    confirmText="Fechar"
+    onConfirm={onClose}
+    onDismiss={onClose}
+  />
+);

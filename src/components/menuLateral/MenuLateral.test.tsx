@@ -30,11 +30,24 @@ describe('Menu responsivo da Secretaria', () => {
     expect(trigger).toHaveAttribute('aria-expanded', 'false');
     expect(trigger).toHaveFocus();
   });
-  it('preserva o logout explícito', () => {
+  it('confirma o logout antes de encerrar a sessão', () => {
     sessionStorage.setItem('token', 'existing-session');
     setup();
+
     fireEvent.click(screen.getByRole('button', { name: 'Abrir menu' }));
     fireEvent.click(screen.getByRole('button', { name: 'Deslogar' }));
+
+    expect(screen.getByRole('dialog', { name: 'Sair da conta?' })).toBeInTheDocument();
+    expect(sessionStorage.getItem('token')).toBe('existing-session');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Cancelar' }));
+    expect(sessionStorage.getItem('token')).toBe('existing-session');
+    expect(screen.queryByRole('dialog', { name: 'Sair da conta?' })).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Abrir menu' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Deslogar' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Sair' }));
+
     expect(sessionStorage.getItem('token')).toBeNull();
     expect(screen.getByRole('heading', { name: 'Login' })).toBeInTheDocument();
   });

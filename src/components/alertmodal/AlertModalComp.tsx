@@ -1,7 +1,4 @@
-import Modal from '../modal/Modal';
-import { MdErrorOutline } from "react-icons/md";
-
-import styles from "./style.module.css";
+import MessageModal from '../messageModal/MessageModal';
 
 type AlertModalProps = {
   visible: boolean;
@@ -17,26 +14,17 @@ export const AlertModalComp = ({
   message,
   onConfirm,
   onCancel,
-  textConfirm = "Confimar",
-  textCancel = "Cancelar"
-}: AlertModalProps) => {
-  if (!visible) return null;
-
-  return (
-    <Modal label="Confirmar ação">
-      <div className={styles.modalContent}>
-        <MdErrorOutline size={30} color="#005C6D" />
-
-        <p className={styles.messageText}>{message}</p>
-
-        <button className={styles.closeButton} onClick={onCancel}>
-          {textCancel}
-        </button>
-
-        <button className={styles.confirmButton} onClick={onConfirm}>
-          {textConfirm}
-        </button>
-      </div>
-    </Modal>
-  );
-};
+  textConfirm = 'Confirmar',
+  textCancel = 'Cancelar',
+}: AlertModalProps) => (
+  <MessageModal
+    visible={visible}
+    tone="warning"
+    title="Confirmar ação"
+    message={message}
+    confirmText={textConfirm}
+    cancelText={textCancel}
+    onConfirm={onConfirm}
+    onCancel={onCancel}
+  />
+);

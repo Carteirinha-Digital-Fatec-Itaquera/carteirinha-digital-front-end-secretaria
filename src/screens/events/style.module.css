@@ -360,8 +360,17 @@
 
 .actions {
   display: flex;
+  flex-wrap: wrap;
   justify-content: flex-end;
+  align-items: center;
+  gap: 10px;
   margin-top: 18px;
+}
+
+.actions > button {
+  min-height: 42px;
+  justify-content: center;
+  white-space: nowrap;
 }
 
 .manageBtn {
@@ -575,12 +584,21 @@
   }
 
   .actions {
-    justify-content: stretch;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    width: 100%;
   }
 
-  .manageBtn {
+  .actions > button,
+  .manageBtn,
+  .editBtn,
+  .cancelActionBtn,
+  .deleteActionBtn {
     width: 100%;
+    min-width: 0;
     justify-content: center;
+    padding: 10px 12px;
   }
 }
 
@@ -611,6 +629,10 @@
 
   .totalCount {
     font-size: 14px;
+  }
+
+  .actions {
+    grid-template-columns: 1fr;
   }
 }
 
