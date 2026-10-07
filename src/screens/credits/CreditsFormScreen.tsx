@@ -33,6 +33,7 @@ import {
   isApprovedProjectCreditHref,
 } from '../../utils/projectCreditContact';
 import styles from './styleCreditsAdmin.module.css';
+import layoutStyles from '../../styles/layoutWithMenu.module.css';
 import publicStyles from './styleProjectCredits.module.css';
 
 interface FormParticipation {
@@ -378,23 +379,30 @@ export default function CreditsFormScreen() {
 
   if (loading) {
     return (
-      <div className={styles.adminContainer}>
-        <MenuLateral />
-      <MessageModal visible={Boolean(messageDialog)} tone={messageDialog?.confirmation ? 'warning' : 'error'} title={messageDialog?.confirmation ? 'Confirmar publicação' : 'Confira as informações'} message={messageDialog?.message ?? ''} confirmText={messageDialog?.confirmation ? 'Confirmar' : 'OK'} cancelText={messageDialog?.confirmation ? 'Cancelar' : undefined} onConfirm={() => closeMessage(true)} onCancel={() => closeMessage(false)} onDismiss={() => closeMessage(false)} />
-        <main className={styles.mainContent}>
-          <p style={{ textAlign: 'center', padding: '60px 0', color: 'var(--app-color-muted)' }}>
-            Carregando dados do colaborador...
-          </p>
-        </main>
+      <div className={layoutStyles.layoutContainer}>
+        <div className={layoutStyles.menuWrapper}>
+          <MenuLateral />
+        </div>
+        <div className={layoutStyles.contentWrapper}>
+          <MessageModal visible={Boolean(messageDialog)} tone={messageDialog?.confirmation ? 'warning' : 'error'} title={messageDialog?.confirmation ? 'Confirmar publicação' : 'Confira as informações'} message={messageDialog?.message ?? ''} confirmText={messageDialog?.confirmation ? 'Confirmar' : 'OK'} cancelText={messageDialog?.confirmation ? 'Cancelar' : undefined} onConfirm={() => closeMessage(true)} onCancel={() => closeMessage(false)} onDismiss={() => closeMessage(false)} />
+          <main className={styles.mainContent}>
+            <p style={{ textAlign: 'center', padding: '60px 0', color: 'var(--app-color-muted)' }}>
+              Carregando dados do colaborador...
+            </p>
+          </main>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className={styles.adminContainer}>
-      <MenuLateral />
-      <MessageModal visible={Boolean(messageDialog)} tone={messageDialog?.confirmation ? 'warning' : 'error'} title={messageDialog?.confirmation ? 'Confirmar publicação' : 'Confira as informações'} message={messageDialog?.message ?? ''} confirmText={messageDialog?.confirmation ? 'Confirmar' : 'OK'} cancelText={messageDialog?.confirmation ? 'Cancelar' : undefined} onConfirm={() => closeMessage(true)} onCancel={() => closeMessage(false)} onDismiss={() => closeMessage(false)} />
-      <main className={styles.mainContent}>
+    <div className={layoutStyles.layoutContainer}>
+      <div className={layoutStyles.menuWrapper}>
+        <MenuLateral />
+      </div>
+      <div className={layoutStyles.contentWrapper}>
+        <MessageModal visible={Boolean(messageDialog)} tone={messageDialog?.confirmation ? 'warning' : 'error'} title={messageDialog?.confirmation ? 'Confirmar publicação' : 'Confira as informações'} message={messageDialog?.message ?? ''} confirmText={messageDialog?.confirmation ? 'Confirmar' : 'OK'} cancelText={messageDialog?.confirmation ? 'Cancelar' : undefined} onConfirm={() => closeMessage(true)} onCancel={() => closeMessage(false)} onDismiss={() => closeMessage(false)} />
+        <main className={styles.mainContent}>
         {/* Header */}
         <div className={styles.pageHeader}>
           <div className={styles.headerText}>
@@ -617,7 +625,7 @@ export default function CreditsFormScreen() {
                     )}
                   </div>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+                  <div className={styles.semesterCourseGrid}>
                     <div className={styles.formGroup}>
                       <label>Semestre (formato YYYY.1 ou YYYY.2) *</label>
                       <input
@@ -719,7 +727,7 @@ export default function CreditsFormScreen() {
                       </button>
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: '160px 180px 1fr', gap: 12 }}>
+                    <div className={styles.linkRowGrid}>
                       <div className={styles.formGroup}>
                         <label>Tipo</label>
                         <select
@@ -887,6 +895,7 @@ export default function CreditsFormScreen() {
           </div>
         </div>
       </main>
+      </div>
 
       {/* Modal de Histórico */}
       {showHistoryModal && id && (

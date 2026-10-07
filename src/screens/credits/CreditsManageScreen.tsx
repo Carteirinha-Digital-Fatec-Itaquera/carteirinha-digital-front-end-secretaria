@@ -29,6 +29,7 @@ import type {
 } from '../../domains/ProjectCredits';
 import { formatSemester } from '../../utils/projectCreditContact';
 import styles from './styleCreditsAdmin.module.css';
+import layoutStyles from '../../styles/layoutWithMenu.module.css';
 
 export default function CreditsManageScreen() {
   const { messageDialog, closeMessage, notify, confirm } = useCreditMessages();
@@ -65,11 +66,12 @@ export default function CreditsManageScreen() {
       };
 
       const res = await listAdminContributors(query);
-      setContributors(res.items);
+      const items = Array.isArray(res?.items) ? res.items : [];
+      setContributors(items);
 
       // Collect semesters for filter dropdown
       const sems = new Set<string>();
-      res.items.forEach((c) => c.semesters.forEach((s) => sems.add(s)));
+      items.forEach((c) => c.semesters?.forEach((s) => sems.add(s)));
       setAvailableSemesters(Array.from(sems).sort((a, b) => b.localeCompare(a)));
     } catch (err: unknown) {
       if (err instanceof ApiRequestError) {
@@ -170,10 +172,13 @@ export default function CreditsManageScreen() {
   };
 
   return (
-    <div className={styles.adminContainer}>
-      <MenuLateral />
-      <MessageModal visible={Boolean(messageDialog)} tone={messageDialog?.confirmation ? 'warning' : 'error'} title={messageDialog?.confirmation ? 'Confirmar publicação' : 'Confira as informações'} message={messageDialog?.message ?? ''} confirmText={messageDialog?.confirmation ? 'Confirmar' : 'OK'} cancelText={messageDialog?.confirmation ? 'Cancelar' : undefined} onConfirm={() => closeMessage(true)} onCancel={() => closeMessage(false)} onDismiss={() => closeMessage(false)} />
-      <main className={styles.mainContent}>
+    <div className={layoutStyles.layoutContainer}>
+      <div className={layoutStyles.menuWrapper}>
+        <MenuLateral />
+      </div>
+      <div className={layoutStyles.contentWrapper}>
+        <MessageModal visible={Boolean(messageDialog)} tone={messageDialog?.confirmation ? 'warning' : 'error'} title={messageDialog?.confirmation ? 'Confirmar publicação' : 'Confira as informações'} message={messageDialog?.message ?? ''} confirmText={messageDialog?.confirmation ? 'Confirmar' : 'OK'} cancelText={messageDialog?.confirmation ? 'Cancelar' : undefined} onConfirm={() => closeMessage(true)} onCancel={() => closeMessage(false)} onDismiss={() => closeMessage(false)} />
+        <main className={styles.mainContent}>
         <div className={styles.pageHeader}>
           <div className={styles.headerText}>
             <h1>Gestão de Créditos do Projeto</h1>
@@ -433,6 +438,7 @@ export default function CreditsManageScreen() {
           )}
         </div>
       </main>
+      </div>
 
       {/* Modal de Histórico */}
       {historyTarget && (

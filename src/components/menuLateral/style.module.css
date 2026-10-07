@@ -24,3 +24,12 @@
 .drawerContent { display: flex; flex-direction: column; min-height: 100%; padding: max(16px, env(safe-area-inset-top)) 16px max(24px, env(safe-area-inset-bottom)); }
 .drawer .logoCps { height: 40px; }
 .fundoMenu :focus-visible, .drawer :focus-visible, .mobileBar :focus-visible { outline: 3px solid #ffc85c; outline-offset: 2px; }
+
+@media (max-width: 767px) {
+  .fundoMenu {
+    width: 100%;
+    height: auto;
+    position: static;
+  }
+}
+

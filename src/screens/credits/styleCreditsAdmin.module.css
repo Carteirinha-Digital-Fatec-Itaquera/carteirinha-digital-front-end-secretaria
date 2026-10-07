@@ -4,6 +4,7 @@
   min-height: 100vh;
   min-height: 100dvh;
   background-color: var(--app-color-background);
+  width: 100%;
 }
 
 .mainContent {
@@ -12,6 +13,8 @@
   max-width: 1360px;
   margin: 0 auto;
   width: 100%;
+  box-sizing: border-box;
+  min-width: 0;
 }
 
 .pageHeader {
@@ -643,3 +646,231 @@
   font-size: 0.85rem;
   color: var(--app-color-muted);
 }
+
+/* Grids responsivos de formulário */
+.semesterCourseGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.linkRowGrid {
+  display: grid;
+  grid-template-columns: 160px 180px 1fr;
+  gap: 12px;
+  align-items: start;
+}
+
+/* Responsividade Mobile e Tablet */
+@media (max-width: 1040px) {
+  .mainContent {
+    padding: 24px 20px;
+  }
+
+  .formGrid {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+
+  .previewColumn {
+    position: static;
+    top: auto;
+    width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .adminContainer {
+    flex-direction: column;
+  }
+
+  .mainContent {
+    padding: 16px 12px;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  .pageHeader {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+
+  .headerText h1 {
+    font-size: clamp(1.25rem, 5vw, 1.7rem);
+    word-break: break-word;
+    line-height: 1.25;
+  }
+
+  .headerText p {
+    font-size: 0.88rem;
+  }
+
+  .headerActions {
+    flex-direction: column;
+    width: 100%;
+    gap: 10px;
+    align-items: stretch;
+  }
+
+  .headerActions > button,
+  .headerActions > a {
+    width: 100%;
+    justify-content: center;
+    box-sizing: border-box;
+    min-height: 44px;
+  }
+
+  .primaryButton,
+  .secondaryButton,
+  .dangerButton {
+    min-height: 44px;
+    padding: 12px 16px;
+    font-size: 0.95rem;
+  }
+
+  .iconActionButton {
+    min-height: 44px;
+    min-width: 44px;
+    width: 44px;
+    height: 44px;
+  }
+
+  .inputControl {
+    font-size: 16px; /* Evita zoom automático indesejado no iOS Safari */
+    padding: 12px 14px;
+    min-height: 44px;
+    box-sizing: border-box;
+  }
+
+  .filterCard {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 16px 14px;
+    gap: 12px;
+  }
+
+  .filterGroup {
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0 !important;
+  }
+
+  .filterCard button[type='submit'] {
+    width: 100%;
+    min-height: 44px;
+    justify-content: center;
+  }
+
+  .tableCard {
+    border-radius: 12px;
+  }
+
+  .tableWrapper {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .table {
+    min-width: 620px;
+  }
+
+  .table th,
+  .table td {
+    padding: 12px 14px;
+  }
+
+  .blockCard {
+    padding: 16px 14px;
+    border-radius: 12px;
+  }
+
+  .blockHeader {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .blockHeader h2 {
+    font-size: 1.05rem;
+  }
+
+  .blockHeader button {
+    width: 100%;
+    justify-content: center;
+    min-height: 44px;
+  }
+
+  .subItemCard {
+    padding: 14px 12px;
+  }
+
+  .subItemHeader {
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: space-between;
+  }
+
+  .removeSubItemButton {
+    min-height: 44px;
+    padding: 8px 12px;
+  }
+
+  .linkRowGrid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .photoRow {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+  }
+
+  .photoActions {
+    width: 100%;
+  }
+
+  .photoActions button {
+    width: 100%;
+    min-height: 44px;
+  }
+
+  .modalOverlay {
+    padding: 12px;
+  }
+
+  .modalContent {
+    max-width: 100%;
+    max-height: 90vh;
+    border-radius: 12px;
+  }
+
+  .modalHeader,
+  .modalBody,
+  .modalFooter {
+    padding: 14px 16px;
+  }
+
+  .modalFooter {
+    flex-direction: column-reverse;
+    gap: 10px;
+  }
+
+  .modalFooter button {
+    width: 100%;
+    min-height: 44px;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 640px) {
+  .semesterCourseGrid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+}
+
