@@ -24,7 +24,7 @@ export default function MenuLateral() {
    return () => node?.close();
  }, [mobile, open]);
  const closeMenu = () => { setOpen(false); trigger.current?.focus(); };
- const handleMenuClick = (route: string) => { navigate(route); setOpen(false); };
+ const handleMenuClick = (route: string) => { navigate(route, { state: { from: location.pathname } }); setOpen(false); };
  const handleLogout = () => { logoutSession(); navigate('/login', { replace: true }); };
  const items = [
    {path:'/students',label:'Lista de alunos',Icon:UserListIcon},
@@ -33,6 +33,7 @@ export default function MenuLateral() {
    {path:'/perfil',label:'Perfil',Icon:UserCircleIcon},
    {path:'/fotos',label:'Fotos pendentes',Icon:CameraIcon},
    {path:'/eventos',label:'Eventos',Icon:CalendarIcon},
+   {path:'/creditos',label:'Créditos do projeto',Icon:UserCircleIcon},
  ];
  const narrow = !mobile && collapsed;
  const content = <>
