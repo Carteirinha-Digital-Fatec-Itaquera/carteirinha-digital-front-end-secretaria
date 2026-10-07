@@ -2,7 +2,7 @@ import { acknowledgeSessionNotice, startSession } from '../../api/auth/session';
 import { useSecretarySession } from '../../api/auth/useSecretarySession';
 import { useEffect, useState } from "react";
 
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { FaEnvelope } from "react-icons/fa";
 
 import { InputPasswordComp } from "../../components/inputpassword/InputPasswordComp";
@@ -130,6 +130,8 @@ export default function LoginScreen() {
               navigate("/access")
             }}
           />
+
+          <Link to="/creditos" className={styles.projectCreditsLink}>Créditos de quem constrói o projeto</Link>
 
         </div>
         <FooterComp />

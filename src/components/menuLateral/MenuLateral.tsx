@@ -1,7 +1,7 @@
 import { logoutSession } from '../../api/auth/session';
 import { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { CloudArrowUpIcon, FilePlusIcon, SignOutIcon, UserCircleIcon, UserListIcon, SidebarSimpleIcon, CalendarIcon, CameraIcon } from '@phosphor-icons/react';
+import { CloudArrowUpIcon, FilePlusIcon, SignOutIcon, UserCircleIcon, UserListIcon, SidebarSimpleIcon, CalendarIcon, CameraIcon, UsersFourIcon } from '@phosphor-icons/react';
 import MessageModal from '../messageModal/MessageModal';
 import styles from './style.module.css';
 
@@ -26,7 +26,7 @@ export default function MenuLateral() {
    return () => node?.close();
  }, [mobile, open]);
  const closeMenu = () => { setOpen(false); trigger.current?.focus(); };
- const handleMenuClick = (route: string) => { navigate(route); setOpen(false); };
+ const handleMenuClick = (route: string) => { navigate(route, { state: { from: location.pathname } }); setOpen(false); };
  const requestLogout = () => { setOpen(false); setLogoutConfirmVisible(true); };
  const handleLogout = () => { setLogoutConfirmVisible(false); logoutSession(); navigate('/login', { replace: true }); };
  const items = [
@@ -36,6 +36,8 @@ export default function MenuLateral() {
    {path:'/perfil',label:'Perfil',Icon:UserCircleIcon},
    {path:'/fotos',label:'Fotos pendentes',Icon:CameraIcon},
    {path:'/eventos',label:'Eventos',Icon:CalendarIcon},
+   {path:'/creditos/gerenciar',label:'Gerenciar créditos',Icon:UsersFourIcon},
+   {path:'/creditos',label:'Créditos do projeto',Icon:UserCircleIcon},
  ];
  const narrow = !mobile && collapsed;
  const content = <>
@@ -46,7 +48,10 @@ export default function MenuLateral() {
    {!narrow && <p className={styles.eyebrow}>Secretaria acadêmica</p>}
    <nav aria-label="Navegação principal" className={styles.navigation}>
     {items.map(({path,label,Icon}) => {
-      const active = location.pathname === path || (path === '/students' && location.pathname.startsWith('/update')) || (path === '/eventos' && location.pathname.startsWith('/eventos/'));
+      const active = location.pathname === path ||
+        (path === '/students' && location.pathname.startsWith('/update')) ||
+        (path === '/eventos' && location.pathname.startsWith('/eventos/')) ||
+        (path === '/creditos/gerenciar' && (location.pathname.startsWith('/creditos/gerenciar') || location.pathname.startsWith('/creditos/novo') || (location.pathname.startsWith('/creditos/') && location.pathname.includes('/editar'))));
       return <button key={path} type="button" title={label} aria-label={label} aria-current={active ? 'page' : undefined} className={styles.itemMenu + (active ? ' ' + styles.selected : '')} onKeyDown={event => { if (event.key === 'Enter') { event.preventDefault(); handleMenuClick(path); } }} onClick={() => handleMenuClick(path)}><Icon size={24} aria-hidden="true" />{!narrow && <span>{label}</span>}</button>;
     })}
     <button type="button" className={styles.itemMenu + ' ' + styles.logout} title="Deslogar" aria-label="Deslogar" onClick={requestLogout}><SignOutIcon size={24} aria-hidden="true" />{!narrow && <span>Deslogar</span>}</button>

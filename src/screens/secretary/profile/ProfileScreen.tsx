@@ -1,5 +1,6 @@
 import { getSessionSnapshot, inspectSessionToken, expireSession } from '../../../api/auth/session';
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { FaEnvelope, FaClock } from "react-icons/fa";
 
 import { TitleComp } from "../../../components/title/TitleComp";
@@ -155,6 +156,44 @@ export default function ProfileScreen() {
 
                 <div className={styles.editButton}>
                   <ButtonComp text="Editar perfil" onClick={handleEdit} />
+                </div>
+
+                <div style={{ marginTop: 20, paddingTop: 16, borderTop: '1px solid var(--app-color-border)', display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  <Link
+                    to="/creditos/gerenciar"
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      minHeight: 44,
+                      padding: '10px 16px',
+                      borderRadius: 'var(--app-radius-control)',
+                      background: 'var(--app-color-primary)',
+                      color: '#fff',
+                      fontWeight: 600,
+                      textDecoration: 'none',
+                    }}
+                  >
+                    Gerenciar créditos do projeto
+                  </Link>
+                  <Link
+                    to="/creditos"
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      minHeight: 44,
+                      padding: '10px 16px',
+                      borderRadius: 'var(--app-radius-control)',
+                      background: 'var(--app-color-surface)',
+                      border: '1px solid var(--app-color-border)',
+                      color: 'var(--app-color-text)',
+                      fontWeight: 600,
+                      textDecoration: 'none',
+                    }}
+                  >
+                    Consultar catálogo público de créditos
+                  </Link>
                 </div>
               </>
             ) : (
