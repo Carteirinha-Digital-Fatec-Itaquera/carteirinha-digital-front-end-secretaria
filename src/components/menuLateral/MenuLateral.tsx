@@ -2,6 +2,7 @@ import { logoutSession } from '../../api/auth/session';
 import { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { CloudArrowUpIcon, FilePlusIcon, SignOutIcon, UserCircleIcon, UserListIcon, SidebarSimpleIcon, CalendarIcon, CameraIcon } from '@phosphor-icons/react';
+import MessageModal from '../messageModal/MessageModal';
 import styles from './style.module.css';
 
 export default function MenuLateral() {
@@ -10,6 +11,7 @@ export default function MenuLateral() {
  const [collapsed, setCollapsed] = useState(() => window.innerWidth < 1200);
  const [mobile, setMobile] = useState(() => window.innerWidth < 768);
  const [open, setOpen] = useState(false);
+ const [logoutConfirmVisible, setLogoutConfirmVisible] = useState(false);
  const dialog = useRef<HTMLDialogElement>(null);
  const trigger = useRef<HTMLButtonElement>(null);
  useEffect(() => {
@@ -25,7 +27,8 @@ export default function MenuLateral() {
  }, [mobile, open]);
  const closeMenu = () => { setOpen(false); trigger.current?.focus(); };
  const handleMenuClick = (route: string) => { navigate(route); setOpen(false); };
- const handleLogout = () => { logoutSession(); navigate('/login', { replace: true }); };
+ const requestLogout = () => { setOpen(false); setLogoutConfirmVisible(true); };
+ const handleLogout = () => { setLogoutConfirmVisible(false); logoutSession(); navigate('/login', { replace: true }); };
  const items = [
    {path:'/students',label:'Lista de alunos',Icon:UserListIcon},
    {path:'/register',label:'Registrar aluno',Icon:FilePlusIcon},
@@ -46,13 +49,30 @@ export default function MenuLateral() {
       const active = location.pathname === path || (path === '/students' && location.pathname.startsWith('/update')) || (path === '/eventos' && location.pathname.startsWith('/eventos/'));
       return <button key={path} type="button" title={label} aria-label={label} aria-current={active ? 'page' : undefined} className={styles.itemMenu + (active ? ' ' + styles.selected : '')} onKeyDown={event => { if (event.key === 'Enter') { event.preventDefault(); handleMenuClick(path); } }} onClick={() => handleMenuClick(path)}><Icon size={24} aria-hidden="true" />{!narrow && <span>{label}</span>}</button>;
     })}
-    <button type="button" className={styles.itemMenu + ' ' + styles.logout} title="Deslogar" aria-label="Deslogar" onClick={handleLogout}><SignOutIcon size={24} aria-hidden="true" />{!narrow && <span>Deslogar</span>}</button>
+    <button type="button" className={styles.itemMenu + ' ' + styles.logout} title="Deslogar" aria-label="Deslogar" onClick={requestLogout}><SignOutIcon size={24} aria-hidden="true" />{!narrow && <span>Deslogar</span>}</button>
    </nav>
    <div className={styles.brandFooter}><img src="/cps_logo_br.png" alt="Centro Paula Souza" className={styles.logoCps} /></div>
  </>;
+ const logoutModal = (
+   <MessageModal
+     visible={logoutConfirmVisible}
+     tone="warning"
+     title="Sair da conta?"
+     message="Você será desconectado da Secretaria. Deseja continuar?"
+     confirmText="Sair"
+     cancelText="Cancelar"
+     onConfirm={handleLogout}
+     onCancel={() => setLogoutConfirmVisible(false)}
+     onDismiss={() => setLogoutConfirmVisible(false)}
+   />
+ );
  if (mobile) return <>
    <div className={styles.mobileBar}><img src="/fatec_ra_metropolitana_sp_capital_itaquera_br.png" alt="Fatec Itaquera" /><span>Secretaria</span><button type="button" ref={trigger} aria-label="Abrir menu" aria-expanded={open} aria-controls="secretary-navigation" onClick={() => setOpen(true)}><SidebarSimpleIcon size={24} /></button></div>
    <dialog ref={dialog} id="secretary-navigation" aria-label="Menu da Secretaria" className={styles.drawer} onCancel={e => { e.preventDefault(); closeMenu(); }} onClick={e => { if(e.target === e.currentTarget) closeMenu(); }}><div className={styles.drawerContent}>{content}</div></dialog>
+   {logoutModal}
  </>;
- return <aside className={styles.fundoMenu + (collapsed ? ' ' + styles.collapsed : '')}>{content}</aside>;
+ return <>
+   <aside className={styles.fundoMenu + (collapsed ? ' ' + styles.collapsed : '')}>{content}</aside>
+   {logoutModal}
+ </>;
 }

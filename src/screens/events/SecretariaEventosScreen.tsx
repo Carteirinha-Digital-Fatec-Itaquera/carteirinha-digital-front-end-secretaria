@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 
 import MenuLateral from "../../components/menuLateral/MenuLateral";
+import MessageModal from "../../components/messageModal/MessageModal";
 import { getEvents, cancelEvent, deleteEvent } from "../../api/event/eventService";
 import type { EventView } from "../../domains/Event";
 import type { CheckpointType, CheckpointView } from "../../domains/Checkpoint";
@@ -260,40 +261,6 @@ export default function SecretariaEventosScreen() {
             </div>
           </div>
 
-          {actionSuccess && (
-            <div
-              style={{
-                backgroundColor: "#ecfdf5",
-                color: "#065f46",
-                border: "1px solid #a7f3d0",
-                padding: "12px 18px",
-                borderRadius: "8px",
-                marginBottom: "16px",
-                fontSize: "14px",
-                fontWeight: 600,
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-              }}
-              role="status"
-            >
-              <span>{actionSuccess}</span>
-              <button
-                type="button"
-                onClick={() => setActionSuccess(null)}
-                style={{
-                  background: "transparent",
-                  border: "none",
-                  cursor: "pointer",
-                  color: "#065f46",
-                  fontWeight: 700,
-                }}
-              >
-                ✕
-              </button>
-            </div>
-          )}
-
           <div className={styles.list}>
             <div className={styles.listHeader}>
               <div>
@@ -414,7 +381,7 @@ export default function SecretariaEventosScreen() {
                         </div>
                       </div>
 
-                      <div className={styles.actions} style={{ gap: "10px", alignItems: "center" }}>
+                      <div className={styles.actions}>
                         {event.status !== "CANCELLED" && (
                           <>
                             <button
@@ -465,6 +432,16 @@ export default function SecretariaEventosScreen() {
           </div>
         </div>
       </div>
+
+      <MessageModal
+        visible={!!actionSuccess}
+        tone="success"
+        title="Ação concluída"
+        message={actionSuccess ?? ""}
+        confirmText="OK"
+        onConfirm={() => setActionSuccess(null)}
+        onDismiss={() => setActionSuccess(null)}
+      />
 
       <CancelEventDialog
         isOpen={!!cancellingEvent}
