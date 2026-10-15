@@ -1,0 +1,151 @@
+.page {
+  padding: 32px;
+  max-width: 1440px;
+  color: #202b33;
+}
+.page h1 {
+  font-size: clamp(1.7rem, 3vw, 2.4rem);
+}
+.page p {
+  line-height: 1.6;
+}
+.page a {
+  color: #005c6b;
+}
+.tabs,
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 20px 0;
+}
+.page button {
+  font: inherit;
+  font-weight: 600;
+  min-height: 44px;
+  padding: 12px 18px;
+  background: #005c6b;
+  border: 1px solid #005c6b;
+  border-radius: 8px;
+  color: white;
+  cursor: pointer;
+}
+.page button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.page .secondary,
+.tabs button {
+  background: white;
+  color: #005c6b;
+}
+.tabs button[aria-pressed="true"] {
+  background: #005c6b;
+  color: white;
+}
+.card {
+  background: white;
+  border: 1px solid #d6e0e5;
+  border-radius: 16px;
+  padding: 28px;
+  margin: 24px 0;
+}
+.card h2 {
+  margin-top: 0;
+}
+.card form {
+  display: grid;
+  gap: 22px;
+  margin-top: 24px;
+}
+.card label {
+  display: grid;
+  gap: 8px;
+  font-weight: 600;
+}
+.card input:not([type="checkbox"]),
+.card select,
+.card textarea {
+  font: inherit;
+  min-height: 44px;
+  padding: 12px;
+  border: 1px solid #68717c;
+  border-radius: 8px;
+  width: 100%;
+  box-sizing: border-box;
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+}
+.card .check,
+.choices label {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+.card input[type="checkbox"] {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+}
+.choices {
+  display: grid;
+  gap: 12px;
+}
+.card fieldset {
+  border: 1px solid #b9cbd1;
+  padding: 20px;
+  border-radius: 10px;
+  min-width: 0;
+}
+.row {
+  border-top: 1px solid #d6e0e5;
+  padding: 20px 0;
+}
+.dialog {
+  width: calc(100% - 32px);
+  max-width: 640px;
+  max-height: 85dvh;
+  overflow-y: auto;
+  margin: auto;
+}
+.dialog::backdrop {
+  background: rgba(0, 0, 0, 0.45);
+}
+.error,
+.success {
+  padding: 16px;
+  border-radius: 8px;
+}
+.error {
+  background: #fff0ee;
+  color: #921c13;
+}
+.success {
+  background: #e9f6ed;
+  color: #18562a;
+}
+.page :focus-visible {
+  outline: 3px solid #1675c4;
+  outline-offset: 3px;
+}
+@media (max-width: 700px) {
+  .page {
+    padding: 20px 14px;
+  }
+  .grid {
+    grid-template-columns: 1fr;
+  }
+  .card {
+    padding: 20px;
+  }
+  .tabs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+  .actions {
+    flex-direction: column;
+  }
+}

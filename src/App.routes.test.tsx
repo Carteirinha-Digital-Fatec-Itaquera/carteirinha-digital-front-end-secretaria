@@ -68,7 +68,7 @@ describe('App Route Navigation and Security', () => {
     it('renders /eventos with MenuLateral and active events item', () => {
       render(<TestApp initialRoute="/eventos" />);
       expect(screen.getByTestId('events-scaffold-title')).toHaveTextContent('Eventos');
-      const menuEventItem = screen.getByRole('button', { name: /eventos/i });
+      const menuEventItem = screen.getByRole('button', { name: /^eventos$/i });
       expect(menuEventItem).toBeInTheDocument();
     });
 
@@ -90,7 +90,7 @@ describe('App Route Navigation and Security', () => {
 
     it('allows keyboard navigation on menu item via Enter key', () => {
       render(<TestApp initialRoute="/eventos/novo" />);
-      const menuEventItem = screen.getByRole('button', { name: /eventos/i });
+      const menuEventItem = screen.getByRole('button', { name: /^eventos$/i });
       fireEvent.keyDown(menuEventItem, { key: 'Enter', code: 'Enter' });
       // Rota mudou para /eventos
       expect(screen.getByTestId('events-scaffold-title')).toHaveTextContent('Eventos');
@@ -102,7 +102,7 @@ describe('App Route Navigation and Security', () => {
       render(<TestApp initialRoute="/certificado/verificar/CERT-VALID-123" />);
       expect(screen.getByTestId('certificate-scaffold-title')).toHaveTextContent('Verificação de Certificado');
       expect(screen.getByTestId('certificate-scaffold-code')).toHaveTextContent('CERT-VALID-123');
-      expect(screen.queryByRole('button', { name: /eventos/i })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /^eventos$/i })).not.toBeInTheDocument();
       expect(screen.queryByTestId('login-screen')).not.toBeInTheDocument();
     });
   });

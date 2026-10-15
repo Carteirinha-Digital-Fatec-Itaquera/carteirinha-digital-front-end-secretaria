@@ -3,6 +3,7 @@ import type { IsoDateTime, Uuid } from './Event';
 export type CheckpointType = 'CHECK_IN' | 'CHECK_OUT';
 
 export interface CheckpointView {
+  closesAt?: IsoDateTime | null;
   id: Uuid;
   eventId: Uuid;
   type: CheckpointType;
