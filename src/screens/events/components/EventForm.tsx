@@ -78,6 +78,20 @@ export function EventForm({
       : ''
   );
 
+  // Endereço e CEP para cálculo de Geofence
+  const [cep, setCep] = useState('');
+  const [street, setStreet] = useState('');
+  const [number, setNumber] = useState('');
+  const [complement, setComplement] = useState('');
+  const [neighborhood, setNeighborhood] = useState('');
+  const [city, setCity] = useState('');
+  const [state, setState] = useState('');
+  const [cepLoading, setCepLoading] = useState(false);
+  const [cepFeedback, setCepFeedback] = useState<{
+    type: 'success' | 'error';
+    message: string;
+  } | null>(null);
+
   // Modelos e assinaturas de certificados
   const [attendeeTemplateId, setAttendeeTemplateId] = useState(
     initialValue?.certificatePolicies?.ATTENDEE?.templateId ?? ''
@@ -169,13 +183,150 @@ export function EventForm({
     recalculateEnd(startDate, startTime, workload);
   }
 
+  async function handleSearchCep(customCep?: string, customNumber?: string) {
+    const targetCep = (customCep ?? cep).replace(/\D/g, '');
+    if (targetCep.length !== 8) {
+      setCepFeedback({
+        type: 'error',
+        message: 'Digite um CEP válido com 8 dígitos.',
+      });
+      return;
+    }
+    setCepLoading(true);
+    setCepFeedback(null);
+
+    try {
+      let lat: number | null = null;
+      let lon: number | null = null;
+      let logradouro = '';
+      let bairro = '';
+      let localidade = '';
+      let uf = '';
+
+      // 1. Tenta BrasilAPI v2 (retorna endereço e coordenadas geográficas)
+      try {
+        const resBrasil = await fetch(
+          `https://brasilapi.com.br/api/cep/v2/${targetCep}`
+        );
+        if (resBrasil.ok) {
+          const data = await resBrasil.json();
+          logradouro = data.street || '';
+          bairro = data.neighborhood || '';
+          localidade = data.city || '';
+          uf = data.state || '';
+          if (
+            data.location?.coordinates?.latitude &&
+            data.location?.coordinates?.longitude
+          ) {
+            lat = Number(data.location.coordinates.latitude);
+            lon = Number(data.location.coordinates.longitude);
+          }
+        }
+      } catch {
+        // Fallback silencioso para ViaCEP
+      }
+
+      // 2. Fallback para ViaCEP se logradouro não veio
+      if (!logradouro) {
+        const resViaCep = await fetch(
+          `https://viacep.com.br/ws/${targetCep}/json/`
+        );
+        if (resViaCep.ok) {
+          const data = await resViaCep.json();
+          if (!data.erro) {
+            logradouro = data.logradouro || '';
+            bairro = data.bairro || '';
+            localidade = data.localidade || '';
+            uf = data.uf || '';
+          }
+        }
+      }
+
+      if (!logradouro && !localidade) {
+        setCepFeedback({
+          type: 'error',
+          message: 'CEP não encontrado. Verifique os dígitos informados.',
+        });
+        setCepLoading(false);
+        return;
+      }
+
+      setStreet(logradouro);
+      setNeighborhood(bairro);
+      setCity(localidade);
+      setState(uf);
+
+      const currentNumber = customNumber ?? number;
+      if (logradouro && localidade) {
+        try {
+          const query = `${logradouro}${
+            currentNumber ? ` ${currentNumber}` : ''
+          }, ${localidade}, ${uf}, Brasil`;
+          const resNom = await fetch(
+            `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
+              query
+            )}&limit=1`,
+            { headers: { 'User-Agent': 'FatecItaqueraApp/1.0' } }
+          );
+          if (resNom.ok) {
+            const nomData = await resNom.json();
+            if (
+              Array.isArray(nomData) &&
+              nomData.length > 0 &&
+              nomData[0].lat &&
+              nomData[0].lon
+            ) {
+              lat = Number(nomData[0].lat);
+              lon = Number(nomData[0].lon);
+            }
+          }
+        } catch {
+          // Mantém as coordenadas do BrasilAPI se houver
+        }
+      }
+
+      if (lat !== null && lon !== null && !isNaN(lat) && !isNaN(lon)) {
+        setLatitude(String(lat));
+        setLongitude(String(lon));
+        setCepFeedback({
+          type: 'success',
+          message: `Endereço e coordenadas obtidos com sucesso (${lat.toFixed(6)}, ${lon.toFixed(6)}).`,
+        });
+      } else {
+        setCepFeedback({
+          type: 'error',
+          message:
+            'Endereço localizado, mas as coordenadas não puderam ser derivadas. Utilize o preset da Fatec.',
+        });
+      }
+    } catch (err: unknown) {
+      setCepFeedback({
+        type: 'error',
+        message: err instanceof Error ? err.message : 'Falha ao buscar CEP.',
+      });
+    } finally {
+      setCepLoading(false);
+    }
+  }
+
   function handleUseDefaultFatecLocation() {
     if (catalog?.defaultVenue?.policy) {
       const pol = catalog.defaultVenue.policy;
+      setCep('08295-005');
+      setStreet('Av. Miguel Ignácio Curi');
+      setNumber('360');
+      setNeighborhood('Vila Carmosina');
+      setCity('São Paulo');
+      setState('SP');
+      setComplement('Fatec Itaquera');
       setLatitude(String(pol.latitude));
       setLongitude(String(pol.longitude));
       setRadius(String(pol.radius));
       setMaxAccuracy(String(pol.maxAccuracy));
+      setCepFeedback({
+        type: 'success',
+        message: `Localização oficial da Fatec Itaquera aplicada (${pol.latitude.toFixed(6)}, ${pol.longitude.toFixed(6)}).`,
+      });
     }
   }
 
@@ -478,12 +629,12 @@ export function EventForm({
           </div>
         </div>
 
-        {/* Seção: Localização e Presença Física (GPS) */}
+        {/* Seção: Localização e Presença Física (GPS via CEP) */}
         <div className={styles.sectionCard}>
           <div className={styles.sectionHeader}>
-            <h3 className={styles.sectionTitle}>Localização e Presença Física (GPS)</h3>
+            <h3 className={styles.sectionTitle}>Localização e Presença Física (GPS via CEP)</h3>
             <p className={styles.sectionDescription}>
-              Configure as coordenadas geográficas se desejar validar presença por dispositivo. Deixe em branco se a atividade não exigir validação por GPS.
+              Informe o CEP e o número para preencher o endereço e calcular automaticamente a latitude e longitude. Nenhuma inserção manual de coordenadas é necessária.
             </p>
           </div>
 
@@ -492,7 +643,7 @@ export function EventForm({
               <strong>{catalog.defaultVenue.name}</strong> — {catalog.defaultVenue.address}
               <br />
               <span className={styles.hintText}>
-                Ponto de referência oficial. Raio e precisão dependem de teste no local físico.
+                Ponto de referência oficial. Preenche CEP, endereço completo e coordenadas calibradas.
               </span>
               <div style={{ marginTop: '8px' }}>
                 <button
@@ -506,7 +657,136 @@ export function EventForm({
             </div>
           )}
 
-          <div className={styles.gridGeo}>
+          <div className={styles.geoAddressGrid}>
+            <div className={styles.fieldGroup}>
+              <label htmlFor="cep" className={styles.fieldLabel}>
+                CEP
+              </label>
+              <div className={styles.cepRow}>
+                <input
+                  id="cep"
+                  name="cep"
+                  type="text"
+                  maxLength={9}
+                  placeholder="08295-005"
+                  value={cep}
+                  onChange={(e) => {
+                    const raw = e.target.value;
+                    const digits = raw.replace(/\D/g, '').slice(0, 8);
+                    const formatted =
+                      digits.length > 5 ? `${digits.slice(0, 5)}-${digits.slice(5)}` : digits;
+                    setCep(formatted);
+                    if (digits.length === 8) {
+                      void handleSearchCep(digits);
+                    }
+                  }}
+                  className={styles.fieldInput}
+                />
+                <button
+                  type="button"
+                  className={styles.cepSearchBtn}
+                  disabled={cepLoading || cep.replace(/\D/g, '').length !== 8}
+                  onClick={() => void handleSearchCep()}
+                >
+                  {cepLoading ? 'Buscando...' : 'Buscar CEP'}
+                </button>
+              </div>
+            </div>
+
+            <div className={styles.fieldGroup}>
+              <label htmlFor="street" className={styles.fieldLabel}>
+                Logradouro / Rua
+              </label>
+              <input
+                id="street"
+                name="street"
+                type="text"
+                placeholder="Preenchido automaticamente pelo CEP"
+                value={street}
+                onChange={(e) => setStreet(e.target.value)}
+                className={styles.fieldInput}
+              />
+            </div>
+
+            <div className={styles.fieldGroup}>
+              <label htmlFor="number" className={styles.fieldLabel}>
+                Número
+              </label>
+              <input
+                id="number"
+                name="number"
+                type="text"
+                placeholder="Ex: 360"
+                value={number}
+                onChange={(e) => setNumber(e.target.value)}
+                onBlur={() => {
+                  if (cep.replace(/\D/g, '').length === 8 && street) {
+                    void handleSearchCep(undefined, number);
+                  }
+                }}
+                className={styles.fieldInput}
+              />
+            </div>
+
+            <div className={styles.fieldGroup}>
+              <label htmlFor="complement" className={styles.fieldLabel}>
+                Complemento
+              </label>
+              <input
+                id="complement"
+                name="complement"
+                type="text"
+                placeholder="Ex: Auditório / Bloco A"
+                value={complement}
+                onChange={(e) => setComplement(e.target.value)}
+                className={styles.fieldInput}
+              />
+            </div>
+
+            <div className={styles.fieldGroup}>
+              <label htmlFor="neighborhood" className={styles.fieldLabel}>
+                Bairro
+              </label>
+              <input
+                id="neighborhood"
+                name="neighborhood"
+                type="text"
+                placeholder="Preenchido pelo CEP"
+                value={neighborhood}
+                onChange={(e) => setNeighborhood(e.target.value)}
+                className={styles.fieldInput}
+              />
+            </div>
+
+            <div className={styles.fieldGroup}>
+              <label htmlFor="cityState" className={styles.fieldLabel}>
+                Cidade / UF
+              </label>
+              <input
+                id="cityState"
+                name="cityState"
+                type="text"
+                placeholder="Ex: São Paulo - SP"
+                value={city ? `${city}${state ? ` - ${state}` : ''}` : ''}
+                readOnly
+                className={`${styles.fieldInput} ${styles.readOnlyInput}`}
+              />
+            </div>
+          </div>
+
+          {cepFeedback && (
+            <div
+              className={`${styles.geoFeedback} ${
+                cepFeedback.type === 'success'
+                  ? styles.geoFeedbackSuccess
+                  : styles.geoFeedbackError
+              }`}
+            >
+              {cepFeedback.message}
+            </div>
+          )}
+
+          <div className={styles.gridGeo} style={{ marginTop: '16px' }}>
             <div className={styles.fieldGroup}>
               <label htmlFor="latitude" className={styles.fieldLabel}>
                 Latitude
@@ -518,11 +798,12 @@ export function EventForm({
                 step="any"
                 min={-90}
                 max={90}
-                placeholder="-23.545..."
+                readOnly
+                placeholder="Automática via CEP"
                 value={latitude}
-                onChange={(e) => setLatitude(e.target.value)}
-                className={styles.fieldInput}
+                className={`${styles.fieldInput} ${styles.readOnlyInput}`}
               />
+              <span className={styles.readOnlyNote}>Preenchida automaticamente</span>
             </div>
 
             <div className={styles.fieldGroup}>
@@ -536,11 +817,12 @@ export function EventForm({
                 step="any"
                 min={-180}
                 max={180}
-                placeholder="-46.467..."
+                readOnly
+                placeholder="Automática via CEP"
                 value={longitude}
-                onChange={(e) => setLongitude(e.target.value)}
-                className={styles.fieldInput}
+                className={`${styles.fieldInput} ${styles.readOnlyInput}`}
               />
+              <span className={styles.readOnlyNote}>Preenchida automaticamente</span>
             </div>
 
             <div className={styles.fieldGroup}>
@@ -577,8 +859,8 @@ export function EventForm({
               />
             </div>
           </div>
-          <p className={styles.hintText}>
-            Calibre com aparelhos reais no auditório. Falhas de sinal exigem registro presencial auditado.
+          <p className={styles.hintText} style={{ marginTop: '10px' }}>
+            As coordenadas geográficas são geradas automaticamente através do CEP e endereço informado.
           </p>
         </div>
 

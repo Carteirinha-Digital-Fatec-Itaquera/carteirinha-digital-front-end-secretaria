@@ -384,3 +384,82 @@
   margin: 0;
 }
 
+.readOnlyInput {
+  background-color: #f1f5f9 !important;
+  color: #475569 !important;
+  cursor: not-allowed;
+  border-color: #cbd5e1 !important;
+}
+
+.readOnlyNote {
+  display: block;
+  font-size: 11px;
+  color: #64748b;
+  margin-top: 3px;
+}
+
+.geoAddressGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+  margin-top: 14px;
+}
+
+@media screen and (min-width: 600px) {
+  .geoAddressGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.cepRow {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+}
+
+.cepSearchBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: var(--app-color-primary, #005f73);
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  white-space: nowrap;
+  height: 42px;
+  transition: opacity 0.2s ease;
+}
+
+.cepSearchBtn:hover {
+  opacity: 0.9;
+}
+
+.cepSearchBtn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.geoFeedback {
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 12px;
+  margin-top: 12px;
+  line-height: 1.4;
+}
+
+.geoFeedbackSuccess {
+  background: #ecfdf5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+}
+
+.geoFeedbackError {
+  background: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+

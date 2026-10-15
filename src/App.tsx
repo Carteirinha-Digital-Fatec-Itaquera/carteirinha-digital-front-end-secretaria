@@ -3,7 +3,6 @@ import { checkSession, watchSessionLifecycle } from './api/auth/session';
 import { BrowserRouter, Routes, Route, Navigate, useLocation, useParams } from "react-router-dom";
 
 import LoginScreen from "./screens/login/LoginScreen";
-import FirstAccessScreen from "./screens/access/FirstAccessScreen";
 import RegisterStudentScreen from "./screens/student/register/RegisterStudentScreen";
 import RedefinePasswordScreen from "./screens/recoverypassword/redefine/RedefinePasswordScreen";
 import SecurityCodeScreen from "./screens/recoverypassword/code/SecurityCodeScreen";
@@ -44,7 +43,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<LoginScreen />} />
         <Route path="/login" element={<LoginScreen />} />
-        <Route path="/access" element={<FirstAccessScreen />} />
+        <Route path="/access" element={<Navigate to="/login" replace />} />
         <Route path="/redefine" element={<RedefinePasswordScreen />} />
         <Route path="/code/:email" element={<SecurityCodeScreen />} />
         <Route path="/password/:email/:code" element={<NewPasswordScreen />} />
