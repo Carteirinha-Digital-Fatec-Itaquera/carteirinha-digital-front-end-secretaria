@@ -16,7 +16,7 @@ describe('Local padrão para configuração de eventos', () => {
   beforeEach(() => { management.mockResolvedValue(structuredClone(catalog)); });
   async function open() {
     render(<MemoryRouter><PublicEventsAdminScreen /></MemoryRouter>);
-    fireEvent.click(screen.getByRole('button', { name: 'Configurar atividade', exact: true }));
+    fireEvent.click(screen.getByRole('button', { name: /^Configurar atividade$/ }));
     await screen.findByText('Av. Miguel Ignácio Curi, 360', { exact: false });
   }
   it('preenche as coordenadas e os limites iniciais fornecidos pelo backend', async () => {
