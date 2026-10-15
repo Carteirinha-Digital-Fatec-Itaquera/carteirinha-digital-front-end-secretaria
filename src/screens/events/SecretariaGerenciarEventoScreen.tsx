@@ -633,7 +633,6 @@ export default function SecretariaGerenciarEventoScreen() {
             <div className={styles.header}>
               <span className={styles.pageEyebrow}>PAINEL DO EVENTO</span>
               <h1 className={styles.title}>{event.title}</h1>
-<button type="button" className={styles.backButton} onClick={() => navigate(`/eventos/${event.id}/publico`)}>Participantes externos, certificados e atendimento presencial</button>
               <p className={styles.subtitle}>
                 Controle de presença em tempo real e sorteios
               </p>
@@ -1159,6 +1158,7 @@ export default function SecretariaGerenciarEventoScreen() {
               error={participants.error}
               lastUpdatedAt={participants.lastUpdatedAt}
               onRefresh={participants.refresh}
+              eventId={id}
             />
           </div>
 

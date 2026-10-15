@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { checkSession, watchSessionLifecycle } from './api/auth/session';
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation, useParams } from "react-router-dom";
 
 import LoginScreen from "./screens/login/LoginScreen";
 import FirstAccessScreen from "./screens/access/FirstAccessScreen";
@@ -24,7 +24,11 @@ import SecretariaGerenciarEventoScreen from "./screens/events/SecretariaGerencia
 import CertificadoVerificarScreen from "./screens/certificate/CertificadoVerificarScreen";
 import ProjectCreditsScreen from "./screens/credits/ProjectCreditsScreen";
 import CreditsFormScreen from "./screens/credits/CreditsFormScreen";
-import PublicEventsAdminScreen from './screens/events/PublicEventsAdminScreen';
+
+function RedirectPublicoToGerenciar() {
+  const { id } = useParams<{ id: string }>();
+  return <Navigate to={id ? `/eventos/${id}/gerenciar` : '/eventos'} replace />;
+}
 
 function SessionLifecycle() {
   const location = useLocation();
@@ -58,8 +62,8 @@ export default function App() {
 
         {/* Rotas administrativas de eventos */}
           <Route path="/eventos" element={<SecretariaEventosScreen />} />
-          <Route path="/eventos/publicos" element={<PublicEventsAdminScreen />} />
-          <Route path="/eventos/:id/publico" element={<PublicEventsAdminScreen />} />
+          <Route path="/eventos/publicos" element={<Navigate to="/eventos" replace />} />
+          <Route path="/eventos/:id/publico" element={<RedirectPublicoToGerenciar />} />
           <Route path="/eventos/novo" element={<SecretariaNovoEventoScreen />} />
           <Route path="/eventos/:id/editar" element={<SecretariaEditarEventoScreen />} />
           <Route path="/eventos/:id/gerenciar" element={<SecretariaGerenciarEventoScreen />} />

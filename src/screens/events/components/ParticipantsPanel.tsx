@@ -1,6 +1,12 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import type { AttendanceView } from '../../../domains/Attendance';
 import { formatEventTime } from '../../../utils/eventPresentation';
+import {
+  management,
+  openManagementPdf,
+  type Participant,
+  type AuditEntry,
+} from '../../../api/event/publicEventService';
 import styles from './ParticipantsPanel.module.css';
 
 export interface ParticipantsPanelProps {
@@ -11,6 +17,7 @@ export interface ParticipantsPanelProps {
   error: string | null;
   lastUpdatedAt: Date | null;
   onRefresh: () => void;
+  eventId?: string;
 }
 
 export const ParticipantsPanel: React.FC<ParticipantsPanelProps> = ({
@@ -21,7 +28,183 @@ export const ParticipantsPanel: React.FC<ParticipantsPanelProps> = ({
   error,
   lastUpdatedAt,
   onRefresh,
+  eventId,
 }) => {
+  const [participantsDetails, setParticipantsDetails] = useState<Map<string, Participant>>(new Map());
+  const [auditList, setAuditList] = useState<AuditEntry[]>([]);
+  const [actionBusy, setActionBusy] = useState(false);
+  const [actionFeedback, setActionFeedback] = useState<string | null>(null);
+
+  // Modal de atendimento presencial / alteração de papel
+  const [selectedParticipant, setSelectedParticipant] = useState<Participant | null>(null);
+  const [modalAction, setModalAction] = useState<'ATTENDEE' | 'SPEAKER' | 'CONFIRM_PRESENCE' | 'CORRECT'>('CONFIRM_PRESENCE');
+  const [modalReason, setModalReason] = useState('');
+  const [correctedName, setCorrectedName] = useState('');
+  const [correctedCourse, setCorrectedCourse] = useState('');
+  const [modalError, setModalError] = useState<string | null>(null);
+
+  // Carrega dados adicionais de certificados e auditoria se eventId estiver presente
+  useEffect(() => {
+    if (!eventId) return;
+    let isMounted = true;
+    const controller = new AbortController();
+
+    const fetchDetails = async () => {
+      try {
+        const [people, history] = await Promise.all([
+          management<Participant[]>(`events/${eventId}/participants`, undefined, 'GET', controller.signal),
+          management<AuditEntry[]>(`events/${eventId}/audit`, undefined, 'GET', controller.signal).catch(() => []),
+        ]);
+        if (isMounted) {
+          const map = new Map<string, Participant>();
+          for (const p of people) {
+            map.set(p.id, p);
+          }
+          setParticipantsDetails(map);
+          setAuditList(history);
+        }
+      } catch {
+        // Fallback silencioso
+      }
+    };
+
+    void fetchDetails();
+    return () => {
+      isMounted = false;
+      controller.abort();
+    };
+  }, [eventId, items, refreshing]);
+
+  const handleExportCsv = () => {
+    const csvRows = [
+      'Nome,Identificação,Curso,Papel,Entrada,Saída,Status,Certificado',
+      ...items.map((it) => {
+        const detail = participantsDetails.get(it.id);
+        const ident = it.studentRa || (detail?.visitorId ? 'Visitante' : 'Aluno');
+        const role = detail?.role === 'SPEAKER' ? 'Palestrante' : 'Participante';
+        const certCode = detail?.certificate?.verificationCode || '';
+        const inTime = it.checkInAt ? new Date(it.checkInAt).toLocaleString('pt-BR') : '';
+        const outTime = it.checkOutAt ? new Date(it.checkOutAt).toLocaleString('pt-BR') : '';
+        const st = it.status === 'CONFIRMED' ? 'Confirmada' : 'Aguardando saída';
+
+        return [
+          it.studentName,
+          ident,
+          it.studentCourse || '',
+          role,
+          inTime,
+          outTime,
+          st,
+          certCode,
+        ]
+          .map((v) => `"${(/^[=+@-]/.test(v) ? "'" : '') + v.replace(/"/g, '""')}"`)
+          .join(',');
+      }),
+    ];
+
+    const blob = new Blob(['\uFEFF' + csvRows.join('\r\n')], {
+      type: 'text/csv;charset=utf-8',
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `participantes-evento-${eventId || 'export'}.csv`;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  };
+
+  const handleOpenManualModal = (item: AttendanceView) => {
+    const detail = participantsDetails.get(item.id);
+    const p: Participant = detail || {
+      id: item.id,
+      name: item.studentName,
+      course: item.studentCourse,
+      role: 'ATTENDEE',
+      visitorId: item.studentRa ? null : 'visitor',
+      attendance: {
+        checkInAt: item.checkInAt,
+        checkOutAt: item.checkOutAt,
+        status: item.status,
+      },
+      certificate: null,
+    };
+    setSelectedParticipant(p);
+    setCorrectedName(p.name);
+    setCorrectedCourse(p.course || '');
+    setModalReason('');
+    setModalError(null);
+    setModalAction(p.attendance?.status === 'CONFIRMED' ? 'ATTENDEE' : 'CONFIRM_PRESENCE');
+  };
+
+  const handleModalSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedParticipant) return;
+    const reason = modalReason.trim();
+    if (!reason) {
+      setModalError('A justificativa é obrigatória para ações auditadas.');
+      return;
+    }
+
+    try {
+      setActionBusy(true);
+      setModalError(null);
+
+      if (modalAction === 'CONFIRM_PRESENCE') {
+        if (!eventId) throw new Error('Identificador do evento não disponível.');
+        await management(`events/${eventId}/manual-presence`, {
+          participantId: selectedParticipant.id,
+          reason,
+        });
+        setActionFeedback(`Presença confirmada manualmente para ${selectedParticipant.name}.`);
+      } else if (modalAction === 'ATTENDEE' || modalAction === 'SPEAKER') {
+        await management(`participants/${selectedParticipant.id}/role`, {
+          role: modalAction,
+          reason,
+        });
+        setActionFeedback(`Papel alterado para ${modalAction === 'SPEAKER' ? 'Palestrante' : 'Participante'}.`);
+      } else if (modalAction === 'CORRECT') {
+        await management(
+          `participants/${selectedParticipant.id}`,
+          {
+            name: correctedName.trim(),
+            course: correctedCourse.trim() || undefined,
+            reason,
+          },
+          'PATCH'
+        );
+        setActionFeedback('Dados cadastrais corrigidos com sucesso.');
+      }
+
+      setSelectedParticipant(null);
+      onRefresh();
+    } catch (err: unknown) {
+      setModalError(err instanceof Error ? err.message : 'Erro ao processar atendimento presencial.');
+    } finally {
+      setActionBusy(false);
+    }
+  };
+
+  const handleRetryCert = async (certId: string) => {
+    try {
+      setActionBusy(true);
+      await management(`certificates/${certId}/retry`, {});
+      setActionFeedback('Tentativa de emissão do certificado reagendada.');
+      onRefresh();
+    } catch (err: unknown) {
+      setActionFeedback(err instanceof Error ? err.message : 'Falha ao reemitir certificado.');
+    } finally {
+      setActionBusy(false);
+    }
+  };
+
+  const handleDownloadCert = async (certId: string) => {
+    try {
+      await openManagementPdf(`certificates/${certId}/pdf`);
+    } catch (err: unknown) {
+      setActionFeedback(err instanceof Error ? err.message : 'Falha ao baixar certificado.');
+    }
+  };
+
   return (
     <section className={styles.panel} aria-labelledby="participants-panel-title">
       <div className={styles.header}>
@@ -34,16 +217,53 @@ export const ParticipantsPanel: React.FC<ParticipantsPanelProps> = ({
           </span>
         </div>
 
-        <button
-          type="button"
-          className={styles.refreshButton}
-          onClick={onRefresh}
-          disabled={loading || refreshing}
-          aria-label="Atualizar lista de participantes"
-        >
-          {refreshing ? 'Atualizando...' : 'Atualizar'}
-        </button>
+        <div className={styles.actionsBar}>
+          {items.length > 0 && (
+            <button
+              type="button"
+              className={styles.csvButton}
+              onClick={handleExportCsv}
+              aria-label="Exportar lista de participantes em CSV"
+            >
+              Exportar CSV
+            </button>
+          )}
+
+          <button
+            type="button"
+            className={styles.refreshButton}
+            onClick={onRefresh}
+            disabled={loading || refreshing || actionBusy}
+            aria-label="Atualizar lista de participantes"
+          >
+            {refreshing ? 'Atualizando...' : 'Atualizar'}
+          </button>
+        </div>
       </div>
+
+      {actionFeedback && (
+        <div
+          style={{
+            backgroundColor: '#f0fdf4',
+            color: '#166534',
+            padding: '10px 14px',
+            borderRadius: '6px',
+            fontSize: '13px',
+            fontWeight: 500,
+            border: '1px solid #bbf7d0',
+          }}
+          role="status"
+        >
+          {actionFeedback}
+          <button
+            type="button"
+            onClick={() => setActionFeedback(null)}
+            style={{ float: 'right', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 'bold' }}
+          >
+            ✕
+          </button>
+        </div>
+      )}
 
       {stale && (
         <div className={styles.staleAlert} role="status">
@@ -81,27 +301,229 @@ export const ParticipantsPanel: React.FC<ParticipantsPanelProps> = ({
                 <th scope="col">Entrada</th>
                 <th scope="col">Saída</th>
                 <th scope="col">Status</th>
+                {eventId && <th scope="col">Ações e Certificado</th>}
               </tr>
             </thead>
             <tbody>
-              {items.map((attendance) => (
-                <tr key={attendance.id}>
-                  <td>{attendance.studentName}</td>
-                    <td>{attendance.studentRa || 'Visitante'}</td>
-                  <td>{attendance.studentCourse}</td>
-                  <td>{attendance.checkInAt ? formatEventTime(attendance.checkInAt) : '—'}</td>
-                  <td>{attendance.checkOutAt ? formatEventTime(attendance.checkOutAt) : '—'}</td>
-                  <td>
-                    {attendance.status === 'CONFIRMED' ? (
-                      <span className={styles.statusConfirmed}>Presença confirmada</span>
-                    ) : (
-                      <span className={styles.statusCheckedIn}>Aguardando saída</span>
+              {items.map((attendance) => {
+                const detail = participantsDetails.get(attendance.id);
+                const cert = detail?.certificate;
+
+                return (
+                  <tr key={attendance.id}>
+                    <td>
+                      <div>
+                        <strong>{attendance.studentName}</strong>
+                        {detail?.role && detail.role !== 'ATTENDEE' && (
+                          <span className={styles.badgeRole} style={{ marginLeft: '6px' }}>
+                            {detail.role === 'SPEAKER' ? 'Palestrante' : detail.role}
+                          </span>
+                        )}
+                      </div>
+                    </td>
+                    <td>
+                      {attendance.studentRa ? (
+                        <span>{attendance.studentRa}</span>
+                      ) : (
+                        <span className={styles.badgeVisitor}>Visitante</span>
+                      )}
+                    </td>
+                    <td>{attendance.studentCourse}</td>
+                    <td>{attendance.checkInAt ? formatEventTime(attendance.checkInAt) : '—'}</td>
+                    <td>{attendance.checkOutAt ? formatEventTime(attendance.checkOutAt) : '—'}</td>
+                    <td>
+                      {attendance.status === 'CONFIRMED' ? (
+                        <span className={styles.statusConfirmed}>Presença confirmada</span>
+                      ) : (
+                        <span className={styles.statusCheckedIn}>Aguardando saída</span>
+                      )}
+                    </td>
+                    {eventId && (
+                      <td>
+                        <div className={styles.cellActions}>
+                          <button
+                            type="button"
+                            className={styles.btnAction}
+                            onClick={() => handleOpenManualModal(attendance)}
+                            disabled={actionBusy}
+                            title="Atendimento presencial, papel ou correção"
+                          >
+                            Atendimento
+                          </button>
+
+                          {cert && (
+                            <>
+                              {cert.revokedAt ? (
+                                <span className={styles.badgeCertRevoked}>Revogado</span>
+                              ) : cert.artifact?.state === 'READY' ? (
+                                <button
+                                  type="button"
+                                  className={styles.btnAction}
+                                  onClick={() => handleDownloadCert(cert.id)}
+                                  disabled={actionBusy}
+                                  title="Baixar certificado PDF"
+                                >
+                                  Baixar PDF
+                                </button>
+                              ) : cert.artifact?.state === 'RENDER_FAILED' || cert.artifact?.deliveryState === 'FAILED' ? (
+                                <button
+                                  type="button"
+                                  className={styles.btnAction}
+                                  onClick={() => handleRetryCert(cert.id)}
+                                  disabled={actionBusy}
+                                  title="Repetir geração do certificado"
+                                  style={{ color: '#b91c1c' }}
+                                >
+                                  Repetir
+                                </button>
+                              ) : (
+                                <span className={styles.badgeRole}>Processando</span>
+                              )}
+                            </>
+                          )}
+                        </div>
+                      </td>
                     )}
-                  </td>
-                </tr>
-              ))}
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {/* Histórico administrativo auditado */}
+      {eventId && auditList.length > 0 && (
+        <div className={styles.auditSection}>
+          <h3 className={styles.auditTitle}>Histórico de Atendimento Presencial e Auditoria</h3>
+          <div>
+            {auditList.slice(0, 5).map((entry) => (
+              <div key={entry.id} className={styles.auditItem}>
+                <strong>{new Date(entry.createdAt).toLocaleString('pt-BR')}</strong> · {entry.action}
+                {entry.reason ? ` · Motivo: "${entry.reason}"` : ''}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Atendimento Presencial */}
+      {selectedParticipant && (
+        <div className={styles.dialogOverlay} role="dialog" aria-modal="true" aria-labelledby="manual-dialog-title">
+          <div className={styles.dialogBox}>
+            <h3 id="manual-dialog-title" className={styles.dialogTitle}>
+              Atendimento Presencial: {selectedParticipant.name}
+            </h3>
+            <p className={styles.dialogDesc}>
+              Ações executadas presencialmente pela secretaria. Toda alteração é registrada com justificativa e não simula coordenadas de GPS.
+            </p>
+
+            {modalError && (
+              <div style={{ color: '#b91c1c', fontSize: '13px', fontWeight: 500 }} role="alert">
+                {modalError}
+              </div>
+            )}
+
+            <form onSubmit={handleModalSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, marginBottom: '4px' }}>
+                  Ação desejada:
+                </label>
+                <select
+                  value={modalAction}
+                  onChange={(e) =>
+                    setModalAction(
+                      e.target.value as
+                        | 'ATTENDEE'
+                        | 'SPEAKER'
+                        | 'CONFIRM_PRESENCE'
+                        | 'CORRECT'
+                    )
+                  }
+                  style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+                >
+                  <option value="CONFIRM_PRESENCE">Confirmar presença presencial auditada</option>
+                  <option value="ATTENDEE">Atribuir papel de Participante</option>
+                  <option value="SPEAKER">Atribuir papel de Palestrante</option>
+                  <option value="CORRECT">Corrigir dados cadastrais (Nome / Curso)</option>
+                </select>
+              </div>
+
+              {modalAction === 'CORRECT' && (
+                <>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, marginBottom: '4px' }}>
+                      Nome completo:
+                    </label>
+                    <input
+                      type="text"
+                      value={correctedName}
+                      onChange={(e) => setCorrectedName(e.target.value)}
+                      required
+                      style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, marginBottom: '4px' }}>
+                      Curso:
+                    </label>
+                    <input
+                      type="text"
+                      value={correctedCourse}
+                      onChange={(e) => setCorrectedCourse(e.target.value)}
+                      style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+                    />
+                  </div>
+                </>
+              )}
+
+              <div>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, marginBottom: '4px' }}>
+                  Justificativa obrigatória:
+                </label>
+                <textarea
+                  value={modalReason}
+                  onChange={(e) => setModalReason(e.target.value)}
+                  placeholder="Ex: Aluno comprovou presença presencialmente com documento no auditório."
+                  required
+                  rows={3}
+                  style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', resize: 'vertical' }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px' }}>
+                <button
+                  type="button"
+                  onClick={() => setSelectedParticipant(null)}
+                  disabled={actionBusy}
+                  style={{
+                    padding: '8px 16px',
+                    borderRadius: '6px',
+                    border: '1px solid #cbd5e1',
+                    background: '#ffffff',
+                    cursor: 'pointer',
+                  }}
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={actionBusy}
+                  style={{
+                    padding: '8px 16px',
+                    borderRadius: '6px',
+                    border: 'none',
+                    background: 'var(--app-color-primary, #005c6d)',
+                    color: '#ffffff',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                  }}
+                >
+                  {actionBusy ? 'Gravando...' : 'Confirmar Registro'}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
     </section>

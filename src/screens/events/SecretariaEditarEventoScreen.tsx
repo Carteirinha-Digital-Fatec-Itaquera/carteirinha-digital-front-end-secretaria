@@ -56,16 +56,7 @@ export default function SecretariaEditarEventoScreen() {
     try {
       setSaving(true);
       setSaveError(null);
-      await updateEvent(id, {
-        title: payload.title,
-        description: payload.description,
-        speaker: payload.speaker,
-        location: payload.location,
-        startsAt: payload.startsAt,
-        endsAt: payload.endsAt,
-        workloadMinutes: payload.workloadMinutes,
-        certificateEnabled: payload.certificateEnabled,
-      });
+      await updateEvent(id, payload);
       navigate("/eventos");
     } catch (err: unknown) {
       const msg =

@@ -9,6 +9,24 @@ export type Uuid = string;
 
 import type { CheckpointView } from './Checkpoint';
 
+export interface GeoPolicy {
+  latitude: number;
+  longitude: number;
+  radius: number;
+  maxAccuracy: number;
+}
+
+export interface CertificateRolePolicy {
+  templateId: string;
+  signerIds: string[];
+}
+
+export interface CertificatePolicies {
+  ATTENDEE?: CertificateRolePolicy;
+  SPEAKER?: CertificateRolePolicy;
+  [role: string]: CertificateRolePolicy | undefined;
+}
+
 export interface EventView {
   id: Uuid;
   title: string;
@@ -23,6 +41,13 @@ export interface EventView {
   cancelledAt: IsoDateTime | null;
   cancelledById: number | null;
   certificateEnabled: boolean;
+  visitorsAllowed?: boolean;
+  organizerCourse?: string | null;
+  promoter?: string | null;
+  windowMinutes?: number | null;
+  geoPolicy?: GeoPolicy | null;
+  certificatePolicies?: CertificatePolicies | null;
+  seriesId?: string | null;
   checkpoints: CheckpointView[];
   createdAt: IsoDateTime;
   updatedAt: IsoDateTime;
@@ -37,6 +62,17 @@ export interface CreateEventRequest {
   endsAt: IsoDateTime;
   workloadMinutes: number;
   certificateEnabled?: boolean;
+  visitorsAllowed?: boolean;
+  organizerCourse?: string | null;
+  promoter?: string | null;
+  windowMinutes?: number | null;
+  geoPolicy?: GeoPolicy | null;
+  certificatePolicies?: CertificatePolicies | null;
+  seriesId?: string | null;
+  attendeeTemplateId?: string;
+  speakerTemplateId?: string;
+  signerIds?: string[];
+  speakerSignerIds?: string[];
 }
 
 export interface CancelEventRequest {
@@ -47,3 +83,4 @@ export interface UpdateEventRequest extends Partial<CreateEventRequest> {
   status?: 'CANCELLED';
   cancelReason?: string;
 }
+
