@@ -32,8 +32,25 @@ export interface ManagedEvent {
   title: string;
   status: string;
   seriesId: string | null;
+  geoPolicy?: {
+    latitude: number;
+    longitude: number;
+    radius: number;
+    maxAccuracy: number;
+  } | null;
 }
 export interface Catalog {
+  defaultVenue?: {
+    name: string;
+    address: string;
+    calibrationRequired: boolean;
+    policy: {
+      latitude: number;
+      longitude: number;
+      radius: number;
+      maxAccuracy: number;
+    };
+  };
   series: Edition[];
   templates: Template[];
   signers: Signer[];

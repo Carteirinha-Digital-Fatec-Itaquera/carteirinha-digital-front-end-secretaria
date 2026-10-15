@@ -51,6 +51,9 @@ export default function PublicEventsAdminScreen() {
     return () => dialog?.close();
   }, [manual]);
   const edition = catalog.series.find((s) => s.id === editionId);
+  const selectedEvent = catalog.events.find((event) => event.id === eventId);
+  const initialGeoPolicy =
+    selectedEvent?.geoPolicy || catalog.defaultVenue?.policy;
   const load = async () => setCatalog(await management<Catalog>("catalog"));
   useEffect(() => {
     const controller = new AbortController();
@@ -645,6 +648,7 @@ export default function PublicEventsAdminScreen() {
               </select>
             </label>
             <form
+              key={`configuration-${eventId}`}
               onSubmit={(e) => {
                 e.preventDefault();
                 const form = e.currentTarget;
@@ -728,11 +732,44 @@ export default function PublicEventsAdminScreen() {
               {selectedSigners(true)}
               <fieldset>
                 <legend>Localização (preencha todos para exigir GPS)</legend>
+                {catalog.defaultVenue && (
+                  <>
+                    <p>
+                      <strong>{catalog.defaultVenue.name}</strong>
+                      <br />
+                      {catalog.defaultVenue.address}
+                      <br />
+                      Ponto de referência configurado; raio e precisão iniciais
+                      ainda precisam de calibração presencial.
+                    </p>
+                    <button
+                      type="button"
+                      className={styles.secondary}
+                      onClick={(e) => {
+                        const form = e.currentTarget.form;
+                        const policy = catalog.defaultVenue!.policy;
+                        for (const name of [
+                          "latitude",
+                          "longitude",
+                          "radius",
+                          "maxAccuracy",
+                        ] as const) {
+                          const input = form?.elements.namedItem(name);
+                          if (input instanceof HTMLInputElement)
+                            input.value = String(policy[name]);
+                        }
+                      }}
+                    >
+                      Usar localização padrão da Fatec
+                    </button>
+                  </>
+                )}
                 <div className={styles.grid}>
                   <label>
                     Latitude
                     <input
                       name="latitude"
+                      defaultValue={initialGeoPolicy?.latitude}
                       type="number"
                       step="any"
                       min={-90}
@@ -743,6 +780,7 @@ export default function PublicEventsAdminScreen() {
                     Longitude
                     <input
                       name="longitude"
+                      defaultValue={initialGeoPolicy?.longitude}
                       type="number"
                       step="any"
                       min={-180}
@@ -751,12 +789,19 @@ export default function PublicEventsAdminScreen() {
                   </label>
                   <label>
                     Raio em metros
-                    <input name="radius" type="number" min={10} max={5000} />
+                    <input
+                      name="radius"
+                      type="number"
+                      min={10}
+                      max={5000}
+                      defaultValue={initialGeoPolicy?.radius}
+                    />
                   </label>
                   <label>
                     Precisão máxima em metros
                     <input
                       name="maxAccuracy"
+                      defaultValue={initialGeoPolicy?.maxAccuracy}
                       type="number"
                       min={1}
                       max={5000}
