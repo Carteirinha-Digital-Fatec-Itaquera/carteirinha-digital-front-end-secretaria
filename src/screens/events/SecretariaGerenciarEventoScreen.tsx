@@ -47,6 +47,7 @@ import { RafflePanel } from "./components/RafflePanel";
 import { PictureInPictureQr } from "./components/PictureInPictureQr";
 import { GLOBAL_VAR } from "../../api/config/globalVar";
 import { validatedAttendanceQrUrl } from "../../utils/attendanceQrLink";
+import CheckpointWindow from "./components/CheckpointWindow";
 
 import styles from "./styleGerenciar.module.css";
 import layoutStyles from "../../styles/layoutWithMenu.module.css";
@@ -632,6 +633,7 @@ export default function SecretariaGerenciarEventoScreen() {
             <div className={styles.header}>
               <span className={styles.pageEyebrow}>PAINEL DO EVENTO</span>
               <h1 className={styles.title}>{event.title}</h1>
+<button type="button" className={styles.backButton} onClick={() => navigate(`/eventos/${event.id}/publico`)}>Participantes externos, certificados e atendimento presencial</button>
               <p className={styles.subtitle}>
                 Controle de presença em tempo real e sorteios
               </p>
@@ -769,6 +771,7 @@ export default function SecretariaGerenciarEventoScreen() {
                   <div>
                     <span className={styles.checkpointLabel}>CHECK-IN</span>
                     <h3>Registro de Entrada</h3>
+<CheckpointWindow closesAt={event.checkpoints?.find(cp => cp.type === "CHECK_IN")?.closesAt} offset={serverOffsetMsRef.current} />
                   </div>
 
                   <span
@@ -781,7 +784,7 @@ export default function SecretariaGerenciarEventoScreen() {
                 </div>
 
                 <p className={styles.checkpointDescription}>
-                  Controle das entradas dos alunos no evento.
+                  Controle das entradas dos participantes no evento.
                 </p>
 
                 <div className={styles.checkpointActions}>
@@ -834,6 +837,7 @@ export default function SecretariaGerenciarEventoScreen() {
                   <div>
                     <span className={styles.checkpointLabel}>CHECK-OUT</span>
                     <h3>Registro de Saída</h3>
+<CheckpointWindow closesAt={event.checkpoints?.find(cp => cp.type === "CHECK_OUT")?.closesAt} offset={serverOffsetMsRef.current} />
                   </div>
 
                   <span
@@ -997,7 +1001,7 @@ export default function SecretariaGerenciarEventoScreen() {
                         : "Escaneie para registrar sua saída"}
                     </strong>
                     <span>
-                      Aponte a câmera do aplicativo para o código acima.
+                      Aponte a câmera do celular e abra o link de presença.
                     </span>
                   </div>
                 </div>

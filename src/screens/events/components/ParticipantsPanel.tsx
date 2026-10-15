@@ -87,7 +87,7 @@ export const ParticipantsPanel: React.FC<ParticipantsPanelProps> = ({
               {items.map((attendance) => (
                 <tr key={attendance.id}>
                   <td>{attendance.studentName}</td>
-                  <td>{attendance.studentRa}</td>
+                    <td>{attendance.studentRa || 'Visitante'}</td>
                   <td>{attendance.studentCourse}</td>
                   <td>{attendance.checkInAt ? formatEventTime(attendance.checkInAt) : '—'}</td>
                   <td>{attendance.checkOutAt ? formatEventTime(attendance.checkOutAt) : '—'}</td>
