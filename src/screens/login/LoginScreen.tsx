@@ -123,14 +123,6 @@ export default function LoginScreen() {
           )}
           
 
-          <TextWithActionComp
-            text="Este é o seu primeiro acesso?"
-            textClickable="Clique aqui"
-            onAction={() => {
-              navigate("/access")
-            }}
-          />
-
           <Link to="/creditos" className={styles.projectCreditsLink}>Créditos de quem constrói o projeto</Link>
 
         </div>

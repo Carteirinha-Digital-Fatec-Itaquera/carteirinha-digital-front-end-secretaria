@@ -20,11 +20,17 @@ describe('private routes and recovery', () => {
     expect(screen.queryByText('Sua sessão expirou. Entre novamente.')).not.toBeInTheDocument();
     expect(fetch).not.toHaveBeenCalled();
   });
-  it.each(['/access', '/redefine', '/code/fixture@example.test', '/password/fixture@example.test/123456', '/reset-password?token=fixture&id=1&type=secretaria'])('keeps public onboarding/recovery accessible: %s', path => {
+  it.each(['/redefine', '/code/fixture@example.test', '/password/fixture@example.test/123456', '/reset-password?token=fixture&id=1&type=secretaria'])('keeps public recovery accessible: %s', path => {
     window.history.replaceState({}, '', path);
     render(<App />);
     expect(window.location.pathname).toBe(path.split('?')[0]);
     expect(screen.queryByText('Login secretaria')).not.toBeInTheDocument();
+  });
+  it('redirects legacy /access registration route directly to /login', () => {
+    window.history.replaceState({}, '', '/access');
+    render(<App />);
+    expect(window.location.pathname).toBe('/login');
+    expect(screen.getByText('Login secretaria')).toBeInTheDocument();
   });
   it.each(['invalid', 'e30.eyJleHAiOjF9.c2ln'])('rejects stored token %s and displays exactly one accessible notice', stored => {
     sessionStorage.setItem('token', stored);

@@ -111,5 +111,23 @@ describe('Local padrão para configuração de eventos no formulário unificado'
     expect(screen.getByLabelText('Longitude')).toHaveValue(-46.46790057119243);
     expect(screen.getByLabelText('Raio em metros')).toHaveValue(150);
     expect(screen.getByLabelText('Precisão máxima em metros')).toHaveValue(50);
+
+    // Garante que campos de coordenada são somente leitura (não digitáveis manualmente)
+    expect(screen.getByLabelText('Latitude')).toHaveAttribute('readonly');
+    expect(screen.getByLabelText('Longitude')).toHaveAttribute('readonly');
+
+    // Garante que o preset também preenche os dados de endereço
+    expect(screen.getByLabelText('CEP')).toHaveValue('08295-005');
+    expect(screen.getByLabelText('Logradouro / Rua')).toHaveValue('Av. Miguel Ignácio Curi');
+    expect(screen.getByLabelText('Número')).toHaveValue('360');
+    expect(screen.getByLabelText('Bairro')).toHaveValue('Vila Carmosina');
+  });
+
+  it('campos de latitude e longitude sao sempre somente leitura para evitar digitacao manual', async () => {
+    render(<EventForm submitLabel="Registrar" onSubmit={vi.fn()} />);
+    await screen.findByText('Av. Miguel Ignácio Curi, 360', { exact: false });
+
+    expect(screen.getByLabelText('Latitude')).toHaveAttribute('readonly');
+    expect(screen.getByLabelText('Longitude')).toHaveAttribute('readonly');
   });
 });
