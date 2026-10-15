@@ -330,12 +330,33 @@ export default function SecretariaEventosScreen() {
                           </div>
                         </div>
 
-                        {event.status === "CANCELLED" && (
-                          <span className={styles.badgeCancelled}>
-                            <Ban size={13} />
-                            Cancelado
-                          </span>
-                        )}
+                        <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                          {event.visitorsAllowed && (
+                            <span
+                              style={{
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: "4px",
+                                padding: "3px 8px",
+                                borderRadius: "4px",
+                                fontSize: "11px",
+                                fontWeight: 600,
+                                backgroundColor: "#eff6ff",
+                                color: "#1d4ed8",
+                                border: "1px solid #bfdbfe",
+                              }}
+                              title="Permite participação de visitantes externos sem conta institucional"
+                            >
+                              Visitantes permitidos
+                            </span>
+                          )}
+                          {event.status === "CANCELLED" && (
+                            <span className={styles.badgeCancelled}>
+                              <Ban size={13} />
+                              Cancelado
+                            </span>
+                          )}
+                        </div>
                       </div>
 
                       {event.status === "CANCELLED" && event.cancelReason && (
