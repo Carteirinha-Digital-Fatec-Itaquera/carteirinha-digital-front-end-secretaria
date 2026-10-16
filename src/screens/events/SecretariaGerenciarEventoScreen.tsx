@@ -21,6 +21,7 @@ import {
   Ban,
   Trash2,
   PictureInPicture2,
+  RotateCcw,
 } from "lucide-react";
 
 import MenuLateral from "../../components/menuLateral/MenuLateral";
@@ -417,6 +418,12 @@ export default function SecretariaGerenciarEventoScreen() {
 
   const checkInStatus = computeCheckpointStatus(checkInCp);
   const checkOutStatus = computeCheckpointStatus(checkOutCp);
+
+  const canReopenCheckIn =
+    !isCancelled &&
+    checkInStatus === "finished" &&
+    !checkOutCp?.openedAt &&
+    event?.status !== "COMPLETED";
 
   const qrValue = qrData?.qrUrl
     ? validatedAttendanceQrUrl(qrData.qrUrl, GLOBAL_VAR.STUDENT_APP_URL)
@@ -817,10 +824,34 @@ export default function SecretariaGerenciarEventoScreen() {
                     </button>
                   )}
 
-                  {checkInStatus === "finished" && (
-                    <div className={styles.finishedMessage}>
-                      <CheckCircle2 size={18} />
-                      Check-in encerrado
+                  {isCancelled && checkInStatus === "finished" && (
+                    <div className={styles.blockedMessage}>
+                      Evento cancelado. Check-in não pode ser reaberto.
+                    </div>
+                  )}
+
+                  {!isCancelled && checkInStatus === "finished" && (
+                    <div className={styles.finishedContainer}>
+                      <div className={styles.finishedMessage}>
+                        <CheckCircle2 size={18} />
+                        Check-in encerrado
+                      </div>
+                      {canReopenCheckIn ? (
+                        <button
+                          className={styles.reopenButton}
+                          onClick={() => handleOpenCheckpoint("check-in")}
+                          disabled={actionLoading}
+                          type="button"
+                          title="Reabrir Check-in enquanto o Check-out não foi iniciado"
+                        >
+                          <RotateCcw size={18} />
+                          Reabrir Check-in
+                        </button>
+                      ) : (
+                        <p className={styles.reopenNotice}>
+                          Reabertura indisponível: Check-out já iniciado.
+                        </p>
+                      )}
                     </div>
                   )}
                 </div>
