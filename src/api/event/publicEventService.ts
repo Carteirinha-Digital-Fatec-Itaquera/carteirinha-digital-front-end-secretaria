@@ -121,3 +121,28 @@ export async function openManagementPdf(path: string, body?: unknown) {
   a.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
+
+export interface EventFeedbackItem {
+  id: string;
+  rating: number;
+  comments: string | null;
+  suggestions: string | null;
+  createdAt: string;
+}
+
+export interface EventFeedbackMetrics {
+  eventId: string;
+  totalResponses: number;
+  averageRating: number;
+  ratingDistribution: {
+    1: number;
+    2: number;
+    3: number;
+    4: number;
+    5: number;
+  };
+  feedbacks: EventFeedbackItem[];
+}
+
+export const getEventFeedback = (eventId: string, signal?: AbortSignal) =>
+  management<EventFeedbackMetrics>(`events/${eventId}/feedback`, undefined, "GET", signal);

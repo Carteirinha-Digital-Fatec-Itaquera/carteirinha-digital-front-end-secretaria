@@ -45,6 +45,7 @@ import { useEventParticipants } from "./hooks/useEventParticipants";
 import { usePictureInPicture } from "./hooks/usePictureInPicture";
 import { ParticipantsPanel } from "./components/ParticipantsPanel";
 import { RafflePanel } from "./components/RafflePanel";
+import { EventFeedbackPanel } from "./components/EventFeedbackPanel";
 import { PictureInPictureQr } from "./components/PictureInPictureQr";
 import { GLOBAL_VAR } from "../../api/config/globalVar";
 import { validatedAttendanceQrUrl } from "../../utils/attendanceQrLink";
@@ -1201,6 +1202,11 @@ export default function SecretariaGerenciarEventoScreen() {
               refreshing={participants.refreshing}
               onRefresh={participants.refresh}
             />
+          </div>
+
+          {/* Painel de Pesquisa de Satisfação & Métricas */}
+          <div style={{ marginTop: "24px" }}>
+            <EventFeedbackPanel eventId={id} />
           </div>
         </div>
       </div>

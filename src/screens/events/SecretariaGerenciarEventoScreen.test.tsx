@@ -18,6 +18,10 @@ vi.mock('./components/RafflePanel', () => ({
   RafflePanel: () => <div data-testid="mock-raffle-panel">RafflePanel</div>,
 }));
 
+vi.mock('./components/EventFeedbackPanel', () => ({
+  EventFeedbackPanel: () => <div data-testid="mock-feedback-panel">EventFeedbackPanel</div>,
+}));
+
 describe('SecretariaGerenciarEventoScreen - QR Code & Projeção Telão', () => {
   const fakeEvent = {
     id: 'evt-test-100',
