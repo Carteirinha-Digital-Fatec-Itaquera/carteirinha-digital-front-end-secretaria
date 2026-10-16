@@ -196,3 +196,45 @@
 .dateInput { min-width: 0; }
 .calendarWrapper { max-width: 100%; z-index: 20; }
 .calendarWrapper :global(.react-calendar) { max-width: 100%; }
+
+/* O anel de foco acompanha o contorno arredondado do campo inteiro,
+   e não o retângulo interno utilizado para digitar a data. */
+.datePickerContainer .inputContainer {
+  min-height: 50px;
+  height: auto;
+  padding: 0 12px;
+  border: 1px solid var(--app-color-input-border);
+  border-radius: var(--app-radius-control);
+}
+
+.datePickerContainer .inputContainer:focus-within {
+  border-color: var(--app-color-primary);
+  outline: 3px solid #0964c4;
+  outline-offset: 2px;
+}
+
+.datePickerContainer .dateInput {
+  min-width: 0;
+  height: 48px;
+  padding: 12px 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.datePickerContainer .dateInput:focus,
+.datePickerContainer .dateInput:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
+.datePickerContainer .calendarButton {
+  width: 44px;
+  height: 44px;
+  padding: 0;
+}
+
+.datePickerContainer .icon {
+  margin-right: 8px;
+}

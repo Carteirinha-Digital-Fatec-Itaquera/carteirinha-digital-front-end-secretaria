@@ -24,6 +24,21 @@
 .cardContent > h2 { margin: 0 0 12px; color: var(--app-color-text); font-size: 1.12rem; }
 .participation + .participation { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--app-color-border); }
 .participation h3 { margin: 0 0 4px; color: var(--app-color-text); font-size: .96rem; }
+/* Distintivo do período contínuo (prévia e página pública). */
+.participation h3.periodBadge {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  padding: 4px 9px;
+  border: 1px solid #b6d8dc;
+  border-radius: 999px;
+  background: var(--app-color-primary-soft);
+  color: var(--app-color-primary);
+  font-size: .77rem;
+  font-weight: 650;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
 .courseText { display: block; margin: 0 0 8px; color: var(--app-color-primary); font-size: .84rem; font-weight: 600; }
 .participation p { margin: 8px 0 0; color: var(--app-color-muted); }
 .roles { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; list-style: none; }

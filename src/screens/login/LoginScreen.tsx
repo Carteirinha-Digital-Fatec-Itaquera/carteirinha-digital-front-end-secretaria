@@ -12,7 +12,6 @@ import { FooterComp } from "../../components/footer/FooterComp";
 import { HeaderComp } from "../../components/header/HeaderComp";
 import { TextWithActionComp } from "../../components/textwithaction/TextWithAction";
 import { ErrorModalComp } from "../../components/errormodal/ErrorModalComp";
-import { LoadingComp } from "../../components/loading/LoadingComp";
 
 import { Auth } from "../../domains/Auth";
 
@@ -88,9 +87,12 @@ export default function LoginScreen() {
             }}
           />
 
-          {onLoading ? (
-            <LoadingComp />
-          ): (
+          <div className={styles.loginAction}>
+            {onLoading ? (
+              <p className={styles.loginLoading} role="status" aria-live="polite">
+                Fazendo login...
+              </p>
+            ) : (
               <ButtonComp
                 text="Entrar"
                 onClick={async () => {
@@ -120,7 +122,8 @@ export default function LoginScreen() {
                   setOnLoading(false)
                 }}
             />
-          )}
+            )}
+          </div>
           
 
           <Link to="/creditos" className={styles.projectCreditsLink}>Créditos de quem constrói o projeto</Link>

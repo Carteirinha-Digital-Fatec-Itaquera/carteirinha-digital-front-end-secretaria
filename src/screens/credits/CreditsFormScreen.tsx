@@ -35,6 +35,16 @@ import {
 import styles from './styleCreditsAdmin.module.css';
 import layoutStyles from '../../styles/layoutWithMenu.module.css';
 import publicStyles from './styleProjectCredits.module.css';
+import {
+  groupForEditing,
+  groupDisplayParticipations,
+  semesterChoices,
+  availableSemestersForGroup,
+  allAvailableSemestersSelected,
+  setAllSemestersForGroup,
+  semesterRanges,
+  shortRange,
+} from './creditsParticipationUi';
 
 interface FormParticipation {
   semester: string;
@@ -137,7 +147,7 @@ export default function CreditsFormScreen() {
     }
   }, [isEditing, loadContributor]);
 
-  // Repeater handlers
+  // Cada grupo pode abranger vários semestres, mas a API mantém uma linha por semestre.
   const addParticipation = () => {
     setParticipations((prev) => [
       ...prev,
@@ -145,8 +155,43 @@ export default function CreditsFormScreen() {
     ]);
   };
 
-  const removeParticipation = (index: number) => {
-    setParticipations((prev) => prev.filter((_, i) => i !== index));
+  const removeParticipationGroup = (indices: number[]) => {
+    setParticipations((prev) => {
+      const remaining = prev.filter((_, index) => !indices.includes(index));
+      return remaining.length ? remaining : [
+        { semester: '', course: '', rolesString: '', contribution: '', confirmed: true },
+      ];
+    });
+  };
+
+  const editGroupField = (indices: number[], field: 'course' | 'rolesString' | 'contribution', value: string) => {
+    setParticipations((prev) => prev.map((part, index) =>
+      indices.includes(index) ? { ...part, [field]: value } : part,
+    ));
+  };
+
+  const toggleGroupSemester = (indices: number[], semester: string, checked: boolean) => {
+    setParticipations((prev) => {
+      const source = prev[indices[0]];
+      if (!source) return prev;
+      if (checked) {
+        // Um mesmo semestre não deve pertencer a dois grupos diferentes.
+        if (prev.some((part, index) => !indices.includes(index) && part.semester === semester)) return prev;
+        if (indices.some((index) => prev[index]?.semester === semester)) return prev;
+        const empty = indices.find((index) => !prev[index]?.semester.trim());
+        if (empty !== undefined) {
+          return prev.map((part, index) => index === empty ? { ...part, semester } : part);
+        }
+        return [...prev, { ...source, semester }];
+      }
+      const selected = indices.filter((index) => prev[index]?.semester === semester);
+      if (!selected.length) return prev;
+      const remaining = prev.filter((_, index) => !selected.includes(index));
+      if (indices.every((index) => !prev[index]?.semester.trim() || selected.includes(index))) {
+        remaining.push({ ...source, semester: '' });
+      }
+      return remaining;
+    });
   };
 
   const addLink = () => {
@@ -377,6 +422,9 @@ export default function CreditsFormScreen() {
     };
   }, [id, name, participations, links, previewTab, rawDetail]);
 
+  const editGroups = groupForEditing(participations);
+  const semesterOptions = semesterChoices(participations);
+
   if (loading) {
     return (
       <div className={layoutStyles.layoutContainer}>
@@ -589,7 +637,7 @@ export default function CreditsFormScreen() {
               </div>
             </section>
 
-            {/* Bloco 2: Participações por Semestre */}
+            {/* Um conjunto de semestres compartilha curso, papel e contribuição. */}
             <section className={styles.blockCard}>
               <div className={styles.blockHeader}>
                 <h2>2. Participações por Semestre</h2>
@@ -597,97 +645,109 @@ export default function CreditsFormScreen() {
                   type="button"
                   className={styles.secondaryButton}
                   onClick={addParticipation}
-                  style={{ padding: '6px 12px', minHeight: 36, fontSize: '0.85rem' }}
                 >
-                  <Plus size={15} /> Adicionar Semestre
+                  <Plus size={15} /> Outra função ou período
                 </button>
               </div>
+              <p className={styles.semesterHelp}>
+                Selecione todos os semestres em que a pessoa exerceu a mesma função.
+                Use outro bloco somente quando a função, o curso ou a contribuição mudar.
+              </p>
 
-              {participations.map((part, index) => (
-                <div key={index} className={styles.subItemCard}>
+              {editGroups.map((group, groupIndex) => (
+                <div key={group.indices[0]} className={styles.compactParticipationCard}>
                   <div className={styles.subItemHeader}>
-                    <span className={styles.subItemTitle}>
-                      Semestre #{index + 1}
-                      {part.semester && isValidSemester(part.semester) && (
-                        <span style={{ marginLeft: 8, color: 'var(--app-color-primary)', fontWeight: 'normal' }}>
-                          ({formatSemester(part.semester)})
-                        </span>
-                      )}
-                    </span>
-                    {participations.length > 1 && (
+                    <span className={styles.subItemTitle}>Participação {groupIndex + 1}</span>
+                    {editGroups.length > 1 && (
                       <button
                         type="button"
                         className={styles.removeSubItemButton}
-                        onClick={() => removeParticipation(index)}
+                        onClick={() => removeParticipationGroup(group.indices)}
+                        aria-label={`Remover participação ${groupIndex + 1}`}
                       >
                         <Trash2 size={14} /> Remover
                       </button>
                     )}
                   </div>
-
-                  <div className={styles.semesterCourseGrid}>
-                    <div className={styles.formGroup}>
-                      <label>Semestre (formato YYYY.1 ou YYYY.2) *</label>
-                      <input
-                        type="text"
-                        className={styles.inputControl}
-                        placeholder="Ex: 2026.1"
-                        value={part.semester}
-                        onChange={(e) => {
-                          const val = e.target.value;
-                          setParticipations((prev) =>
-                            prev.map((item, i) => (i === index ? { ...item, semester: val } : item)),
+                  <div className={styles.formGroup}>
+                    <span className={styles.semesterFieldLabel}>Semestres de participação *</span>
+                    <details className={styles.semesterSelector}>
+                      <summary>
+                        <span>{group.semesters.length
+                          ? `${group.semesters.length} semestre(s) selecionado(s)`
+                          : 'Selecionar semestres'}</span>
+                        <span aria-hidden="true">▾</span>
+                      </summary>
+                      <div className={styles.semesterCheckboxGrid} role="group" aria-label={`Semestres da participação ${groupIndex + 1}`}>
+                        <label className={`${styles.semesterCheckbox} ${styles.semesterSelectAll}`}>
+                          <input
+                            type="checkbox"
+                            checked={allAvailableSemestersSelected(participations, group.indices, semesterOptions)}
+                            disabled={availableSemestersForGroup(participations, group.indices, semesterOptions).length === 0}
+                            onChange={(event) => setParticipations((previous) =>
+                              setAllSemestersForGroup(previous, group.indices, semesterOptions, event.target.checked),
+                            )}
+                          />
+                          <span>Selecionar todos os semestres</span>
+                        </label>
+                        {semesterOptions.map((option) => {
+                          const checked = group.semesters.includes(option);
+                          const taken = participations.some((part, index) =>
+                            !group.indices.includes(index) && part.semester === option,
                           );
-                        }}
-                      />
-                    </div>
-                    <div className={styles.formGroup}>
-                      <label>Curso Acadêmico (opcional)</label>
-                      <input
-                        type="text"
-                        className={styles.inputControl}
-                        placeholder="Ex: Análise e Desenvolvimento de Sistemas"
-                        value={part.course}
-                        onChange={(e) => {
-                          const val = e.target.value;
-                          setParticipations((prev) =>
-                            prev.map((item, i) => (i === index ? { ...item, course: val } : item)),
+                          return (
+                            <label key={option} className={styles.semesterCheckbox}>
+                              <input
+                                type="checkbox"
+                                checked={checked}
+                                disabled={!checked && taken}
+                                onChange={(event) => toggleGroupSemester(group.indices, option, event.target.checked)}
+                              />
+                              <span>{formatSemester(option)}</span>
+                            </label>
                           );
-                        }}
-                      />
-                    </div>
+                        })}
+                      </div>
+                    </details>
+                    {group.semesters.length > 0 && (
+                      <div className={styles.selectedSemesterRanges} aria-label="Períodos selecionados">
+                        {semesterRanges(group.semesters).map(({ start, end }) => (
+                          <span key={start} className={styles.selectedPeriod}>
+                            {shortRange(start, end)}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </div>
-
+                  <div className={styles.formGroup}>
+                    <label>Curso Acadêmico (opcional)</label>
+                    <input
+                      type="text"
+                      className={styles.inputControl}
+                      placeholder="Ex: Desenvolvimento de Software Multiplataforma"
+                      value={group.course}
+                      onChange={(event) => editGroupField(group.indices, 'course', event.target.value)}
+                    />
+                  </div>
                   <div className={styles.formGroup}>
                     <label>Funções / Papéis no Projeto (separados por vírgula) *</label>
                     <input
                       type="text"
                       className={styles.inputControl}
-                      placeholder="Ex: Desenvolvedor Full Stack, Designer UI, Líder Técnico"
-                      value={part.rolesString}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        setParticipations((prev) =>
-                          prev.map((item, i) => (i === index ? { ...item, rolesString: val } : item)),
-                        );
-                      }}
+                      placeholder="Ex: Orientador, Desenvolvedor, Designer"
+                      value={group.rolesString}
+                      onChange={(event) => editGroupField(group.indices, 'rolesString', event.target.value)}
                     />
-                    <small>Exemplo: Frontend, Backend, Documentação</small>
+                    <small>A função será aplicada a todos os semestres selecionados neste bloco.</small>
                   </div>
-
                   <div className={styles.formGroup} style={{ marginBottom: 0 }}>
                     <label>Descrição da Contribuição (opcional)</label>
                     <textarea
                       className={styles.inputControl}
                       rows={2}
-                      placeholder="Ex: Criação da arquitetura inicial do backend e carteirinha digital..."
-                      value={part.contribution}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        setParticipations((prev) =>
-                          prev.map((item, i) => (i === index ? { ...item, contribution: val } : item)),
-                        );
-                      }}
+                      placeholder="Ex: Orientação da equipe durante o desenvolvimento..."
+                      value={group.contribution}
+                      onChange={(event) => editGroupField(group.indices, 'contribution', event.target.value)}
                     />
                   </div>
                 </div>
@@ -858,13 +918,13 @@ export default function CreditsFormScreen() {
                       Nenhuma participação registrada.
                     </p>
                   ) : (
-                    previewContributor.participations.map((p, idx) => (
+                    groupDisplayParticipations(previewContributor.participations).map((p, idx) => (
                       <section key={idx} className={publicStyles.participation}>
-                        <h3>{p.semester ? formatSemester(p.semester) : 'Semestre a definir'}</h3>
+                        <h3 className={publicStyles.periodBadge}>{shortRange(p.from, p.to)}</h3>
                         {p.course && <span className={publicStyles.courseText}>{p.course}</span>}
                         <ul className={publicStyles.roles}>
-                          {p.roles.map((r, rIdx) => (
-                            <li key={rIdx}>{r}</li>
+                          {p.roles.map((role) => (
+                            <li key={role}>{role}</li>
                           ))}
                         </ul>
                         {p.contribution && <p>{p.contribution}</p>}
