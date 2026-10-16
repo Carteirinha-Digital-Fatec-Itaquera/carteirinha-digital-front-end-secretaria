@@ -33,6 +33,7 @@ import type {
   ProjectCreditsResponse,
 } from '../../domains/ProjectCredits';
 import { isApprovedProjectCreditHref, formatSemester } from '../../utils/projectCreditContact';
+import { groupDisplayParticipations, shortRange } from './creditsParticipationUi';
 import adminStyles from './styleCreditsAdmin.module.css';
 import publicStyles from './styleProjectCredits.module.css';
 import layoutStyles from '../../styles/layoutWithMenu.module.css';
@@ -691,9 +692,11 @@ function PublicCreditsView() {
                   </div>
                   <div className={publicStyles.cardContent}>
                     <h2>{person.name}</h2>
-                    {participations.map((participation) => (
+                    {groupDisplayParticipations(participations).map((participation) => (
                       <section key={participation.semester} className={publicStyles.participation}>
-                        <h3>{formatSemester(participation.semester)}</h3>
+                        <h3 className={publicStyles.periodBadge}>
+                          {shortRange(participation.from, participation.to)}
+                        </h3>
                         {participation.course && (
                           <span className={publicStyles.courseText}>{participation.course}</span>
                         )}

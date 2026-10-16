@@ -14,6 +14,7 @@ import { ButtonComp } from "../../../components/button/ButtonComp";
 import { TitleComp } from "../../../components/title/TitleComp";
 import { ErrorModalComp } from "../../../components/errormodal/ErrorModalComp";
 import { LoadingComp } from "../../../components/loading/LoadingComp";
+import { DatePickerComp } from "../../../components/dataPicker/DatePickerComp";
 import MenuLateral from "../../../components/menuLateral/MenuLateral";
 
 import { create } from "../../../api/student/create";
@@ -81,6 +82,9 @@ export default function RegisterStudentScreen() {
   const [ra, setRa] = useState("");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [cpf, setCpf] = useState("");
+  const [birthDate, setBirthDate] = useState("");
+  const [isCalendarOpenBirthDate, setIsCalendarOpenBirthDate] = useState(false);
   const [course, setCourse] = useState("");
   const [admission, setAdmission] = useState("");
   const [status, setStatus] = useState("");
@@ -91,6 +95,23 @@ export default function RegisterStudentScreen() {
   const [onLoading, setOnLoading] = useState(false);
 
   const maskRA = (v: string) => v.replace(/\D/g, "").substring(0, 13);
+  const maskCPF = (value: string) => value.replace(/\D/g, "")
+    .slice(0, 11)
+    .replace(/(\d{3})(\d)/, "$1.$2")
+    .replace(/(\d{3})(\d)/, "$1.$2")
+    .replace(/(\d{3})(\d{1,2})/, "$1-$2");
+
+  const birthDateToISO = (value: string): string | null => {
+    const match = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(value);
+    if (!match) return null;
+    const day = Number(match[1]);
+    const month = Number(match[2]);
+    const year = Number(match[3]);
+    const date = new Date(year, month - 1, day);
+    if (date.getFullYear() !== year || date.getMonth() !== month - 1 ||
+        date.getDate() !== day || date.getTime() > Date.now()) return null;
+    return `${match[3]}-${match[2]}-${match[1]}`;
+  };
 
   return (
     <div className={layoutStyles.layoutContainer}>
@@ -110,6 +131,17 @@ export default function RegisterStudentScreen() {
             <div className={styles.containerInputs}>
               <InputComp label="Nome" placeholder="Ex: João Silva dos Santos" icon={<FaUser />} value={name} onChangeText={setName} />
               <InputComp label="Email" type="email" placeholder="Ex: joao.santos@dominio.com" icon={<FaEnvelope />} value={email} onChangeText={setEmail} />
+            </div>
+
+            <div className={styles.containerInputs}>
+              <InputComp label="CPF" placeholder="000.000.000-00" icon={<FaIdCard />} value={cpf} onChangeText={(value) => setCpf(maskCPF(value))} />
+              <DatePickerComp
+                label="Data de nascimento"
+                value={birthDate}
+                onChange={setBirthDate}
+                isOpen={isCalendarOpenBirthDate}
+                onToggle={() => setIsCalendarOpenBirthDate((open) => !open)}
+              />
             </div>
 
             <div className={styles.containerInputs}>
@@ -140,11 +172,22 @@ export default function RegisterStudentScreen() {
                   setModalErrorVisible(true);
                   return;
                 }
+                if (cpf.replace(/\D/g, "").length !== 11) {
+                  setMessage("Informe um CPF com 11 dígitos.");
+                  setModalErrorVisible(true);
+                  return;
+                }
+                const formattedBirthDate = birthDateToISO(birthDate);
+                if (!formattedBirthDate) {
+                  setMessage("Informe uma data de nascimento válida (DD/MM/AAAA).");
+                  setModalErrorVisible(true);
+                  return;
+                }
 
                 setOnLoading(true);
 
                 const result = await create(new Student({
-                  ra, name, email, course, status, admission,
+                  ra, name, email, cpf, birthDate: formattedBirthDate, course, status, admission,
                 }));
 
                 if ('ok' in result) {

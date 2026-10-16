@@ -124,7 +124,12 @@ export default function ProfileScreen() {
       <div className={layoutStyles.contentWrapper}>
         <div className={styles.container}>
 
-          <TitleComp text="Meu Perfil" />
+          <div className={styles.pageHeading}>
+            <TitleComp text="Meu Perfil" />
+            <p className={styles.profileSubtitle}>
+              Consulte seus dados pessoais e gerencie suas informações de acesso.
+            </p>
+          </div>
           {loading ? (<LoadingComp />) : 
           (
           <div className={styles.card}>
@@ -154,26 +159,11 @@ export default function ProfileScreen() {
                   </div>
                 </div>
 
-                <div className={styles.editButton}>
-                  <ButtonComp text="Editar perfil" onClick={handleEdit} />
-                </div>
-
-                <div style={{ marginTop: 20, paddingTop: 16, borderTop: '1px solid var(--app-color-border)', display: 'flex', flexDirection: 'column', gap: 10 }}>
-                  <Link
-                    to="/creditos"
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      minHeight: 44,
-                      padding: '10px 16px',
-                      borderRadius: 'var(--app-radius-control)',
-                      background: 'var(--app-color-primary)',
-                      color: '#fff',
-                      fontWeight: 600,
-                      textDecoration: 'none',
-                    }}
-                  >
+                <div className={styles.profileActions}>
+                  <div className={styles.editButton}>
+                    <ButtonComp text="Editar perfil" onClick={handleEdit} />
+                  </div>
+                  <Link className={styles.creditsButton} to="/creditos">
                     Créditos do projeto
                   </Link>
                 </div>
