@@ -2,6 +2,7 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { ParticipantsPanel } from './ParticipantsPanel';
 import type { AttendanceView } from '../../../domains/Attendance';
+import * as publicEventService from '../../../api/event/publicEventService';
 
 describe('ParticipantsPanel Component', () => {
   const fakeConfirmed: AttendanceView = {
@@ -118,5 +119,60 @@ describe('ParticipantsPanel Component', () => {
     fireEvent.click(button);
 
     expect(handleRefresh).toHaveBeenCalledTimes(1);
+  });
+
+  it('renderiza logs de auditoria traduzidos para linguagem amigável quando eventId é fornecido', async () => {
+    const fakeAuditLogs = [
+      {
+        id: 'aud-1',
+        action: 'CHECKPOINT_OPEN_CHECK_IN',
+        secretaryId: 1,
+        reason: null,
+        createdAt: '2026-10-16T14:00:00.000Z',
+      },
+      {
+        id: 'aud-2',
+        action: 'MANUAL_CHECK_IN',
+        secretaryId: 1,
+        reason: 'Aluno sem bateria no celular',
+        createdAt: '2026-10-16T14:10:00.000Z',
+      },
+      {
+        id: 'aud-3',
+        action: 'CHECKPOINT_CLOSE_CHECK_IN',
+        secretaryId: 1,
+        reason: null,
+        createdAt: '2026-10-16T14:45:00.000Z',
+      },
+    ];
+
+    vi.spyOn(publicEventService, 'management').mockImplementation((path: string) => {
+      if (path.includes('/participants')) {
+        return Promise.resolve([]);
+      }
+      if (path.includes('/audit')) {
+        return Promise.resolve(fakeAuditLogs);
+      }
+      return Promise.resolve([]);
+    });
+
+    render(
+      <ParticipantsPanel
+        items={[fakeConfirmed]}
+        loading={false}
+        refreshing={false}
+        stale={false}
+        error={null}
+        lastUpdatedAt={null}
+        onRefresh={vi.fn()}
+        eventId="evt-100"
+      />
+    );
+
+    expect(await screen.findByText('Histórico de Atendimento Presencial e Auditoria')).toBeInTheDocument();
+    expect(screen.getByText(/Check-in \(Entrada\) aberto/i)).toBeInTheDocument();
+    expect(screen.getByText(/Presença confirmada manualmente pela secretaria \(Entrada\)/i)).toBeInTheDocument();
+    expect(screen.getByText(/Motivo: "Aluno sem bateria no celular"/i)).toBeInTheDocument();
+    expect(screen.getByText(/Check-in \(Entrada\) encerrado/i)).toBeInTheDocument();
   });
 });

@@ -437,8 +437,107 @@ describe('SecretariaGerenciarEventoScreen - QR Code & Projeção Telão', () => 
 
     // Mensagem de bloqueio nos checkpoints
     expect(
-      screen.getByText(/Evento cancelado\. Novos checkpoints não podem ser abertos\./i)
+      screen.getByText(/Evento cancelado\. Check-in não pode ser reaberto\./i)
     ).toBeInTheDocument();
+  });
+
+  it('permite reabrir o Check-in quando encerrado e o Check-out ainda não foi iniciado', async () => {
+    const openCheckpointSpy = vi.spyOn(checkpointService, 'openCheckpoint').mockResolvedValue({
+      eventId: 'evt-test-100',
+      type: 'CHECK_IN',
+      isOpen: true,
+      version: 2,
+      openedAt: '2026-10-10T11:00:00.000Z',
+      closedAt: null,
+    });
+
+    vi.spyOn(eventService, 'getEvent').mockResolvedValue({
+      ...fakeEvent,
+      status: 'IN_PROGRESS',
+      checkpoints: [
+        {
+          id: 'cp-in',
+          eventId: 'evt-test-100',
+          type: 'CHECK_IN' as const,
+          isOpen: false,
+          version: 1,
+          openedAt: '2026-10-10T10:00:00.000Z',
+          closedAt: '2026-10-10T10:30:00.000Z',
+        },
+        {
+          id: 'cp-out',
+          eventId: 'evt-test-100',
+          type: 'CHECK_OUT' as const,
+          isOpen: false,
+          version: 1,
+          openedAt: null,
+          closedAt: null,
+        },
+      ],
+    });
+
+    render(
+      <MemoryRouter initialEntries={['/eventos/evt-test-100/gerenciar']}>
+        <Routes>
+          <Route path="/eventos/:id/gerenciar" element={<SecretariaGerenciarEventoScreen />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('Check-in encerrado')).toBeInTheDocument();
+    });
+
+    const reopenBtn = screen.getByRole('button', { name: /Reabrir Check-in/i });
+    expect(reopenBtn).toBeInTheDocument();
+
+    fireEvent.click(reopenBtn);
+
+    await waitFor(() => {
+      expect(openCheckpointSpy).toHaveBeenCalledWith('evt-test-100', 'CHECK_IN');
+    });
+  });
+
+  it('bloqueia reabertura do Check-in quando o Check-out já foi iniciado', async () => {
+    vi.spyOn(eventService, 'getEvent').mockResolvedValue({
+      ...fakeEvent,
+      status: 'IN_PROGRESS',
+      checkpoints: [
+        {
+          id: 'cp-in',
+          eventId: 'evt-test-100',
+          type: 'CHECK_IN' as const,
+          isOpen: false,
+          version: 1,
+          openedAt: '2026-10-10T10:00:00.000Z',
+          closedAt: '2026-10-10T10:30:00.000Z',
+        },
+        {
+          id: 'cp-out',
+          eventId: 'evt-test-100',
+          type: 'CHECK_OUT' as const,
+          isOpen: true,
+          version: 1,
+          openedAt: '2026-10-10T11:00:00.000Z',
+          closedAt: null,
+        },
+      ],
+    });
+
+    render(
+      <MemoryRouter initialEntries={['/eventos/evt-test-100/gerenciar']}>
+        <Routes>
+          <Route path="/eventos/:id/gerenciar" element={<SecretariaGerenciarEventoScreen />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('Check-in encerrado')).toBeInTheDocument();
+    });
+
+    expect(screen.queryByRole('button', { name: /Reabrir Check-in/i })).not.toBeInTheDocument();
+    expect(screen.getByText(/Reabertura indisponível: Check-out já iniciado/i)).toBeInTheDocument();
   });
 });
 

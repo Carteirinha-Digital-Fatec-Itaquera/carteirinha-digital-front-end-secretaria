@@ -7,6 +7,7 @@ import {
   type Participant,
   type AuditEntry,
 } from '../../../api/event/publicEventService';
+import { formatAuditAction } from '../utils/auditLabels';
 import styles from './ParticipantsPanel.module.css';
 
 export interface ParticipantsPanelProps {
@@ -399,7 +400,7 @@ export const ParticipantsPanel: React.FC<ParticipantsPanelProps> = ({
           <div>
             {auditList.slice(0, 5).map((entry) => (
               <div key={entry.id} className={styles.auditItem}>
-                <strong>{new Date(entry.createdAt).toLocaleString('pt-BR')}</strong> · {entry.action}
+                <strong>{new Date(entry.createdAt).toLocaleString('pt-BR')}</strong> · {formatAuditAction(entry.action)}
                 {entry.reason ? ` · Motivo: "${entry.reason}"` : ''}
               </div>
             ))}
