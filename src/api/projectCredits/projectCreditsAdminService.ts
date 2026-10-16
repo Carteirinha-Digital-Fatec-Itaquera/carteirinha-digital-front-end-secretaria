@@ -187,3 +187,21 @@ export async function getContributorHistory(
     },
   );
 }
+
+export function uploadContributorPhoto(id: string, expectedVersion: number, photo: File) {
+  const body = new FormData();
+  body.append('photo', photo);
+  body.append('expectedVersion', String(expectedVersion));
+  body.append('photoConfirmed', 'true');
+  return apiRequest<AdminProjectContributorDetail>(
+    `/project-credits/admin/contributors/${encodeURIComponent(id)}/photo`,
+    { method: 'POST', authenticated: true, body },
+  );
+}
+
+export function removeContributorPhoto(id: string, expectedVersion: number) {
+  return apiRequest<AdminProjectContributorDetail>(
+    `/project-credits/admin/contributors/${encodeURIComponent(id)}/photo`,
+    { method: 'DELETE', authenticated: true, body: JSON.stringify({ expectedVersion }) },
+  );
+}

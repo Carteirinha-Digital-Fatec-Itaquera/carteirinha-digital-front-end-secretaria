@@ -16,6 +16,8 @@ import MessageModal from '../../components/messageModal/MessageModal';
 import { useCreditMessages } from './useCreditMessages';
 import CreditsHistoryModal from './CreditsHistoryModal';
 import {
+  uploadContributorPhoto,
+  removeContributorPhoto,
   createContributorDraft,
   getAdminContributor,
   updateContributor,
@@ -74,6 +76,31 @@ export default function CreditsFormScreen() {
   const [publishedVersion, setPublishedVersion] = useState<number | null>(null);
   const [status, setStatus] = useState<'DRAFT' | 'PUBLISHED' | 'ARCHIVED'>('DRAFT');
   const [name, setName] = useState('');
+  const [savedId, setSavedId] = useState<string | undefined>();
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoUrl, setPhotoUrl] = useState<string | null>(null);
+  const [photoRemoved, setPhotoRemoved] = useState(false);
+  const [photoConfirmed, setPhotoConfirmed] = useState(false);
+  const [localPhotoUrl, setLocalPhotoUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!photoFile) { setLocalPhotoUrl(null); return; }
+    const url = URL.createObjectURL(photoFile);
+    setLocalPhotoUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [photoFile]);
+  const draftPhotoUrl = photoRemoved ? null : localPhotoUrl || photoUrl;
+
+  const selectPhoto = (file?: File) => {
+    if (!file) return;
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type) || file.size > 2 * 1024 * 1024) {
+      notify('Selecione uma imagem JPG, PNG ou WEBP de até 2 MB.');
+      return;
+    }
+    setPhotoFile(file);
+    setPhotoRemoved(false);
+    setPhotoConfirmed(false);
+  };
   const [profileConfirmed, setProfileConfirmed] = useState(false);
   const [participations, setParticipations] = useState<FormParticipation[]>([
     { semester: '', course: '', rolesString: '', contribution: '', confirmed: true },
@@ -91,15 +118,20 @@ export default function CreditsFormScreen() {
 
   // Load existing contributor
   const loadContributor = useCallback(async () => {
-    if (!id) return;
+    const targetId = id || savedId;
+    if (!targetId) return;
     setLoading(true);
     setErrorMessage(null);
     setVersionConflict(false);
     setPasswordExpired(false);
 
     try {
-      const data = await getAdminContributor(id);
+      const data = await getAdminContributor(targetId);
       setRawDetail(data);
+      setPhotoUrl(data.photoUrl || null);
+      setPhotoFile(null);
+      setPhotoRemoved(false);
+      setPhotoConfirmed(data.photoConfirmed);
       setName(data.name);
       setVersion(data.draftVersion);
       setPublishedVersion(data.publishedVersion);
@@ -139,7 +171,7 @@ export default function CreditsFormScreen() {
     } finally {
       setLoading(false);
     }
-  }, [id, navigate]);
+  }, [id, savedId, navigate]);
 
   useEffect(() => {
     if (isEditing) {
@@ -239,8 +271,43 @@ export default function CreditsFormScreen() {
     };
   };
 
+  const rememberSaved = (data: AdminProjectContributorDetail) => {
+    if (!id) setSavedId(data.id);
+    setVersion(data.draftVersion);
+    setPublishedVersion(data.publishedVersion);
+    setStatus(data.status);
+    setRawDetail(data);
+  };
+
+  // Keep each successful version, so retrying a failed upload/publication is safe.
+  const saveChanges = async (payload: ReturnType<typeof buildPayload>) => {
+    let targetId = id || savedId;
+    let targetVersion = version;
+    if (!targetId) {
+      const created = await createContributorDraft({ name: payload.name, profileConfirmed: payload.profileConfirmed });
+      rememberSaved(created);
+      targetId = created.id;
+      targetVersion = created.draftVersion;
+    }
+    let updated = await updateContributor(targetId, { expectedVersion: targetVersion, ...payload });
+    rememberSaved(updated);
+    if (photoFile) {
+      updated = await uploadContributorPhoto(targetId, updated.draftVersion, photoFile);
+    } else if (photoRemoved) {
+      updated = await removeContributorPhoto(targetId, updated.draftVersion);
+    }
+    rememberSaved(updated);
+    setPhotoFile(null);
+    setPhotoRemoved(false);
+    setPhotoUrl(updated.photoUrl || null);
+    setPhotoConfirmed(updated.photoConfirmed);
+    return updated;
+  };
+
   // Save Draft
   const handleSaveDraft = async () => {
+    if (submitting) return;
+    if (photoFile && !photoConfirmed) { notify('Confirme a autorização para utilizar a foto.'); return; }
     if (!name.trim()) {
       notify('Informe o nome do colaborador antes de salvar o rascunho.');
       return;
@@ -252,34 +319,9 @@ export default function CreditsFormScreen() {
     setVersionConflict(false);
 
     try {
-      const payload = buildPayload();
-
-      if (!id) {
-        const created = await createContributorDraft({
-          name: payload.name,
-          profileConfirmed: payload.profileConfirmed,
-        });
-
-        // If there were participations or links added before initial creation, save them now
-        if (payload.participations.length > 0 || payload.links.length > 0) {
-          const updated = await updateContributor(created.id, {
-            expectedVersion: created.draftVersion,
-            ...payload,
-          });
-          navigate(`/creditos/${updated.id}/editar`, { replace: true });
-        } else {
-          navigate(`/creditos/${created.id}/editar`, { replace: true });
-        }
-      } else {
-        const updated = await updateContributor(id, {
-          expectedVersion: version,
-          ...payload,
-        });
-        setVersion(updated.draftVersion);
-        setPublishedVersion(updated.publishedVersion);
-        setStatus(updated.status);
-        setSuccessMessage('Rascunho salvo com sucesso!');
-      }
+      const updated = await saveChanges(buildPayload());
+      setSuccessMessage('Rascunho salvo com sucesso!');
+      if (!id) navigate(`/creditos/${updated.id}/editar`, { replace: true });
     } catch (err: unknown) {
       if (err instanceof ApiRequestError) {
         if (err.status === 409) {
@@ -299,6 +341,8 @@ export default function CreditsFormScreen() {
 
   // Publish
   const handlePublish = async () => {
+    if (submitting) return;
+    if (photoFile && !photoConfirmed) { notify('Confirme a autorização para utilizar a foto.'); return; }
     if (!name.trim()) {
       notify('O nome do colaborador é obrigatório para publicação.');
       return;
@@ -343,30 +387,12 @@ export default function CreditsFormScreen() {
     setVersionConflict(false);
 
     try {
-      let targetId = id;
-      let targetVersion = version;
-
-      if (!targetId) {
-        const created = await createContributorDraft({
-          name: payload.name,
-          profileConfirmed: true,
-        });
-        targetId = created.id;
-        targetVersion = created.draftVersion;
-      }
-
-      // First save all changes
-      const updated = await updateContributor(targetId, {
-        expectedVersion: targetVersion,
-        ...payload,
-      });
-
-      // Then publish
-      const published = await publishContributor(targetId, {
+      const updated = await saveChanges(payload);
+      const published = await publishContributor(updated.id, {
         expectedVersion: updated.draftVersion,
         profileConfirmed: true,
       });
-
+      rememberSaved(published);
       setVersion(published.draftVersion);
       setPublishedVersion(published.publishedVersion);
       setStatus(published.status);
@@ -400,7 +426,7 @@ export default function CreditsFormScreen() {
     return {
       id: id || 'preview-temp-id',
       name: name.trim() || 'Nome do Colaborador',
-      photoUrl: null,
+      photoUrl: draftPhotoUrl,
       participations: participations
         .filter((p) => p.semester.trim())
         .map((p) => ({
@@ -420,7 +446,7 @@ export default function CreditsFormScreen() {
           href: l.url.trim(),
         })),
     };
-  }, [id, name, participations, links, previewTab, rawDetail]);
+  }, [id, name, participations, links, previewTab, rawDetail, draftPhotoUrl]);
 
   const editGroups = groupForEditing(participations);
   const semesterOptions = semesterChoices(participations);
@@ -608,15 +634,27 @@ export default function CreditsFormScreen() {
                 />
               </div>
 
-              <div className={styles.formGroup} aria-label="Foto de perfil demonstrativa">
-                <label>Foto de perfil — em breve</label>
+              <div className={styles.formGroup}>
+                <label htmlFor="contributor-photo">Foto de perfil</label>
                 <div className={styles.photoRow}>
-                  <div className={styles.photoPreviewFrame} aria-hidden="true">
-                    <span>{name.trim().charAt(0).toLocaleUpperCase('pt-BR') || '?'}</span>
+                  <div className={styles.photoPreviewFrame}>
+                    {draftPhotoUrl ? <img src={draftPhotoUrl} alt={`Foto de ${name || 'colaborador'}`} />
+                      : <span>{name.trim().charAt(0).toLocaleUpperCase('pt-BR') || '?'}</span>}
                   </div>
                   <div className={styles.photoActions}>
-                    <button type="button" className={styles.secondaryButton} disabled>Selecionar imagem</button>
-                    <small>Área demonstrativa. O envio de fotos ainda não está disponível.</small>
+                    <input id="contributor-photo" type="file" accept="image/jpeg,image/png,image/webp"
+                      disabled={submitting} aria-describedby="photo-help"
+                      onChange={(event) => { selectPhoto(event.target.files?.[0]); event.target.value = ''; }} />
+                    <small id="photo-help">JPG, PNG ou WEBP de até 2 MB. A imagem será otimizada ao salvar e divulgada somente após publicar.</small>
+                    {(photoFile || draftPhotoUrl) && <button type="button" className={styles.secondaryButton}
+                      disabled={submitting} onClick={() => { setPhotoFile(null); setPhotoRemoved(true); setPhotoConfirmed(false); }}>
+                      Remover foto
+                    </button>}
+                    {photoFile && <label className={styles.checkboxLabel}>
+                      <input type="checkbox" checked={photoConfirmed} disabled={submitting}
+                        onChange={(event) => setPhotoConfirmed(event.target.checked)} />
+                      Confirmo a autorização do colaborador para publicar esta foto.
+                    </label>}
                   </div>
                 </div>
               </div>

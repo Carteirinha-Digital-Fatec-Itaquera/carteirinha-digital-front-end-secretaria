@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter, Route, Routes, Navigate } from 'react-router-dom';
 import ProjectCreditsScreen from './ProjectCreditsScreen';
 import CreditsFormScreen from './CreditsFormScreen';
@@ -19,7 +19,7 @@ vi.mock('../../api/projectCredits/projectCreditsAdminService', () => ({
         draftVersion: 1,
         publishedVersion: 1,
         hasUnpublishedChanges: false,
-        semesters: ['2026-1'],
+        semesters: ['2026.1'],
         roles: ['Desenvolvedor'],
         updatedAt: '2026-10-01T00:00:00.000Z',
       },
@@ -57,11 +57,19 @@ vi.mock('../../api/projectCredits/projectCreditsService', () => ({
       {
         id: 'c1',
         name: 'Desenvolvedor Teste',
-        participations: [{ semester: '2026-1', roles: ['Desenvolvedor'] }],
+        photoUrl: 'https://api.example.com/project-credits/c1/photo/published-photo',
+        participations: [{ semester: '2026.1', roles: ['Desenvolvedor'] }],
+        contacts: [],
+      },
+      {
+        id: 'c2',
+        name: 'Aluna Sem Foto',
+        photoUrl: null,
+        participations: [{ semester: '2025.1', roles: ['Colaboradora'] }],
         contacts: [],
       },
     ],
-    semesters: ['2026-1'],
+    semesters: ['2026.1'],
     total: 1,
   }),
 }));
@@ -128,7 +136,28 @@ describe('Unified Credits Screens Layout & Responsiveness Scaffold', () => {
       expect(screen.queryByTestId('mock-menu-lateral')).not.toBeInTheDocument();
       expect(screen.queryByRole('link', { name: /novo colaborador/i })).not.toBeInTheDocument();
       expect(screen.getByText('Desenvolvedor Teste')).toBeInTheDocument();
+      expect(screen.getByRole('img', { name: 'Foto de Desenvolvedor Teste' })).toHaveAttribute(
+        'src', 'https://api.example.com/project-credits/c1/photo/published-photo',
+      );
+      expect(screen.getByText('Aluna Sem Foto')).toBeInTheDocument();
+      expect(screen.getByText('AF')).toBeInTheDocument();
+      expect(screen.queryByRole('img', { name: 'Foto de Aluna Sem Foto' })).not.toBeInTheDocument();
     });
+
+    const semesterSelect = screen.getByRole('combobox', { name: 'Semestre' });
+    expect(semesterSelect).toHaveValue('all');
+    expect(screen.getByRole('option', { name: 'Todos os semestres' })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: '1º sem de 2025' })).toHaveValue('2025.1');
+    expect(screen.getByRole('heading', { name: '1º sem de 2025' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Todos os semestres' })).not.toBeInTheDocument();
+
+    fireEvent.change(semesterSelect, { target: { value: '2025.1' } });
+    expect(screen.getByText('Aluna Sem Foto')).toBeInTheDocument();
+    expect(screen.queryByText('Desenvolvedor Teste')).not.toBeInTheDocument();
+
+    fireEvent.change(semesterSelect, { target: { value: 'all' } });
+    expect(screen.getByText('Aluna Sem Foto')).toBeInTheDocument();
+    expect(screen.getByText('Desenvolvedor Teste')).toBeInTheDocument();
   });
 
   it('renders CreditsFormScreen inside layoutContainer and provides accessible buttons and inputs', async () => {

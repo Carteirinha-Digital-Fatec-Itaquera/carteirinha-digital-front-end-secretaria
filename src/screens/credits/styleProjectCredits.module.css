@@ -12,10 +12,10 @@
 .sectionHeading { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-top: 4px; }
 .sectionHeading h2 { margin: 0; color: var(--app-color-text); font-size: 1.35rem; font-weight: 700; line-height: 1.25; }
 .sectionHeading p { max-width: 420px; margin: 0; color: var(--app-color-muted); font-size: 1rem; line-height: 1.6; }
-.filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px; }
-.filters button { min-height: 44px; padding: 8px 14px; border: 1px solid var(--app-color-border); border-radius: 999px; background: var(--app-color-surface); color: var(--app-color-text); cursor: pointer; }
-.filters button[aria-pressed="true"] { border-color: var(--app-color-primary); background: var(--app-color-primary); color: #fff; }
-.filters button:focus-visible, .backLink:focus-visible, .contactLink:focus-visible { outline: 3px solid #ffdb77; outline-offset: 3px; }
+.filters { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; margin-bottom: 24px; }
+.filters label { color: var(--app-color-text); font-weight: 600; }
+.filters select { width: 100%; max-width: 320px; min-height: 44px; padding: 8px 14px; border: 1px solid var(--app-color-border); border-radius: 8px; background-color: var(--app-color-surface); color: var(--app-color-text); font: inherit; cursor: pointer; appearance: auto; }
+.filters select:focus-visible, .backLink:focus-visible, .contactLink:focus-visible { outline: 3px solid #ffdb77; outline-offset: 3px; }
 .list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
 .card { display: grid; grid-template-columns: 52px minmax(0, 1fr); align-items: start; gap: 16px; padding: 24px; border: 1px solid var(--app-color-border); border-radius: var(--app-radius-card); background: var(--app-color-surface); box-shadow: var(--app-shadow); }
 .avatar { display: grid; width: 52px; height: 52px; place-items: center; border-radius: 50%; background: #eaf4f5; color: var(--app-color-primary); font-size: 1.3rem; font-weight: 700; overflow: hidden; flex-shrink: 0; }
