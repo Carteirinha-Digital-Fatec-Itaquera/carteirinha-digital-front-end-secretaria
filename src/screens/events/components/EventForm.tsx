@@ -16,7 +16,10 @@ import {
 import {
   management,
   openManagementPdf,
+  uploadAsset,
   type Catalog,
+  type Template,
+  type Signer,
 } from '../../../api/event/publicEventService';
 import styles from './styleEventForm.module.css';
 
@@ -106,8 +109,38 @@ export function EventForm({
     initialValue?.certificatePolicies?.SPEAKER?.signerIds ?? []
   );
 
+  // Estados para modal de subir novo formato de certificado
+  const [showTemplateModal, setShowTemplateModal] = useState(false);
+  const [templateModalRole, setTemplateModalRole] = useState<'ATTENDEE' | 'SPEAKER'>('ATTENDEE');
+  const [newTemplateName, setNewTemplateName] = useState('');
+  const [newTemplateHeading, setNewTemplateHeading] = useState('CERTIFICADO');
+  const [newTemplateEdition, setNewTemplateEdition] = useState('');
+  const [newTemplateFile, setNewTemplateFile] = useState<File | null>(null);
+  const [newTemplateLoading, setNewTemplateLoading] = useState(false);
+  const [newTemplateError, setNewTemplateError] = useState<string | null>(null);
+
+  // Estados para modal de novo assinante
+  const [showSignerModal, setShowSignerModal] = useState(false);
+  const [newSignerName, setNewSignerName] = useState('');
+  const [newSignerTitle, setNewSignerTitle] = useState('');
+  const [newSignerCourse, setNewSignerCourse] = useState('');
+  const [newSignerFile, setNewSignerFile] = useState<File | null>(null);
+  const [newSignerAuthorized, setNewSignerAuthorized] = useState(false);
+  const [newSignerLoading, setNewSignerLoading] = useState(false);
+  const [newSignerError, setNewSignerError] = useState<string | null>(null);
+
   // Catálogo público de modelos, assinantes e local padrão
   const [catalog, setCatalog] = useState<Catalog | null>(null);
+
+  const reloadCatalog = useCallback(async () => {
+    try {
+      const cat = await management<Catalog>('catalog', undefined, 'GET');
+      setCatalog(cat);
+      return cat;
+    } catch {
+      return null;
+    }
+  }, []);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -360,6 +393,117 @@ export function EventForm({
           ? [...prev, id]
           : prev
       );
+    }
+  }
+
+  function openNewTemplateModal(role: 'ATTENDEE' | 'SPEAKER') {
+    setTemplateModalRole(role);
+    setNewTemplateName('');
+    setNewTemplateHeading('CERTIFICADO');
+    setNewTemplateEdition(title ? `${title} — Fatec Itaquera` : 'Semana de Tecnologia — Fatec Itaquera');
+    setNewTemplateFile(null);
+    setNewTemplateError(null);
+    setShowTemplateModal(true);
+  }
+
+  async function handleSaveNewTemplate(e: React.FormEvent) {
+    e.preventDefault();
+    setNewTemplateError(null);
+    const trimmedName = newTemplateName.trim();
+    if (trimmedName.length < 3) {
+      setNewTemplateError('O nome do modelo deve ter pelo menos 3 caracteres.');
+      return;
+    }
+    const trimmedEdition = newTemplateEdition.trim();
+    if (trimmedEdition.length < 3) {
+      setNewTemplateError('A edição/identificação do evento deve ter pelo menos 3 caracteres.');
+      return;
+    }
+
+    setNewTemplateLoading(true);
+    try {
+      let backgroundAssetId: string | undefined;
+      if (newTemplateFile) {
+        const uploadRes = await uploadAsset(newTemplateFile, 'BACKGROUND');
+        backgroundAssetId = uploadRes.id;
+      }
+
+      const created = await management<Template>(
+        'templates',
+        {
+          name: trimmedName,
+          role: templateModalRole,
+          heading: (newTemplateHeading || 'CERTIFICADO').trim(),
+          edition: trimmedEdition,
+          backgroundAssetId,
+          autoPublish: true,
+        },
+        'POST'
+      );
+
+      await reloadCatalog();
+      if (templateModalRole === 'ATTENDEE') {
+        setAttendeeTemplateId(created.id);
+      } else {
+        setSpeakerTemplateId(created.id);
+      }
+
+      setShowTemplateModal(false);
+    } catch (err: unknown) {
+      setNewTemplateError(
+        err instanceof Error ? err.message : 'Erro ao cadastrar novo modelo de certificado.'
+      );
+    } finally {
+      setNewTemplateLoading(false);
+    }
+  }
+
+  async function handleSaveNewSigner(e: React.FormEvent) {
+    e.preventDefault();
+    setNewSignerError(null);
+    const trimmedName = newSignerName.trim();
+    if (trimmedName.length < 3) {
+      setNewSignerError('Informe o nome completo do responsável.');
+      return;
+    }
+    const trimmedTitle = newSignerTitle.trim();
+    if (trimmedTitle.length < 3) {
+      setNewSignerError('Informe o cargo ou título.');
+      return;
+    }
+    if (!newSignerFile) {
+      setNewSignerError('Selecione o arquivo com a imagem da assinatura.');
+      return;
+    }
+    if (!newSignerAuthorized) {
+      setNewSignerError('Confirme a autorização de uso da assinatura.');
+      return;
+    }
+
+    setNewSignerLoading(true);
+    try {
+      const uploadRes = await uploadAsset(newSignerFile, 'SIGNATURE');
+      const created = await management<Signer>(
+        'signers',
+        {
+          name: trimmedName,
+          title: trimmedTitle,
+          course: newSignerCourse.trim() || undefined,
+          assetId: uploadRes.id,
+          authorized: true,
+        },
+        'POST'
+      );
+
+      await reloadCatalog();
+      setSignerIds((prev) => (prev.length < 3 ? [...prev, created.id] : prev));
+      setShowSignerModal(false);
+    } catch (err: unknown) {
+      setNewSignerError(
+        err instanceof Error ? err.message : 'Erro ao cadastrar assinante.'
+      );
+    } finally {
+      setNewSignerLoading(false);
     }
   }
 
@@ -922,15 +1066,29 @@ export function EventForm({
                     onChange={(e) => setAttendeeTemplateId(e.target.value)}
                     className={styles.fieldSelect}
                   >
-                    <option value="">Modelo institucional padrão</option>
+                    <option value="">Modelo Institucional Padrão Fatec</option>
                     {catalog?.templates
                       .filter((t) => t.status === 'PUBLISHED' && t.role === 'ATTENDEE')
                       .map((t) => (
                         <option key={t.id} value={t.id}>
-                          {t.name} · v{t.version}
+                          {t.name.includes('Semana de Tecnologia')
+                            ? `${t.name} (Modelo Oficial Pronto)`
+                            : `${t.name} · v${t.version}`}
                         </option>
                       ))}
                   </select>
+                  <div className={styles.templateActionRow}>
+                    <span className={styles.hintText}>
+                      Escolha um modelo pronto ou suba uma arte personalizada.
+                    </span>
+                    <button
+                      type="button"
+                      className={styles.secondaryActionBtn}
+                      onClick={() => openNewTemplateModal('ATTENDEE')}
+                    >
+                      + Subir novo formato de certificado
+                    </button>
+                  </div>
                 </div>
 
                 <div className={styles.fieldGroup}>
@@ -944,15 +1102,29 @@ export function EventForm({
                     onChange={(e) => setSpeakerTemplateId(e.target.value)}
                     className={styles.fieldSelect}
                   >
-                    <option value="">Não personalizar certificado de palestrante</option>
+                    <option value="">Padrão institucional (sem personalização de palestrante)</option>
                     {catalog?.templates
                       .filter((t) => t.status === 'PUBLISHED' && t.role === 'SPEAKER')
                       .map((t) => (
                         <option key={t.id} value={t.id}>
-                          {t.name} · v{t.version}
+                          {t.name.includes('Semana de Tecnologia')
+                            ? `${t.name} (Modelo Oficial Pronto)`
+                            : `${t.name} · v${t.version}`}
                         </option>
                       ))}
                   </select>
+                  <div className={styles.templateActionRow}>
+                    <span className={styles.hintText}>
+                      Opcional para palestras e convidados.
+                    </span>
+                    <button
+                      type="button"
+                      className={styles.secondaryActionBtn}
+                      onClick={() => openNewTemplateModal('SPEAKER')}
+                    >
+                      + Subir formato para palestrante
+                    </button>
+                  </div>
                 </div>
               </div>
 
@@ -977,7 +1149,22 @@ export function EventForm({
                         </label>
                       ))}
                   </div>
-                  <div style={{ marginTop: '6px' }}>
+                  <div style={{ marginTop: '8px', display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                    <button
+                      type="button"
+                      className={styles.secondaryActionBtn}
+                      onClick={() => {
+                        setNewSignerName('');
+                        setNewSignerTitle('');
+                        setNewSignerCourse(organizerCourse || '');
+                        setNewSignerFile(null);
+                        setNewSignerAuthorized(false);
+                        setNewSignerError(null);
+                        setShowSignerModal(true);
+                      }}
+                    >
+                      + Cadastrar novo assinante
+                    </button>
                     <button
                       type="button"
                       className={styles.previewBtn}
@@ -1011,7 +1198,22 @@ export function EventForm({
                         </label>
                       ))}
                   </div>
-                  <div style={{ marginTop: '6px' }}>
+                  <div style={{ marginTop: '8px', display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                    <button
+                      type="button"
+                      className={styles.secondaryActionBtn}
+                      onClick={() => {
+                        setNewSignerName('');
+                        setNewSignerTitle('');
+                        setNewSignerCourse(organizerCourse || '');
+                        setNewSignerFile(null);
+                        setNewSignerAuthorized(false);
+                        setNewSignerError(null);
+                        setShowSignerModal(true);
+                      }}
+                    >
+                      + Cadastrar novo assinante
+                    </button>
                     <button
                       type="button"
                       className={styles.previewBtn}
@@ -1054,6 +1256,243 @@ export function EventForm({
           </button>
         </div>
       </form>
+
+      {showTemplateModal && (
+        <div
+          className={styles.modalOverlay}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="templateModalTitle"
+        >
+          <div className={styles.modalCard}>
+            <div className={styles.modalHeader}>
+              <h3 id="templateModalTitle" className={styles.modalTitle}>
+                Subir Novo Formato de Certificado ({templateModalRole === 'ATTENDEE' ? 'Participante' : 'Palestrante'})
+              </h3>
+              <button
+                type="button"
+                className={styles.modalCloseBtn}
+                onClick={() => setShowTemplateModal(false)}
+                aria-label="Fechar"
+              >
+                &times;
+              </button>
+            </div>
+            <form onSubmit={handleSaveNewTemplate} noValidate>
+              <div className={styles.modalBody}>
+                {newTemplateError && (
+                  <div className={styles.modalErrorBanner} role="alert">
+                    {newTemplateError}
+                  </div>
+                )}
+                <div className={styles.fieldGroup}>
+                  <label htmlFor="modalTemplateName" className={styles.fieldLabel}>
+                    Nome do modelo
+                  </label>
+                  <input
+                    id="modalTemplateName"
+                    type="text"
+                    required
+                    placeholder="Ex: Palestra Inteligência Artificial - Outubro"
+                    value={newTemplateName}
+                    onChange={(e) => setNewTemplateName(e.target.value)}
+                    className={styles.fieldInput}
+                  />
+                </div>
+                <div className={styles.fieldGroup}>
+                  <label htmlFor="modalTemplateHeading" className={styles.fieldLabel}>
+                    Título do cabeçalho
+                  </label>
+                  <input
+                    id="modalTemplateHeading"
+                    type="text"
+                    required
+                    placeholder="CERTIFICADO"
+                    value={newTemplateHeading}
+                    onChange={(e) => setNewTemplateHeading(e.target.value)}
+                    className={styles.fieldInput}
+                  />
+                </div>
+                <div className={styles.fieldGroup}>
+                  <label htmlFor="modalTemplateEdition" className={styles.fieldLabel}>
+                    Edição / Identificação do Evento
+                  </label>
+                  <input
+                    id="modalTemplateEdition"
+                    type="text"
+                    required
+                    placeholder="Ex: VIII Jornada de Tecnologia — Fatec Itaquera"
+                    value={newTemplateEdition}
+                    onChange={(e) => setNewTemplateEdition(e.target.value)}
+                    className={styles.fieldInput}
+                  />
+                </div>
+                <div className={styles.fieldGroup}>
+                  <label htmlFor="modalTemplateFile" className={styles.fieldLabel}>
+                    Arte de Fundo / Layout do Certificado (Opcional)
+                  </label>
+                  <div className={styles.fileUploadBox}>
+                    <input
+                      id="modalTemplateFile"
+                      type="file"
+                      accept="image/png,image/jpeg"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0] || null;
+                        setNewTemplateFile(file);
+                      }}
+                      className={styles.fileUploadInput}
+                    />
+                    <span className={styles.fileUploadNote}>
+                      Envie uma imagem limpa (PNG ou JPG até 2MB). Se não enviar imagem, será utilizada a composição visual padrão da Fatec.
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div className={styles.modalFooter}>
+                <button
+                  type="button"
+                  className={styles.discardButton}
+                  onClick={() => setShowTemplateModal(false)}
+                  disabled={newTemplateLoading}
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className={styles.submitButton}
+                  disabled={newTemplateLoading}
+                >
+                  {newTemplateLoading ? 'Enviando...' : 'Salvar e Usar Formato'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {showSignerModal && (
+        <div
+          className={styles.modalOverlay}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="signerModalTitle"
+        >
+          <div className={styles.modalCard}>
+            <div className={styles.modalHeader}>
+              <h3 id="signerModalTitle" className={styles.modalTitle}>
+                Cadastrar Novo Assinante Autorizado
+              </h3>
+              <button
+                type="button"
+                className={styles.modalCloseBtn}
+                onClick={() => setShowSignerModal(false)}
+                aria-label="Fechar"
+              >
+                &times;
+              </button>
+            </div>
+            <form onSubmit={handleSaveNewSigner} noValidate>
+              <div className={styles.modalBody}>
+                {newSignerError && (
+                  <div className={styles.modalErrorBanner} role="alert">
+                    {newSignerError}
+                  </div>
+                )}
+                <div className={styles.fieldGroup}>
+                  <label htmlFor="modalSignerName" className={styles.fieldLabel}>
+                    Nome completo
+                  </label>
+                  <input
+                    id="modalSignerName"
+                    type="text"
+                    required
+                    placeholder="Ex: Prof. Dr. Carlos Henrique"
+                    value={newSignerName}
+                    onChange={(e) => setNewSignerName(e.target.value)}
+                    className={styles.fieldInput}
+                  />
+                </div>
+                <div className={styles.fieldGroup}>
+                  <label htmlFor="modalSignerTitle" className={styles.fieldLabel}>
+                    Cargo / Função
+                  </label>
+                  <input
+                    id="modalSignerTitle"
+                    type="text"
+                    required
+                    placeholder="Ex: Coordenador do Curso de DSM"
+                    value={newSignerTitle}
+                    onChange={(e) => setNewSignerTitle(e.target.value)}
+                    className={styles.fieldInput}
+                  />
+                </div>
+                <div className={styles.fieldGroup}>
+                  <label htmlFor="modalSignerCourse" className={styles.fieldLabel}>
+                    Curso (Opcional)
+                  </label>
+                  <input
+                    id="modalSignerCourse"
+                    type="text"
+                    placeholder="Ex: DSM"
+                    value={newSignerCourse}
+                    onChange={(e) => setNewSignerCourse(e.target.value)}
+                    className={styles.fieldInput}
+                  />
+                </div>
+                <div className={styles.fieldGroup}>
+                  <label htmlFor="modalSignerFile" className={styles.fieldLabel}>
+                    Imagem da Assinatura (PNG transparente)
+                  </label>
+                  <div className={styles.fileUploadBox}>
+                    <input
+                      id="modalSignerFile"
+                      type="file"
+                      accept="image/png"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0] || null;
+                        setNewSignerFile(file);
+                      }}
+                      className={styles.fileUploadInput}
+                    />
+                    <span className={styles.fileUploadNote}>
+                      Envie a imagem da assinatura em formato PNG com fundo transparente.
+                    </span>
+                  </div>
+                </div>
+                <label htmlFor="modalSignerAuthorized" className={styles.checkboxLabel} style={{ marginTop: '4px' }}>
+                  <input
+                    id="modalSignerAuthorized"
+                    type="checkbox"
+                    className={styles.checkboxInput}
+                    checked={newSignerAuthorized}
+                    onChange={(e) => setNewSignerAuthorized(e.target.checked)}
+                  />
+                  <span>
+                    Confirmo que esta assinatura possui autorização formal para emissão de certificados.
+                  </span>
+                </label>
+              </div>
+              <div className={styles.modalFooter}>
+                <button
+                  type="button"
+                  className={styles.discardButton}
+                  onClick={() => setShowSignerModal(false)}
+                  disabled={newSignerLoading}
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className={styles.submitButton}
+                  disabled={newSignerLoading}
+                >
+                  {newSignerLoading ? 'Cadastrando...' : 'Cadastrar Assinante'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
