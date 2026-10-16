@@ -32,8 +32,8 @@ import type {
   ProjectCreditStatus,
   ProjectCreditsResponse,
 } from '../../domains/ProjectCredits';
-import { isApprovedProjectCreditHref, formatSemester } from '../../utils/projectCreditContact';
-import { groupDisplayParticipations, shortRange } from './creditsParticipationUi';
+import { isApprovedProjectCreditHref } from '../../utils/projectCreditContact';
+import { groupDisplayParticipations, shortRange, shortSemester } from './creditsParticipationUi';
 import adminStyles from './styleCreditsAdmin.module.css';
 import publicStyles from './styleProjectCredits.module.css';
 import layoutStyles from '../../styles/layoutWithMenu.module.css';
@@ -283,7 +283,7 @@ function SecretaryCreditsView() {
                   <option value="ALL">Todos os semestres</option>
                   {availableSemesters.map((s) => (
                     <option key={s} value={s}>
-                      {formatSemester(s)}
+                      {shortSemester(s)}
                     </option>
                   ))}
                 </select>
@@ -366,7 +366,7 @@ function SecretaryCreditsView() {
                           <div className={adminStyles.cardTags}>
                             {c.semesters?.map((s) => (
                               <span key={s} className={adminStyles.cardTag}>
-                                {formatSemester(s)}
+                                {shortSemester(s)}
                               </span>
                             ))}
                           </div>
@@ -638,24 +638,20 @@ function PublicCreditsView() {
         </section>
 
         {semesters.length > 0 && (
-          <div className={publicStyles.filters} role="group" aria-label="Filtrar créditos por semestre">
-            <button
-              type="button"
-              aria-pressed={semester === 'all'}
-              onClick={() => setSemester('all')}
+          <div className={publicStyles.filters}>
+            <label htmlFor="public-credits-semester">Semestre</label>
+            <select
+              id="public-credits-semester"
+              value={semester}
+              onChange={(event) => setSemester(event.target.value)}
             >
-              Todos os semestres
-            </button>
-            {semesters.map((value) => (
-              <button
-                key={value}
-                type="button"
-                aria-pressed={semester === value}
-                onClick={() => setSemester(value)}
-              >
-                {formatSemester(value)}
-              </button>
-            ))}
+              <option value="all">Todos os semestres</option>
+              {semesters.map((value) => (
+                <option key={value} value={value}>
+                  {shortSemester(value)}
+                </option>
+              ))}
+            </select>
           </div>
         )}
 
@@ -687,8 +683,16 @@ function PublicCreditsView() {
 
               return (
                 <article key={person.id} className={publicStyles.card}>
-                  <div className={publicStyles.avatar} aria-hidden="true">
-                    {getInitials(person.name)}
+                  <div className={publicStyles.avatar}>
+                    {person.photoUrl ? (
+                      <img
+                        src={person.photoUrl}
+                        alt={'Foto de ' + person.name}
+                        className={publicStyles.avatarImage}
+                      />
+                    ) : (
+                      <span aria-hidden="true">{getInitials(person.name)}</span>
+                    )}
                   </div>
                   <div className={publicStyles.cardContent}>
                     <h2>{person.name}</h2>
