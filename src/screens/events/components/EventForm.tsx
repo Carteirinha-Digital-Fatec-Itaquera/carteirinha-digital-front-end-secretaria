@@ -129,6 +129,18 @@ export function EventForm({
   const [newSignerLoading, setNewSignerLoading] = useState(false);
   const [newSignerError, setNewSignerError] = useState<string | null>(null);
 
+  // Estados para campo direto de subida de assinatura do certificado
+  const [inlineSignerFile, setInlineSignerFile] = useState<File | null>(null);
+  const [inlineSignerName, setInlineSignerName] = useState('');
+  const [inlineSignerTitle, setInlineSignerTitle] = useState('');
+  const [inlineSignerCourse, setInlineSignerCourse] = useState('');
+  const [inlineSignerAuthorized, setInlineSignerAuthorized] = useState(true);
+  const [inlineSignerLoading, setInlineSignerLoading] = useState(false);
+  const [inlineSignerFeedback, setInlineSignerFeedback] = useState<{
+    type: 'success' | 'error';
+    message: string;
+  } | null>(null);
+
   // Catálogo público de modelos, assinantes e local padrão
   const [catalog, setCatalog] = useState<Catalog | null>(null);
 
@@ -136,23 +148,53 @@ export function EventForm({
     try {
       const cat = await management<Catalog>('catalog', undefined, 'GET');
       setCatalog(cat);
+      if (!attendeeTemplateId && cat.templates?.length) {
+        const defaultTpl =
+          cat.templates.find(
+            (t) =>
+              t.status === 'PUBLISHED' &&
+              t.role === 'ATTENDEE' &&
+              (t.name.includes('Semana de Tecnologia') || t.name.includes('Padrão'))
+          ) ||
+          cat.templates.find(
+            (t) => t.status === 'PUBLISHED' && t.role === 'ATTENDEE'
+          );
+        if (defaultTpl) {
+          setAttendeeTemplateId(defaultTpl.id);
+        }
+      }
       return cat;
     } catch {
       return null;
     }
-  }, []);
+  }, [attendeeTemplateId]);
 
   useEffect(() => {
     const controller = new AbortController();
     management<Catalog>('catalog', undefined, 'GET', controller.signal)
       .then((cat) => {
         setCatalog(cat);
+        if (!attendeeTemplateId && cat.templates?.length) {
+          const defaultTpl =
+            cat.templates.find(
+              (t) =>
+                t.status === 'PUBLISHED' &&
+                t.role === 'ATTENDEE' &&
+                (t.name.includes('Semana de Tecnologia') || t.name.includes('Padrão'))
+            ) ||
+            cat.templates.find(
+              (t) => t.status === 'PUBLISHED' && t.role === 'ATTENDEE'
+            );
+          if (defaultTpl) {
+            setAttendeeTemplateId(defaultTpl.id);
+          }
+        }
       })
       .catch(() => {
         // Fallback silencioso
       });
     return () => controller.abort();
-  }, []);
+  }, [attendeeTemplateId]);
 
   // Inicializa carga horária e datas a partir do initialValue se existente
   const initialSchedule = initialValue
@@ -504,6 +546,76 @@ export function EventForm({
       );
     } finally {
       setNewSignerLoading(false);
+    }
+  }
+
+  async function handleUploadInlineSigner() {
+    setInlineSignerFeedback(null);
+    if (!inlineSignerFile) {
+      setInlineSignerFeedback({
+        type: 'error',
+        message: 'Selecione o arquivo da imagem da assinatura para fazer a subida.',
+      });
+      return;
+    }
+    const trimmedName = inlineSignerName.trim();
+    if (trimmedName.length < 3) {
+      setInlineSignerFeedback({
+        type: 'error',
+        message: 'Informe o nome completo do responsável pela assinatura (mínimo 3 caracteres).',
+      });
+      return;
+    }
+    const trimmedTitle = inlineSignerTitle.trim();
+    if (trimmedTitle.length < 3) {
+      setInlineSignerFeedback({
+        type: 'error',
+        message: 'Informe o cargo ou função do assinante (mínimo 3 caracteres).',
+      });
+      return;
+    }
+    if (!inlineSignerAuthorized) {
+      setInlineSignerFeedback({
+        type: 'error',
+        message: 'Confirme a autorização de uso desta assinatura.',
+      });
+      return;
+    }
+
+    setInlineSignerLoading(true);
+    try {
+      const uploadRes = await uploadAsset(inlineSignerFile, 'SIGNATURE');
+      const created = await management<Signer>(
+        'signers',
+        {
+          name: trimmedName,
+          title: trimmedTitle,
+          course: inlineSignerCourse.trim() || undefined,
+          assetId: uploadRes.id,
+          authorized: true,
+        },
+        'POST'
+      );
+
+      await reloadCatalog();
+      setSignerIds((prev) =>
+        prev.includes(created.id) ? prev : prev.length < 3 ? [...prev, created.id] : prev
+      );
+      setInlineSignerFile(null);
+      setInlineSignerName('');
+      setInlineSignerTitle('');
+      setInlineSignerCourse('');
+      setInlineSignerFeedback({
+        type: 'success',
+        message: `Assinatura de "${created.name}" subida com sucesso e vinculada ao certificado!`,
+      });
+    } catch (err: unknown) {
+      setInlineSignerFeedback({
+        type: 'error',
+        message: err instanceof Error ? err.message : 'Erro ao subir a assinatura.',
+      });
+    } finally {
+      setInlineSignerLoading(false);
     }
   }
 
@@ -1073,6 +1185,8 @@ export function EventForm({
                         <option key={t.id} value={t.id}>
                           {t.name.includes('Semana de Tecnologia')
                             ? `${t.name} (Modelo Oficial Pronto)`
+                            : t.name.includes('Padrão')
+                            ? `${t.name} (Oficial Fatec)`
                             : `${t.name} · v${t.version}`}
                         </option>
                       ))}
@@ -1109,6 +1223,8 @@ export function EventForm({
                         <option key={t.id} value={t.id}>
                           {t.name.includes('Semana de Tecnologia')
                             ? `${t.name} (Modelo Oficial Pronto)`
+                            : t.name.includes('Padrão')
+                            ? `${t.name} (Oficial Fatec)`
                             : `${t.name} · v${t.version}`}
                         </option>
                       ))}
@@ -1128,11 +1244,150 @@ export function EventForm({
                 </div>
               </div>
 
-              {attendeeTemplateId && catalog?.signers && (
-                <div className={styles.fieldGroup}>
-                  <label className={styles.fieldLabel}>
-                    Assinaturas do certificado de participante (1 a 3 obrigatórias):
+              {/* Card com campo para inserir a subida da assinatura do certificado */}
+              <div className={styles.signatureUploadCard}>
+                <div className={styles.signatureCardHeader}>
+                  <h4 className={styles.signatureCardTitle}>
+                    Subir Assinatura do Certificado
+                  </h4>
+                  <p className={styles.hintText}>
+                    Envie a imagem da assinatura digitalizada e os dados do responsável para emissão dos certificados.
+                  </p>
+                </div>
+
+                <div className={styles.fileUploadBox}>
+                  <label htmlFor="certificateSignatureFile" className={styles.fieldLabel}>
+                    Arquivo da Imagem da Assinatura (PNG transparente ou JPG)
                   </label>
+                  <input
+                    id="certificateSignatureFile"
+                    name="certificateSignatureFile"
+                    type="file"
+                    accept="image/png,image/jpeg"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0] || null;
+                      setInlineSignerFile(file);
+                      setInlineSignerFeedback(null);
+                    }}
+                    className={styles.fileUploadInput}
+                  />
+                  {inlineSignerFile && (
+                    <span className={styles.fileSelectedInfo}>
+                      Arquivo selecionado: <strong>{inlineSignerFile.name}</strong> ({(inlineSignerFile.size / 1024).toFixed(1)} KB)
+                    </span>
+                  )}
+                  <span className={styles.fileUploadNote}>
+                    Envie a imagem da assinatura em formato PNG com fundo transparente ou digitalização nítida (até 2MB).
+                  </span>
+                </div>
+
+                <div className={styles.gridTwoCols} style={{ marginTop: '12px' }}>
+                  <div className={styles.fieldGroup}>
+                    <label htmlFor="inlineSignerName" className={styles.fieldLabel}>
+                      Nome completo do responsável
+                    </label>
+                    <input
+                      id="inlineSignerName"
+                      name="inlineSignerName"
+                      type="text"
+                      placeholder="Ex: Prof. Dr. Carlos Henrique"
+                      value={inlineSignerName}
+                      onChange={(e) => setInlineSignerName(e.target.value)}
+                      className={styles.fieldInput}
+                    />
+                  </div>
+
+                  <div className={styles.fieldGroup}>
+                    <label htmlFor="inlineSignerTitle" className={styles.fieldLabel}>
+                      Cargo / Função
+                    </label>
+                    <input
+                      id="inlineSignerTitle"
+                      name="inlineSignerTitle"
+                      type="text"
+                      placeholder="Ex: Coordenador do Curso de DSM"
+                      value={inlineSignerTitle}
+                      onChange={(e) => setInlineSignerTitle(e.target.value)}
+                      className={styles.fieldInput}
+                    />
+                  </div>
+                </div>
+
+                <div className={styles.fieldGroup} style={{ marginTop: '8px' }}>
+                  <label htmlFor="inlineSignerCourse" className={styles.fieldLabel}>
+                    Curso (Opcional)
+                  </label>
+                  <input
+                    id="inlineSignerCourse"
+                    name="inlineSignerCourse"
+                    type="text"
+                    placeholder="Ex: DSM"
+                    value={inlineSignerCourse}
+                    onChange={(e) => setInlineSignerCourse(e.target.value)}
+                    className={styles.fieldInput}
+                  />
+                </div>
+
+                <label htmlFor="inlineSignerAuthorized" className={styles.checkboxLabel} style={{ marginTop: '8px' }}>
+                  <input
+                    id="inlineSignerAuthorized"
+                    type="checkbox"
+                    className={styles.checkboxInput}
+                    checked={inlineSignerAuthorized}
+                    onChange={(e) => setInlineSignerAuthorized(e.target.checked)}
+                  />
+                  <span>
+                    Confirmo autorização formal para uso desta assinatura no certificado.
+                  </span>
+                </label>
+
+                <div style={{ marginTop: '12px', display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                  <button
+                    type="button"
+                    className={styles.secondaryActionBtn}
+                    onClick={() => void handleUploadInlineSigner()}
+                    disabled={inlineSignerLoading || !inlineSignerFile}
+                  >
+                    {inlineSignerLoading ? 'Subindo Assinatura...' : 'Subir e Vincular Assinatura'}
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.secondaryActionBtn}
+                    onClick={() => {
+                      setNewSignerName('');
+                      setNewSignerTitle('');
+                      setNewSignerCourse(organizerCourse || '');
+                      setNewSignerFile(null);
+                      setNewSignerAuthorized(false);
+                      setNewSignerError(null);
+                      setShowSignerModal(true);
+                    }}
+                  >
+                    + Cadastrar novo assinante
+                  </button>
+                </div>
+
+                {inlineSignerFeedback && (
+                  <div
+                    className={
+                      inlineSignerFeedback.type === 'success'
+                        ? styles.signatureSuccessBanner
+                        : styles.modalErrorBanner
+                    }
+                    style={{ marginTop: '8px' }}
+                    role="alert"
+                  >
+                    {inlineSignerFeedback.message}
+                  </div>
+                )}
+              </div>
+
+              {/* Lista e Seleção de Assinaturas para Participante */}
+              <div className={styles.fieldGroup}>
+                <label className={styles.fieldLabel}>
+                  Assinaturas selecionadas para o certificado de participante ({signerIds.length} de 3 obrigatórias):
+                </label>
+                {catalog?.signers && catalog.signers.filter((s) => !s.archived).length > 0 ? (
                   <div className={styles.signersList}>
                     {catalog.signers
                       .filter((s) => !s.archived)
@@ -1149,76 +1404,53 @@ export function EventForm({
                         </label>
                       ))}
                   </div>
-                  <div style={{ marginTop: '8px', display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
-                    <button
-                      type="button"
-                      className={styles.secondaryActionBtn}
-                      onClick={() => {
-                        setNewSignerName('');
-                        setNewSignerTitle('');
-                        setNewSignerCourse(organizerCourse || '');
-                        setNewSignerFile(null);
-                        setNewSignerAuthorized(false);
-                        setNewSignerError(null);
-                        setShowSignerModal(true);
-                      }}
-                    >
-                      + Cadastrar novo assinante
-                    </button>
-                    <button
-                      type="button"
-                      className={styles.previewBtn}
-                      onClick={() => handlePreviewPdf('ATTENDEE')}
-                      disabled={!signerIds.length}
-                    >
-                      Baixar prévia sem validade (Participante)
-                    </button>
-                  </div>
+                ) : (
+                  <p className={styles.hintText}>
+                    Nenhuma assinatura cadastrada ainda. Utilize o campo acima para fazer a subida da assinatura.
+                  </p>
+                )}
+                <div style={{ marginTop: '8px', display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                  <button
+                    type="button"
+                    className={styles.previewBtn}
+                    onClick={() => handlePreviewPdf('ATTENDEE')}
+                    disabled={!signerIds.length || !attendeeTemplateId}
+                  >
+                    Baixar prévia sem validade (Participante)
+                  </button>
                 </div>
-              )}
+              </div>
 
-              {speakerTemplateId && catalog?.signers && (
+              {/* Lista e Seleção de Assinaturas para Palestrante */}
+              {speakerTemplateId && (
                 <div className={styles.fieldGroup}>
                   <label className={styles.fieldLabel}>
-                    Assinaturas do certificado de palestrante (1 a 3):
+                    Assinaturas do certificado de palestrante ({speakerSignerIds.length} de 3):
                   </label>
-                  <div className={styles.signersList}>
-                    {catalog.signers
-                      .filter((s) => !s.archived)
-                      .map((s) => (
-                        <label key={s.id} className={styles.signerItem}>
-                          <input
-                            type="checkbox"
-                            checked={speakerSignerIds.includes(s.id)}
-                            onChange={() => toggleSigner(s.id, true)}
-                          />
-                          <span>
-                            <strong>{s.name}</strong> — {s.title} {s.course ? `(${s.course})` : ''}
-                          </span>
-                        </label>
-                      ))}
-                  </div>
+                  {catalog?.signers && catalog.signers.filter((s) => !s.archived).length > 0 ? (
+                    <div className={styles.signersList}>
+                      {catalog.signers
+                        .filter((s) => !s.archived)
+                        .map((s) => (
+                          <label key={s.id} className={styles.signerItem}>
+                            <input
+                              type="checkbox"
+                              checked={speakerSignerIds.includes(s.id)}
+                              onChange={() => toggleSigner(s.id, true)}
+                            />
+                            <span>
+                              <strong>{s.name}</strong> — {s.title} {s.course ? `(${s.course})` : ''}
+                            </span>
+                          </label>
+                        ))}
+                    </div>
+                  ) : null}
                   <div style={{ marginTop: '8px', display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
-                    <button
-                      type="button"
-                      className={styles.secondaryActionBtn}
-                      onClick={() => {
-                        setNewSignerName('');
-                        setNewSignerTitle('');
-                        setNewSignerCourse(organizerCourse || '');
-                        setNewSignerFile(null);
-                        setNewSignerAuthorized(false);
-                        setNewSignerError(null);
-                        setShowSignerModal(true);
-                      }}
-                    >
-                      + Cadastrar novo assinante
-                    </button>
                     <button
                       type="button"
                       className={styles.previewBtn}
                       onClick={() => handlePreviewPdf('SPEAKER')}
-                      disabled={!speakerSignerIds.length}
+                      disabled={!speakerSignerIds.length || !speakerTemplateId}
                     >
                       Baixar prévia sem validade (Palestrante)
                     </button>
@@ -1400,7 +1632,7 @@ export function EventForm({
                 )}
                 <div className={styles.fieldGroup}>
                   <label htmlFor="modalSignerName" className={styles.fieldLabel}>
-                    Nome completo
+                    Nome completo do novo assinante
                   </label>
                   <input
                     id="modalSignerName"
@@ -1414,7 +1646,7 @@ export function EventForm({
                 </div>
                 <div className={styles.fieldGroup}>
                   <label htmlFor="modalSignerTitle" className={styles.fieldLabel}>
-                    Cargo / Função
+                    Cargo / Função do novo assinante
                   </label>
                   <input
                     id="modalSignerTitle"
@@ -1441,7 +1673,7 @@ export function EventForm({
                 </div>
                 <div className={styles.fieldGroup}>
                   <label htmlFor="modalSignerFile" className={styles.fieldLabel}>
-                    Imagem da Assinatura (PNG transparente)
+                    Arquivo de Assinatura do Assinante (PNG transparente)
                   </label>
                   <div className={styles.fileUploadBox}>
                     <input
@@ -1468,7 +1700,7 @@ export function EventForm({
                     onChange={(e) => setNewSignerAuthorized(e.target.checked)}
                   />
                   <span>
-                    Confirmo que esta assinatura possui autorização formal para emissão de certificados.
+                    Confirmo a autorização formal desta assinatura para o novo assinante.
                   </span>
                 </label>
               </div>

@@ -203,18 +203,20 @@ describe('EventForm - Seleção e Upload de Modelos de Certificado', () => {
     expect(screen.getByRole('dialog')).toBeInTheDocument();
     expect(screen.getByText('Cadastrar Novo Assinante Autorizado')).toBeInTheDocument();
 
-    fireEvent.change(screen.getByLabelText('Nome completo'), {
+    fireEvent.change(screen.getByLabelText('Nome completo do novo assinante'), {
       target: { value: 'Dra. Maria Souza' },
     });
-    fireEvent.change(screen.getByLabelText('Cargo / Função'), {
+    fireEvent.change(screen.getByLabelText('Cargo / Função do novo assinante'), {
       target: { value: 'Diretora da Fatec Itaquera' },
     });
 
     const sigFile = new File(['signature-data'], 'signature.png', { type: 'image/png' });
-    const fileInput = screen.getByLabelText(/Imagem da Assinatura/);
+    const fileInput = screen.getByLabelText(/Arquivo de Assinatura do Assinante/);
     fireEvent.change(fileInput, { target: { files: [sigFile] } });
 
-    fireEvent.click(screen.getByLabelText(/Confirmo que esta assinatura possui autorização/));
+    fireEvent.click(
+      screen.getByLabelText(/Confirmo a autorização formal desta assinatura/)
+    );
 
     fireEvent.click(screen.getByRole('button', { name: 'Cadastrar Assinante' }));
 
@@ -234,6 +236,69 @@ describe('EventForm - Seleção e Upload de Modelos de Certificado', () => {
 
     await waitFor(() => {
       expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    });
+  });
+
+  it('permite realizar a subida direta da assinatura do certificado através do campo dedicado no formulário', async () => {
+    const createdSigner: publicEventService.Signer = {
+      id: 'signer-direct',
+      name: 'Prof. Coordenador Fulano',
+      title: 'Coordenador Pedagógico',
+      course: 'DSM',
+      archived: false,
+    };
+
+    vi.mocked(publicEventService.uploadAsset).mockResolvedValueOnce({ id: 'asset-sig-direct' });
+    vi.mocked(publicEventService.management).mockImplementation(async (path) => {
+      if (path === 'catalog') {
+        return {
+          ...mockCatalog,
+          signers: [...mockCatalog.signers, createdSigner],
+        } as unknown as Awaited<ReturnType<typeof publicEventService.management>>;
+      }
+      if (path === 'signers') {
+        return createdSigner as unknown as Awaited<ReturnType<typeof publicEventService.management>>;
+      }
+      return {} as unknown as Awaited<ReturnType<typeof publicEventService.management>>;
+    });
+
+    render(<EventForm submitLabel="Salvar" onSubmit={vi.fn()} />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Subir Assinatura do Certificado')).toBeInTheDocument();
+      expect(screen.getByLabelText(/Arquivo da Imagem da Assinatura/)).toBeInTheDocument();
+    });
+
+    const sigFile = new File(['signature-direct-bytes'], 'assinatura-coordenador.png', {
+      type: 'image/png',
+    });
+    const fileInput = screen.getByLabelText(/Arquivo da Imagem da Assinatura/);
+    fireEvent.change(fileInput, { target: { files: [sigFile] } });
+
+    fireEvent.change(screen.getByLabelText('Nome completo do responsável'), {
+      target: { value: 'Prof. Coordenador Fulano' },
+    });
+    fireEvent.change(screen.getByLabelText('Cargo / Função'), {
+      target: { value: 'Coordenador Pedagógico' },
+    });
+
+    fireEvent.click(screen.getByText('Subir e Vincular Assinatura'));
+
+    await waitFor(() => {
+      expect(publicEventService.uploadAsset).toHaveBeenCalledWith(sigFile, 'SIGNATURE');
+      expect(publicEventService.management).toHaveBeenCalledWith(
+        'signers',
+        expect.objectContaining({
+          name: 'Prof. Coordenador Fulano',
+          title: 'Coordenador Pedagógico',
+          assetId: 'asset-sig-direct',
+          authorized: true,
+        }),
+        'POST'
+      );
+      expect(
+        screen.getByText(/subida com sucesso e vinculada ao certificado/)
+      ).toBeInTheDocument();
     });
   });
 });
