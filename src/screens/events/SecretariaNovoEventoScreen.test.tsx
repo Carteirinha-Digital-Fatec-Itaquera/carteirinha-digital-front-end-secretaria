@@ -38,6 +38,7 @@ describe('SecretariaNovoEventoScreen', () => {
         <Routes>
           <Route path="/eventos/novo" element={<SecretariaNovoEventoScreen />} />
           <Route path="/eventos" element={<div>Lista de Eventos</div>} />
+          <Route path="/eventos/:id/gerenciar" element={<div data-testid="gerenciar-screen">Gerenciar Evento</div>} />
         </Routes>
       </MemoryRouter>
     );
@@ -75,9 +76,9 @@ describe('SecretariaNovoEventoScreen', () => {
       })
     );
 
-    // Navega para /eventos
+    // Navega para /eventos/:id/gerenciar usando o ID retornado
     await waitFor(() => {
-      expect(screen.getByText('Lista de Eventos')).toBeDefined();
+      expect(screen.getByTestId('gerenciar-screen')).toBeDefined();
     });
   });
 

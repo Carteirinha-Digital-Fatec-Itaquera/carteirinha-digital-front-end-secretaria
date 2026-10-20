@@ -18,8 +18,12 @@ export default function SecretariaNovoEventoScreen() {
   async function handleCreate(payload: CreateEventPayload) {
     try {
       setLoading(true);
-      await createEvent(payload);
-      navigate("/eventos");
+      const created = await createEvent(payload);
+      if (created?.id) {
+        navigate(`/eventos/${encodeURIComponent(created.id)}/gerenciar`);
+      } else {
+        navigate("/eventos");
+      }
     } finally {
       setLoading(false);
     }
