@@ -32,6 +32,7 @@ import {
   openCheckpoint,
   closeCheckpoint,
   getCheckpointQr,
+  refreshCheckpointQr,
 } from "../../api/event/checkpointService";
 import type { EventView } from "../../domains/Event";
 import type { CheckpointType, CheckpointView } from "../../domains/Checkpoint";
@@ -86,10 +87,11 @@ export default function SecretariaGerenciarEventoScreen() {
     qrToken: string;
     qrUrl?: string;
     expiresAtEpoch: number;
+    validitySeconds: number;
   } | null>(null);
   const [qrLoading, setQrLoading] = useState(false);
   const [qrError, setQrError] = useState<string | null>(null);
-  const [secondsRemaining, setSecondsRemaining] = useState(20);
+  const [secondsRemaining, setSecondsRemaining] = useState(0);
   const [actionLoading, setActionLoading] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -184,14 +186,15 @@ export default function SecretariaGerenciarEventoScreen() {
     };
   }, [loadEventData]);
 
-  // Busca e renovação do QR Code de presença (com controle de sobreposição e latência)
+  // Busca inicial e atualização manual, sem requisições sobrepostas.
   const fetchQrToken = useCallback(
-    async (type: "check-in" | "check-out") => {
+    async (type: "check-in" | "check-out", refresh = false) => {
       if (!id || isFetchingRef.current) return;
       try {
         isFetchingRef.current = true;
         setQrLoading(true);
         setQrError(null);
+        if (refresh) setQrData(null);
 
         // Cancela requisição anterior se houver
         if (abortControllerRef.current) {
@@ -202,7 +205,7 @@ export default function SecretariaGerenciarEventoScreen() {
 
         const cpType: CheckpointType =
           type === "check-in" ? "CHECK_IN" : "CHECK_OUT";
-        const response = await getCheckpointQr(id, cpType, {
+        const response = await (refresh ? refreshCheckpointQr : getCheckpointQr)(id, cpType, {
           signal: controller.signal,
         });
 
@@ -237,8 +240,9 @@ export default function SecretariaGerenciarEventoScreen() {
           qrToken: response.qrToken,
           qrUrl: validUrl,
           expiresAtEpoch,
+          validitySeconds: initialRemainingSec,
         });
-        setSecondsRemaining(initialRemainingSec > 0 ? initialRemainingSec : 20);
+        setSecondsRemaining(initialRemainingSec);
       } catch (err: unknown) {
         if (!isMountedRef.current) return;
         if (err instanceof DOMException && err.name === "AbortError") {
@@ -260,7 +264,7 @@ export default function SecretariaGerenciarEventoScreen() {
     [id]
   );
 
-  // Inicia e renova timer do QR Code quando um checkpoint estiver ativo
+  // O timer apenas informa a validade; a atualização do QR é manual.
   useEffect(() => {
     if (!activeCheckpoint) {
       setQrData(null);
@@ -285,34 +289,23 @@ export default function SecretariaGerenciarEventoScreen() {
 
         // Se expirou, limpa imediatamente da tela para nunca exibir QR vencido
         if (remainingMs <= 0) {
-          if (!isFetchingRef.current) {
-            void fetchQrToken(activeCheckpoint);
-          }
           return null;
-        }
-
-        // Renovação preventiva aos 15 segundos (5s antes do vencimento de 20s)
-        if (remainingMs <= 5000 && !isFetchingRef.current) {
-          void fetchQrToken(activeCheckpoint);
         }
 
         return currentQr;
       });
     }, 500);
 
-    // Retorno de aba oculta: atualiza imediatamente se estiver próximo ou já vencido
+    // Ao retornar à aba, remove o QR vencido sem gerar outro automaticamente.
     const handleVisibilityChange = () => {
       if (document.visibilityState === "visible") {
         setQrData((currentQr) => {
           if (!currentQr) {
-            void fetchQrToken(activeCheckpoint);
             return null;
           }
           const remainingMs = currentQr.expiresAtEpoch - Date.now();
-          if (remainingMs <= 5000) {
-            void fetchQrToken(activeCheckpoint);
-          }
-          return currentQr;
+          setSecondsRemaining(Math.max(0, Math.ceil(remainingMs / 1000)));
+          return remainingMs > 0 ? currentQr : null;
         });
       }
     };
@@ -1013,7 +1006,7 @@ export default function SecretariaGerenciarEventoScreen() {
                           <button
                             type="button"
                             className={styles.manualRefresh}
-                            onClick={() => void fetchQrToken(activeCheckpoint)}
+                            onClick={() => void fetchQrToken(activeCheckpoint, true)}
                             disabled={qrLoading}
                             style={{ marginTop: "12px" }}
                           >
@@ -1043,7 +1036,7 @@ export default function SecretariaGerenciarEventoScreen() {
                   </div>
 
                   <span className={styles.timerLabel}>
-                    Próxima renovação em
+                    Validade restante
                   </span>
                   <strong className={styles.timer}>
                     {secondsRemaining}s
@@ -1053,17 +1046,17 @@ export default function SecretariaGerenciarEventoScreen() {
                     <div
                       className={styles.progressBar}
                       style={{
-                        width: `${Math.min(100, (secondsRemaining / 20) * 100)}%`,
+                        width: `${Math.min(100, (secondsRemaining / (qrData?.validitySeconds || 1)) * 100)}%`,
                       }}
                     />
                   </div>
 
-                  <p>O código é renovado dinamicamente para evitar fraudes.</p>
+                  <p>O QR permanece estável. Atualizar invalida o anterior sem estender a janela de presença.</p>
 
                   <button
                     type="button"
                     className={styles.manualRefresh}
-                    onClick={() => void fetchQrToken(activeCheckpoint)}
+                    onClick={() => void fetchQrToken(activeCheckpoint, true)}
                     disabled={qrLoading}
                   >
                     <RefreshCw
@@ -1138,7 +1131,7 @@ export default function SecretariaGerenciarEventoScreen() {
                         <button
                           type="button"
                           className={styles.manualRefresh}
-                          onClick={() => void fetchQrToken(activeCheckpoint)}
+                          onClick={() => void fetchQrToken(activeCheckpoint, true)}
                           disabled={qrLoading}
                           style={{ marginTop: "16px" }}
                         >
@@ -1221,9 +1214,10 @@ export default function SecretariaGerenciarEventoScreen() {
                 checkpointType={activeCheckpoint}
                 qrValue={qrValue}
                 secondsRemaining={secondsRemaining}
+                validitySeconds={qrData?.validitySeconds}
                 qrLoading={qrLoading}
                 qrError={qrError}
-                onRefresh={() => void fetchQrToken(activeCheckpoint)}
+                onRefresh={() => void fetchQrToken(activeCheckpoint, true)}
                 onClose={pip.closePip}
                 onSizeChange={pip.handleSizeChange}
               />,
@@ -1236,9 +1230,10 @@ export default function SecretariaGerenciarEventoScreen() {
               checkpointType={activeCheckpoint}
               qrValue={qrValue}
               secondsRemaining={secondsRemaining}
+              validitySeconds={qrData?.validitySeconds}
               qrLoading={qrLoading}
               qrError={qrError}
-              onRefresh={() => void fetchQrToken(activeCheckpoint)}
+              onRefresh={() => void fetchQrToken(activeCheckpoint, true)}
               onClose={pip.closePip}
               onSizeChange={pip.handleSizeChange}
               isFloating
