@@ -1,9 +1,4 @@
 .container { composes: container from "../../styles/auth.module.css"; }
-/* Apenas o login recebe cantos inferiores arredondados. */
-.container > header { border-radius: 0 0 48px 48px; }
-@media (max-width: 540px) {
-  .container > header { border-radius: 0 0 36px 36px; }
-}
 .card { composes: card from "../../styles/auth.module.css"; }
 .cardContent { composes: cardContent from "../../styles/auth.module.css"; }
 .containerRetrieve { composes: containerRetrieve from "../../styles/auth.module.css"; }
