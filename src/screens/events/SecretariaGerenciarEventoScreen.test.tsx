@@ -188,7 +188,7 @@ describe('SecretariaGerenciarEventoScreen - QR Code & Projeção Telão', () => 
     expect(screen.queryByTestId('pip-qr-container')).not.toBeInTheDocument();
   });
 
-  it('faz renovação preventiva aos 15 segundos sem requisições sobrepostas', async () => {
+  it('não renova automaticamente pelo timer ou retorno à aba', async () => {
     const now = Date.now();
     let callCount = 0;
 
@@ -222,10 +222,14 @@ describe('SecretariaGerenciarEventoScreen - QR Code & Projeção Telão', () => 
       vi.advanceTimersByTime(15500);
     });
 
-    // Deve ter disparado a renovação preventiva antes da expiração
-    await waitFor(() => {
-      expect(getQrSpy).toHaveBeenCalledTimes(2);
-    });
+    expect(getQrSpy).toHaveBeenCalledTimes(1);
+    await act(async () => { vi.advanceTimersByTime(10000); });
+    fireEvent(document, new Event('visibilitychange'));
+    expect(getQrSpy).toHaveBeenCalledTimes(1);
+    const refreshSpy = vi.spyOn(checkpointService, 'refreshCheckpointQr').mockResolvedValue({ qrToken: 'manual', qrUrl: `https://carteirinha-digital-front-end-aluno.vercel.app/p/${'manualRef'.padEnd(22, '0')}`, serverTime: new Date().toISOString(), expiresInSeconds: 900, expiresAt: new Date(Date.now() + 900000).toISOString(), checkpointVersion: 2 });
+    fireEvent.click(screen.getByRole('button', { name: /Renovar agora/i }));
+    await waitFor(() => expect(refreshSpy).toHaveBeenCalledTimes(1));
+    expect(getQrSpy).toHaveBeenCalledTimes(1);
   });
 
   it('limpa o QR Code da tela se expirar antes de renovar para evitar leituras inválidas', async () => {

@@ -10,6 +10,7 @@ export interface PictureInPictureQrProps {
   checkpointType: "check-in" | "check-out";
   qrValue: string | null;
   secondsRemaining: number;
+  validitySeconds?: number;
   qrLoading: boolean;
   qrError: string | null;
   onRefresh: () => void;
@@ -36,6 +37,7 @@ export function PictureInPictureQr({
   checkpointType,
   qrValue,
   secondsRemaining,
+  validitySeconds = 900,
   qrLoading,
   qrError,
   onRefresh,
@@ -161,7 +163,7 @@ export function PictureInPictureQr({
       {/* Footer / Progress & Hint */}
       <footer className={styles.pipFooter}>
         <div className={styles.timerGroup}>
-          <span>Renovação preventiva:</span>
+          <span>Validade restante:</span>
           <span className={styles.timerCountdown}>
             {secondsRemaining}s
           </span>
@@ -171,7 +173,7 @@ export function PictureInPictureQr({
           <div
             className={styles.progressBar}
             style={{
-              width: `${Math.min(100, Math.max(0, (secondsRemaining / 20) * 100))}%`,
+              width: `${Math.min(100, Math.max(0, (secondsRemaining / Math.max(1, validitySeconds)) * 100))}%`,
             }}
           />
         </div>

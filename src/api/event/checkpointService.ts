@@ -58,3 +58,14 @@ export async function getCheckpointQr(
     }
   );
 }
+
+export async function refreshCheckpointQr(
+  id: string,
+  type: CheckpointType,
+  options?: RequestOptions
+): Promise<AttendanceQrResponse> {
+  return apiRequest<AttendanceQrResponse>(
+    `/events/${encodeURIComponent(id)}/checkpoints/${mapCheckpointType(type)}/qr/refresh`,
+    { method: 'POST', signal: options?.signal }
+  );
+}
