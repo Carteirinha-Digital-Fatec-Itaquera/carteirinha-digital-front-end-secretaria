@@ -547,6 +547,108 @@ describe('SecretariaGerenciarEventoScreen - QR Code & Projeção Telão', () => 
     expect(screen.queryByRole('button', { name: /Reabrir Check-in/i })).not.toBeInTheDocument();
     expect(screen.getByText(/Reabertura indisponível: Check-out já iniciado/i)).toBeInTheDocument();
   });
+
+  it('permite reabrir o Check-out quando encerrado e dentro da janela original de 15 minutos', async () => {
+    const openCheckpointSpy = vi.spyOn(checkpointService, 'openCheckpoint').mockResolvedValue({
+      eventId: 'evt-test-100',
+      type: 'CHECK_OUT',
+      isOpen: true,
+      version: 2,
+      openedAt: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
+      closedAt: null,
+      closesAt: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
+    });
+
+    vi.spyOn(eventService, 'getEvent').mockResolvedValue({
+      ...fakeEvent,
+      status: 'COMPLETED',
+      checkpoints: [
+        {
+          id: 'cp-in',
+          eventId: 'evt-test-100',
+          type: 'CHECK_IN' as const,
+          isOpen: false,
+          version: 2,
+          openedAt: '2026-10-10T10:00:00.000Z',
+          closedAt: '2026-10-10T10:30:00.000Z',
+        },
+        {
+          id: 'cp-out',
+          eventId: 'evt-test-100',
+          type: 'CHECK_OUT' as const,
+          isOpen: false,
+          version: 1,
+          openedAt: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
+          closedAt: new Date(Date.now() - 2 * 60 * 1000).toISOString(),
+          closesAt: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
+        },
+      ],
+    });
+
+    render(
+      <MemoryRouter initialEntries={['/eventos/evt-test-100/gerenciar']}>
+        <Routes>
+          <Route path="/eventos/:id/gerenciar" element={<SecretariaGerenciarEventoScreen />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('Check-out encerrado')).toBeInTheDocument();
+    });
+
+    const reopenBtn = screen.getByRole('button', { name: /Reabrir Check-out/i });
+    expect(reopenBtn).toBeInTheDocument();
+
+    fireEvent.click(reopenBtn);
+
+    await waitFor(() => {
+      expect(openCheckpointSpy).toHaveBeenCalledWith('evt-test-100', 'CHECK_OUT');
+    });
+  });
+
+  it('bloqueia reabertura do Check-out quando a janela de 15 minutos expirou', async () => {
+    vi.spyOn(eventService, 'getEvent').mockResolvedValue({
+      ...fakeEvent,
+      status: 'COMPLETED',
+      checkpoints: [
+        {
+          id: 'cp-in',
+          eventId: 'evt-test-100',
+          type: 'CHECK_IN' as const,
+          isOpen: false,
+          version: 2,
+          openedAt: '2026-10-10T10:00:00.000Z',
+          closedAt: '2026-10-10T10:30:00.000Z',
+        },
+        {
+          id: 'cp-out',
+          eventId: 'evt-test-100',
+          type: 'CHECK_OUT' as const,
+          isOpen: false,
+          version: 1,
+          openedAt: new Date(Date.now() - 20 * 60 * 1000).toISOString(),
+          closedAt: new Date(Date.now() - 10 * 60 * 1000).toISOString(),
+          closesAt: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
+        },
+      ],
+    });
+
+    render(
+      <MemoryRouter initialEntries={['/eventos/evt-test-100/gerenciar']}>
+        <Routes>
+          <Route path="/eventos/:id/gerenciar" element={<SecretariaGerenciarEventoScreen />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('Check-out encerrado')).toBeInTheDocument();
+    });
+
+    expect(screen.queryByRole('button', { name: /Reabrir Check-out/i })).not.toBeInTheDocument();
+    expect(screen.getByText(/Reabertura indisponível: Janela de 15 minutos expirada/i)).toBeInTheDocument();
+  });
 });
 
 
