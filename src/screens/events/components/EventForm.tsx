@@ -12,6 +12,7 @@ import {
   parseWorkloadHours,
   calculateEventEnd,
   toEventFormSchedule,
+  formatLocalToIso,
 } from '../../../utils/eventSchedule';
 import {
   management,
@@ -520,11 +521,13 @@ export function EventForm({
 
   async function handleOpenPdfModal(targetRole?: 'ATTENDEE' | 'SPEAKER') {
     const roleToUse = targetRole || activePreviewRole;
-    const templateId =
+    const rawTemplateId =
       roleToUse === 'ATTENDEE' ? attendeeTemplateId : speakerTemplateId;
     const signers = roleToUse === 'ATTENDEE' ? signerIds : speakerSignerIds;
-    if (!templateId) return;
-    if (!signers.length) {
+    const isDefault = !rawTemplateId || rawTemplateId === 'default';
+    const templateId = rawTemplateId || 'default';
+
+    if (!isDefault && !signers.length) {
       setErrorMessage('Selecione ao menos um assinante para conferir o PDF.');
       return;
     }
@@ -536,9 +539,10 @@ export function EventForm({
         eventTitle: title.trim() || undefined,
         speaker: speaker.trim() || undefined,
         promoter: promoter.trim() || undefined,
-        startsAt: startDate && startTime ? `${startDate}T${startTime}:00.000Z` : undefined,
-        endsAt: endDate && endTime ? `${endDate}T${endTime}:00.000Z` : undefined,
+        startsAt: formatLocalToIso(startDate, startTime),
+        endsAt: formatLocalToIso(endDate, endTime),
         workload: workload ? (Number(workload) === 1 ? '1 hora' : `${workload} horas`) : undefined,
+        workloadMinutes: parseWorkloadHours(workload) || undefined,
       };
 
       const url = await getManagementPdfBlobUrl(`templates/${templateId}/preview`, draft);
@@ -562,19 +566,27 @@ export function EventForm({
   }
 
   async function handlePreviewPdf(role: 'ATTENDEE' | 'SPEAKER') {
-    const templateId =
+    const rawTemplateId =
       role === 'ATTENDEE' ? attendeeTemplateId : speakerTemplateId;
     const signers = role === 'ATTENDEE' ? signerIds : speakerSignerIds;
-    if (!templateId) return;
+    const isDefault = !rawTemplateId || rawTemplateId === 'default';
+    const templateId = rawTemplateId || 'default';
+
+    if (!isDefault && !signers.length) {
+      setErrorMessage('Selecione ao menos um assinante para conferir o PDF.');
+      return;
+    }
+
     try {
       const draft = {
         signerIds: signers,
         eventTitle: title.trim() || undefined,
         speaker: speaker.trim() || undefined,
         promoter: promoter.trim() || undefined,
-        startsAt: startDate && startTime ? `${startDate}T${startTime}:00.000Z` : undefined,
-        endsAt: endDate && endTime ? `${endDate}T${endTime}:00.000Z` : undefined,
+        startsAt: formatLocalToIso(startDate, startTime),
+        endsAt: formatLocalToIso(endDate, endTime),
         workload: workload ? (Number(workload) === 1 ? '1 hora' : `${workload} horas`) : undefined,
+        workloadMinutes: parseWorkloadHours(workload) || undefined,
       };
       await openManagementPdf(`templates/${templateId}/preview`, draft);
     } catch (err: unknown) {

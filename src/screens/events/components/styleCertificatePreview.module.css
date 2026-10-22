@@ -215,3 +215,11 @@
   border: none;
   border-radius: 6px;
 }
+
+@media (min-width: 1024px) {
+  .previewContainer {
+    position: sticky;
+    top: 20px;
+    z-index: 10;
+  }
+}

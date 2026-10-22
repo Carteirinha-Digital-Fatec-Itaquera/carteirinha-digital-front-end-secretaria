@@ -1,7 +1,7 @@
 import '@testing-library/jest-dom';
 
 if (typeof URL.createObjectURL !== 'function') {
-  URL.createObjectURL = (_blob: any) => `blob:mock-url-${Math.random()}`;
+  URL.createObjectURL = () => `blob:mock-url-${Math.random()}`;
 }
 if (typeof URL.revokeObjectURL !== 'function') {
   URL.revokeObjectURL = () => {};

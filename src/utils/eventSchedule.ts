@@ -101,3 +101,16 @@ export function toEventFormSchedule(
     endTime: endFormatted.time,
   };
 }
+/**
+ * Converte data e hora locais ('YYYY-MM-DD' e 'HH:mm') em ISO UTC string (Date.toISOString()),
+ * idêntico à conversão do salvamento real do evento, preservando timezone local.
+ */
+export function formatLocalToIso(
+  date?: string,
+  time?: string
+): string | undefined {
+  if (!date || !time) return undefined;
+  const d = new Date(`${date}T${time}:00`);
+  if (Number.isNaN(d.getTime())) return undefined;
+  return d.toISOString();
+}
