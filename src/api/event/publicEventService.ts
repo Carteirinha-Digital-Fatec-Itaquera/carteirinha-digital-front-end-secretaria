@@ -25,6 +25,7 @@ export interface Signer {
   name: string;
   title: string;
   course?: string;
+  assetId?: string;
   archived: boolean;
 }
 export interface ManagedEvent {
@@ -120,6 +121,59 @@ export async function openManagementPdf(path: string, body?: unknown) {
   a.download = "certificado.pdf";
   a.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+export async function getManagementPdfBlobUrl(
+  path: string,
+  body?: unknown,
+  signal?: AbortSignal
+): Promise<string> {
+  const response = await privateFetch(
+    `${GLOBAL_VAR.BASE_URL.replace(/\/$/, "")}/event-management/${path}`,
+    {
+      method: body === undefined ? "GET" : "POST",
+      headers:
+        body === undefined ? undefined : { "Content-Type": "application/json" },
+      body: body === undefined ? undefined : JSON.stringify(body),
+      signal,
+    }
+  );
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}));
+    throw new Error(data.message || "Não foi possível gerar o PDF de conferência.");
+  }
+  const blob = await response.blob();
+  return URL.createObjectURL(blob);
+}
+
+const assetUrlCache = new Map<string, string>();
+
+export async function fetchAssetBlobUrl(
+  assetId: string,
+  signal?: AbortSignal
+): Promise<string> {
+  if (assetUrlCache.has(assetId)) {
+    return assetUrlCache.get(assetId)!;
+  }
+  const response = await privateFetch(
+    `${GLOBAL_VAR.BASE_URL.replace(/\/$/, "")}/event-management/assets/${assetId}`,
+    { method: "GET", signal }
+  );
+  if (!response.ok) {
+    throw new Error("Não foi possível carregar a imagem do asset.");
+  }
+  const blob = await response.blob();
+  const objectUrl = URL.createObjectURL(blob);
+  assetUrlCache.set(assetId, objectUrl);
+  return objectUrl;
+}
+
+export function revokeAssetBlobUrl(assetId: string) {
+  const existing = assetUrlCache.get(assetId);
+  if (existing) {
+    URL.revokeObjectURL(existing);
+    assetUrlCache.delete(assetId);
+  }
 }
 
 export interface EventFeedbackItem {
