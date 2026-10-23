@@ -3,6 +3,7 @@ import {
   parseWorkloadHours,
   calculateEventEnd,
   toEventFormSchedule,
+  formatLocalToIso,
 } from './eventSchedule';
 
 describe('eventSchedule utils', () => {
@@ -86,6 +87,22 @@ describe('eventSchedule utils', () => {
       expect(schedule.startTime).toBe('09:05');
       expect(schedule.endDate).toBe('2026-01-01');
       expect(schedule.endTime).toBe('10:05');
+    });
+  });
+
+  describe('formatLocalToIso', () => {
+    it('converts valid local date and time to ISO string matching Date.toISOString()', () => {
+      const iso = formatLocalToIso('2026-10-26', '19:00');
+      expect(iso).toBeDefined();
+      const expected = new Date('2026-10-26T19:00:00').toISOString();
+      expect(iso).toBe(expected);
+    });
+
+    it('returns undefined if date or time are missing or invalid', () => {
+      expect(formatLocalToIso('', '19:00')).toBeUndefined();
+      expect(formatLocalToIso('2026-10-26', '')).toBeUndefined();
+      expect(formatLocalToIso('invalid-date', '19:00')).toBeUndefined();
+      expect(formatLocalToIso(undefined, undefined)).toBeUndefined();
     });
   });
 });

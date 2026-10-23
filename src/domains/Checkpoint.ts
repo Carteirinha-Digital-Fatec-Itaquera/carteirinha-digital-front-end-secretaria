@@ -20,6 +20,7 @@ export interface CheckpointMutationResponse {
   version: number;
   openedAt: IsoDateTime | null;
   closedAt: IsoDateTime | null;
+  closesAt?: IsoDateTime | null;
 }
 
 export interface AttendanceQrResponse {

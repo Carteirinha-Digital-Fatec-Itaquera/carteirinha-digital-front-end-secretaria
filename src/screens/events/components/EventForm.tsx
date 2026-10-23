@@ -12,15 +12,19 @@ import {
   parseWorkloadHours,
   calculateEventEnd,
   toEventFormSchedule,
+  formatLocalToIso,
 } from '../../../utils/eventSchedule';
 import {
   management,
   openManagementPdf,
   uploadAsset,
+  getManagementPdfBlobUrl,
   type Catalog,
   type Template,
   type Signer,
 } from '../../../api/event/publicEventService';
+import { CertificatePreview } from './CertificatePreview';
+import { PdfPreviewModal } from './PdfPreviewModal';
 import styles from './styleEventForm.module.css';
 
 export type CreateEventPayload = CreateEventRequest;
@@ -116,6 +120,7 @@ export function EventForm({
   const [newTemplateHeading, setNewTemplateHeading] = useState('CERTIFICADO');
   const [newTemplateEdition, setNewTemplateEdition] = useState('');
   const [newTemplateFile, setNewTemplateFile] = useState<File | null>(null);
+  const [templateFilePreviewUrl, setTemplateFilePreviewUrl] = useState<string | null>(null);
   const [newTemplateLoading, setNewTemplateLoading] = useState(false);
   const [newTemplateError, setNewTemplateError] = useState<string | null>(null);
 
@@ -125,9 +130,24 @@ export function EventForm({
   const [newSignerTitle, setNewSignerTitle] = useState('');
   const [newSignerCourse, setNewSignerCourse] = useState('');
   const [newSignerFile, setNewSignerFile] = useState<File | null>(null);
+  const [signerFilePreviewUrl, setSignerFilePreviewUrl] = useState<string | null>(null);
   const [newSignerAuthorized, setNewSignerAuthorized] = useState(false);
   const [newSignerLoading, setNewSignerLoading] = useState(false);
   const [newSignerError, setNewSignerError] = useState<string | null>(null);
+
+  // Estados para visualização de prévia e conferência do PDF
+  const [activePreviewRole, setActivePreviewRole] = useState<'ATTENDEE' | 'SPEAKER'>('ATTENDEE');
+  const [pdfModalOpen, setPdfModalOpen] = useState(false);
+  const [pdfModalUrl, setPdfModalUrl] = useState<string | null>(null);
+  const [pdfModalLoading, setPdfModalLoading] = useState(false);
+
+  useEffect(() => {
+    return () => {
+      if (pdfModalUrl) {
+        URL.revokeObjectURL(pdfModalUrl);
+      }
+    };
+  }, [pdfModalUrl]);
 
   // Catálogo público de modelos, assinantes e local padrão
   const [catalog, setCatalog] = useState<Catalog | null>(null);
@@ -507,15 +527,76 @@ export function EventForm({
     }
   }
 
+  async function handleOpenPdfModal(targetRole?: 'ATTENDEE' | 'SPEAKER') {
+    const roleToUse = targetRole || activePreviewRole;
+    const rawTemplateId =
+      roleToUse === 'ATTENDEE' ? attendeeTemplateId : speakerTemplateId;
+    const signers = roleToUse === 'ATTENDEE' ? signerIds : speakerSignerIds;
+    const isDefault = !rawTemplateId || rawTemplateId === 'default';
+    const templateId = rawTemplateId || 'default';
+
+    if (!isDefault && !signers.length) {
+      setErrorMessage('Selecione ao menos um assinante para conferir o PDF.');
+      return;
+    }
+
+    try {
+      setPdfModalLoading(true);
+      const draft = {
+        signerIds: signers,
+        eventTitle: title.trim() || undefined,
+        speaker: speaker.trim() || undefined,
+        promoter: promoter.trim() || undefined,
+        startsAt: formatLocalToIso(startDate, startTime),
+        endsAt: formatLocalToIso(endDate, endTime),
+        workload: workload ? (Number(workload) === 1 ? '1 hora' : `${workload} horas`) : undefined,
+        workloadMinutes: parseWorkloadHours(workload) || undefined,
+      };
+
+      const url = await getManagementPdfBlobUrl(`templates/${templateId}/preview`, draft);
+      setPdfModalUrl(url);
+      setPdfModalOpen(true);
+    } catch (err: unknown) {
+      setErrorMessage(
+        err instanceof Error ? err.message : 'Erro ao abrir conferência do PDF.'
+      );
+    } finally {
+      setPdfModalLoading(false);
+    }
+  }
+
+  function handleClosePdfModal() {
+    if (pdfModalUrl) {
+      URL.revokeObjectURL(pdfModalUrl);
+      setPdfModalUrl(null);
+    }
+    setPdfModalOpen(false);
+  }
+
   async function handlePreviewPdf(role: 'ATTENDEE' | 'SPEAKER') {
-    const templateId =
+    const rawTemplateId =
       role === 'ATTENDEE' ? attendeeTemplateId : speakerTemplateId;
     const signers = role === 'ATTENDEE' ? signerIds : speakerSignerIds;
-    if (!templateId) return;
+    const isDefault = !rawTemplateId || rawTemplateId === 'default';
+    const templateId = rawTemplateId || 'default';
+
+    if (!isDefault && !signers.length) {
+      setErrorMessage('Selecione ao menos um assinante para conferir o PDF.');
+      return;
+    }
+
     try {
-      await openManagementPdf(`templates/${templateId}/preview`, {
+      const draft = {
         signerIds: signers,
-      });
+        eventTitle: title.trim() || undefined,
+        speaker: speaker.trim() || undefined,
+        promoter: promoter.trim() || undefined,
+        startsAt: formatLocalToIso(startDate, startTime),
+        endsAt: formatLocalToIso(endDate, endTime),
+        workload: workload ? (Number(workload) === 1 ? '1 hora' : `${workload} horas`) : undefined,
+        workloadMinutes: parseWorkloadHours(workload) || undefined,
+      };
+      await openManagementPdf(`templates/${templateId}/preview`, draft);
     } catch (err: unknown) {
       setErrorMessage(
         err instanceof Error ? err.message : 'Erro ao abrir prévia do PDF.'
@@ -1225,6 +1306,29 @@ export function EventForm({
                   </div>
                 </div>
               )}
+              {/* Prévia instantânea do certificado em tempo real */}
+              <CertificatePreview
+                role={activePreviewRole}
+                template={
+                  (activePreviewRole === 'ATTENDEE'
+                    ? catalog?.templates.find((t) => t.id === attendeeTemplateId)
+                    : catalog?.templates.find((t) => t.id === speakerTemplateId)) || null
+                }
+                signerIds={activePreviewRole === 'ATTENDEE' ? signerIds : speakerSignerIds}
+                allSigners={catalog?.signers || []}
+                eventTitle={title}
+                speaker={speaker}
+                promoter={promoter}
+                startDate={startDate}
+                startTime={startTime}
+                endDate={endDate}
+                endTime={endTime}
+                workloadHours={workload}
+                availableRoles={['ATTENDEE', ...(speakerTemplateId ? ['SPEAKER' as const] : [])]}
+                onRoleChange={setActivePreviewRole}
+                onOpenPdfModal={() => handleOpenPdfModal(activePreviewRole)}
+                isSubmittingPdf={pdfModalLoading}
+              />
             </>
           )}
         </div>
@@ -1339,9 +1443,32 @@ export function EventForm({
                       onChange={(e) => {
                         const file = e.target.files?.[0] || null;
                         setNewTemplateFile(file);
+                        if (templateFilePreviewUrl && typeof URL.revokeObjectURL === 'function') {
+                          URL.revokeObjectURL(templateFilePreviewUrl);
+                        }
+                        const nextUrl = file && typeof URL.createObjectURL === 'function' ? URL.createObjectURL(file) : null;
+                        setTemplateFilePreviewUrl(nextUrl);
                       }}
                       className={styles.fileUploadInput}
                     />
+                    {templateFilePreviewUrl && (
+                      <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <img
+                          src={templateFilePreviewUrl}
+                          alt="Prévia da arte selecionada"
+                          style={{
+                            maxHeight: '80px',
+                            maxWidth: '160px',
+                            objectFit: 'contain',
+                            borderRadius: '4px',
+                            border: '1px solid #cbd5e1',
+                          }}
+                        />
+                        <span style={{ fontSize: '12px', color: '#475569' }}>
+                          Prévia local da arte selecionada
+                        </span>
+                      </div>
+                    )}
                     <span className={styles.fileUploadNote}>
                       Envie uma imagem limpa (PNG ou JPG até 2MB). Se não enviar imagem, será utilizada a composição visual padrão da Fatec.
                     </span>
@@ -1451,9 +1578,34 @@ export function EventForm({
                       onChange={(e) => {
                         const file = e.target.files?.[0] || null;
                         setNewSignerFile(file);
+                        if (signerFilePreviewUrl && typeof URL.revokeObjectURL === 'function') {
+                          URL.revokeObjectURL(signerFilePreviewUrl);
+                        }
+                        const nextUrl = file && typeof URL.createObjectURL === 'function' ? URL.createObjectURL(file) : null;
+                        setSignerFilePreviewUrl(nextUrl);
                       }}
                       className={styles.fileUploadInput}
                     />
+                    {signerFilePreviewUrl && (
+                      <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <img
+                          src={signerFilePreviewUrl}
+                          alt="Prévia da assinatura selecionada"
+                          style={{
+                            maxHeight: '55px',
+                            maxWidth: '140px',
+                            objectFit: 'contain',
+                            background: '#f8fafc',
+                            padding: '4px',
+                            borderRadius: '4px',
+                            border: '1px solid #cbd5e1',
+                          }}
+                        />
+                        <span style={{ fontSize: '12px', color: '#475569' }}>
+                          Prévia local da assinatura selecionada
+                        </span>
+                      </div>
+                    )}
                     <span className={styles.fileUploadNote}>
                       Envie a imagem da assinatura em formato PNG com fundo transparente.
                     </span>
@@ -1493,6 +1645,13 @@ export function EventForm({
           </div>
         </div>
       )}
+
+      {/* Modal de Conferência de PDF */}
+      <PdfPreviewModal
+        isOpen={pdfModalOpen}
+        pdfUrl={pdfModalUrl}
+        onClose={handleClosePdfModal}
+      />
     </div>
   );
 }

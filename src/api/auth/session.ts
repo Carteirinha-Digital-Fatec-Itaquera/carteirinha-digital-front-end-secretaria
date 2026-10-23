@@ -22,6 +22,11 @@ function readToken() {
 }
 let state: SessionState = { token: readToken(), generation: 0, notice: false };
 const listeners = new Set<() => void>();
+const clearCallbacks = new Set<() => void>();
+export function onSessionClear(callback: () => void) {
+  clearCallbacks.add(callback);
+  return () => { clearCallbacks.delete(callback); };
+}
 export const getSessionSnapshot = () => state;
 export function subscribeSession(listener: () => void) {
   listeners.add(listener);
@@ -34,6 +39,7 @@ function publish(next: SessionState) {
 function clearPrivateStorage() {
   // This frontend currently persists only its token. Keep unrelated preferences.
   try { sessionStorage.removeItem('token'); } catch { /* storage unavailable */ }
+  clearCallbacks.forEach(cb => { try { cb(); } catch { /* ignore */ } });
 }
 export function isCurrentSession(context: SessionContext) {
   return context.token === state.token && context.generation === state.generation;
