@@ -10,6 +10,9 @@ vi.mock('../../api/event/publicEventService', () => ({
   uploadAsset: vi.fn(),
   openManagementPdf: vi.fn(),
   fetchAssetBlobUrl: vi.fn().mockResolvedValue('blob:test'),
+  releaseAssetBlobUrl: vi.fn(),
+  revokeAssetBlobUrl: vi.fn(),
+  revokeAllAssetBlobUrls: vi.fn(),
 }));
 
 const catalog: Catalog = {

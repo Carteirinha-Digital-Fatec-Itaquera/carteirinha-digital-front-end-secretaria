@@ -1,6 +1,9 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import type { Template, Signer } from '../../../api/event/publicEventService';
-import { fetchAssetBlobUrl } from '../../../api/event/publicEventService';
+import {
+  fetchAssetBlobUrl,
+  releaseAssetBlobUrl,
+} from '../../../api/event/publicEventService';
 import styles from './styleCertificatePreview.module.css';
 
 export interface CertificatePreviewProps {
@@ -54,43 +57,69 @@ export function CertificatePreview({
     return signerIds.map((id) => map.get(id)).filter(Boolean) as Signer[];
   }, [signerIds, allSigners]);
 
-  // Carregar imagens de assinaturas de forma assíncrona sem setState síncrono no efeito
+  const acquiredSignersRef = useRef<Map<string, { assetId: string; url: string }>>(new Map());
+  const acquiredBgAssetIdRef = useRef<string | null>(null);
+
+  // Carregar imagens de assinaturas de forma assíncrona
   useEffect(() => {
     if (typeof fetchAssetBlobUrl !== 'function') return;
     const controller = new AbortController();
-    const assetsToLoad = selectedSigners
-      .filter((s) => s.assetId)
-      .map((s) => ({ id: s.id, assetId: s.assetId! }));
 
-    if (assetsToLoad.length === 0) {
-      Promise.resolve().then(() => {
-        if (!controller.signal.aborted) {
-          setSignatureUrls((prev) => (Object.keys(prev).length === 0 ? prev : {}));
+    const activeSignerMap = new Map(
+      selectedSigners.filter((s) => s.assetId).map((s) => [s.id, s.assetId!]),
+    );
+
+    // 1. Liberar assinaturas que foram desselecionadas
+    for (const [signerId, info] of acquiredSignersRef.current.entries()) {
+      if (!activeSignerMap.has(signerId)) {
+        if (typeof releaseAssetBlobUrl === 'function') {
+          releaseAssetBlobUrl(info.assetId);
         }
-      });
-      return () => {
-        controller.abort();
-      };
+        acquiredSignersRef.current.delete(signerId);
+      }
+    }
+
+    // 2. Identificar quais precisam ser carregadas
+    const toLoad: Array<{ id: string; assetId: string }> = [];
+    for (const [id, assetId] of activeSignerMap.entries()) {
+      if (!acquiredSignersRef.current.has(id)) {
+        toLoad.push({ id, assetId });
+      }
+    }
+
+    if (toLoad.length === 0) {
+      const currentUrls: Record<string, string> = {};
+      for (const [id, info] of acquiredSignersRef.current.entries()) {
+        if (info.url) currentUrls[id] = info.url;
+      }
+      setSignatureUrls(currentUrls);
+      return;
     }
 
     Promise.all(
-      assetsToLoad.map(async ({ id, assetId }) => {
+      toLoad.map(async ({ id, assetId }) => {
         try {
           const res = fetchAssetBlobUrl(assetId, controller.signal);
           const url =
             res && typeof (res as Promise<string>).then === 'function'
               ? await res
               : '';
-          return { id, url };
+          return { id, assetId, url };
         } catch {
-          return { id, url: '' };
+          return { id, assetId, url: '' };
         }
-      })
+      }),
     ).then((results) => {
       if (!controller.signal.aborted) {
-        const next: Record<string, string> = {};
         for (const item of results) {
-          if (item.url) next[item.id] = item.url;
+          acquiredSignersRef.current.set(item.id, {
+            assetId: item.assetId,
+            url: item.url,
+          });
+        }
+        const next: Record<string, string> = {};
+        for (const [id, info] of acquiredSignersRef.current.entries()) {
+          if (info.url) next[id] = info.url;
         }
         setSignatureUrls(next);
       }
@@ -101,21 +130,32 @@ export function CertificatePreview({
     };
   }, [selectedSigners]);
 
-  // Carregar imagem de background do template se houver sem setState síncrono no efeito
+  // Carregar imagem de background do template
   useEffect(() => {
     if (typeof fetchAssetBlobUrl !== 'function') return;
     const controller = new AbortController();
     const bgId = template?.config?.backgroundAssetId;
+
+    if (acquiredBgAssetIdRef.current && acquiredBgAssetIdRef.current !== bgId) {
+      if (typeof releaseAssetBlobUrl === 'function') {
+        releaseAssetBlobUrl(acquiredBgAssetIdRef.current);
+      }
+      acquiredBgAssetIdRef.current = null;
+    }
+
     if (!bgId) {
       Promise.resolve().then(() => {
         if (!controller.signal.aborted) {
-          setBackgroundUrl((prev) => (prev === null ? null : null));
+          setBackgroundUrl(null);
         }
       });
       return () => {
         controller.abort();
       };
     }
+
+    acquiredBgAssetIdRef.current = bgId;
+
     async function loadBackground() {
       try {
         const res = fetchAssetBlobUrl(bgId!, controller.signal);
@@ -138,27 +178,23 @@ export function CertificatePreview({
     };
   }, [template?.config?.backgroundAssetId]);
 
-  // Limpeza de Blobs ao desmontar ou trocar URLs
+  // Descarte de assets adquiridos ao desmontar o componente
   useEffect(() => {
     return () => {
-      for (const url of Object.values(signatureUrls)) {
-        if (url) {
-          try {
-            URL.revokeObjectURL(url);
-          } catch {
-            // Ignora erro ao revogar URL temporária de assinatura
-          }
+      for (const [, info] of acquiredSignersRef.current.entries()) {
+        if (typeof releaseAssetBlobUrl === 'function') {
+          releaseAssetBlobUrl(info.assetId);
         }
       }
-      if (backgroundUrl) {
-        try {
-          URL.revokeObjectURL(backgroundUrl);
-        } catch {
-          // Ignora erro ao revogar URL temporária de plano de fundo
+      acquiredSignersRef.current.clear();
+      if (acquiredBgAssetIdRef.current) {
+        if (typeof releaseAssetBlobUrl === 'function') {
+          releaseAssetBlobUrl(acquiredBgAssetIdRef.current);
         }
+        acquiredBgAssetIdRef.current = null;
       }
     };
-  }, [signatureUrls, backgroundUrl]);
+  }, []);
 
   // Acessibilidade e controle do modal de expansão
   useEffect(() => {

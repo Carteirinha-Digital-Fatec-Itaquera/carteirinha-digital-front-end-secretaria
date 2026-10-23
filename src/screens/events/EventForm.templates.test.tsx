@@ -10,7 +10,9 @@ vi.mock('../../api/event/publicEventService', () => {
     uploadAsset: vi.fn(),
     getManagementPdfBlobUrl: vi.fn(),
     fetchAssetBlobUrl: vi.fn(),
+    releaseAssetBlobUrl: vi.fn(),
     revokeAssetBlobUrl: vi.fn(),
+    revokeAllAssetBlobUrls: vi.fn(),
   };
 });
 
