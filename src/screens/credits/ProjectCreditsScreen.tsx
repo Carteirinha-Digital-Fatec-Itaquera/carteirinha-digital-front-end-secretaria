@@ -209,7 +209,7 @@ function SecretaryCreditsView() {
           {/* Header Unificado */}
           <div className={adminStyles.pageHeader}>
             <div className={adminStyles.headerText}>
-              <h1>Créditos do Projeto</h1>
+              <h1>Sobre</h1>
               <p>
                 Histórico acadêmico e equipe de desenvolvimento da Carteirinha Digital.
                 Cadastre e gerencie os colaboradores que constroem este projeto.
@@ -621,7 +621,7 @@ function PublicCreditsView() {
           />
           <span>Secretaria acadêmica</span>
         </div>
-        <h1>Créditos do projeto</h1>
+        <h1>Sobre</h1>
         <p className={publicStyles.intro}>
           Cada semestre deixa sua marca na Carteirinha Digital. Conheça quem ajudou a construir este
           projeto.

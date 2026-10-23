@@ -1,13 +1,35 @@
 import { logoutSession } from '../../api/auth/session';
 import { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { CloudArrowUpIcon, FilePlusIcon, SignOutIcon, UserCircleIcon, UserListIcon, SidebarSimpleIcon, CalendarIcon, CameraIcon, UsersFourIcon } from '@phosphor-icons/react';
+import { CloudArrowUpIcon, FilePlusIcon, SignOutIcon, UserCircleIcon, UserListIcon, SidebarSimpleIcon, CalendarIcon, CameraIcon, InfoIcon } from '@phosphor-icons/react';
 import MessageModal from '../messageModal/MessageModal';
 import styles from './style.module.css';
+import { getPendingPhotos } from '../../api/student/getPendingPhotos';
 
-export default function MenuLateral() {
+// A tela de fotos fornece sua própria contagem para reutilizar a recarga existente.
+export default function MenuLateral({ pendingPhotoCount }: { pendingPhotoCount?: number | null } = {}) {
  const navigate = useNavigate();
  const location = useLocation();
+ const [fetchedCount, setFetchedCount] = useState<number | null>(null);
+ useEffect(() => {
+   if (pendingPhotoCount !== undefined) return;
+   let active = true;
+   let request = 0;
+   const refresh = async () => {
+     const current = ++request;
+     setFetchedCount(null);
+     try {
+       const photos = await getPendingPhotos();
+       if (active && current === request) setFetchedCount(Array.isArray(photos) ? photos.length : null);
+     } catch {
+       if (active && current === request) setFetchedCount(null);
+     }
+   };
+   void refresh();
+   window.addEventListener('focus', refresh);
+   return () => { active = false; window.removeEventListener('focus', refresh); };
+ }, [location.pathname, pendingPhotoCount]);
+ const photoCount = pendingPhotoCount === undefined ? fetchedCount : pendingPhotoCount;
  const [collapsed, setCollapsed] = useState(() => window.innerWidth < 1200);
  const [mobile, setMobile] = useState(() => window.innerWidth < 768);
  const [open, setOpen] = useState(false);
@@ -36,7 +58,7 @@ export default function MenuLateral() {
    {path:'/perfil',label:'Perfil',Icon:UserCircleIcon},
    {path:'/fotos',label:'Fotos pendentes',Icon:CameraIcon},
    {path:'/eventos',label:'Eventos',Icon:CalendarIcon},
-   {path:'/creditos',label:'Créditos do projeto',Icon:UsersFourIcon},
+   {path:'/creditos',label:'Sobre',Icon:InfoIcon},
  ];
  const narrow = !mobile && collapsed;
  const content = <>
@@ -51,7 +73,9 @@ export default function MenuLateral() {
         (path === '/students' && location.pathname.startsWith('/update')) ||
         (path === '/eventos' && (location.pathname.startsWith('/eventos') || location.pathname === '/criar-evento')) ||
         (path === '/creditos' && (location.pathname === '/creditos' || location.pathname.startsWith('/creditos/')));
-      return <button key={path} type="button" title={label} aria-label={label} aria-current={active ? 'page' : undefined} className={styles.itemMenu + (active ? ' ' + styles.selected : '')} onKeyDown={event => { if (event.key === 'Enter') { event.preventDefault(); handleMenuClick(path); } }} onClick={() => handleMenuClick(path)}><Icon size={24} aria-hidden="true" />{!narrow && <span>{label}</span>}</button>;
+      const count = path === '/fotos' ? photoCount : null;
+      const accessibleLabel = count && count > 0 ? `${label}: ${count} aguardando análise` : label;
+      return <button key={path} type="button" title={accessibleLabel} aria-label={accessibleLabel} aria-current={active ? 'page' : undefined} className={styles.itemMenu + (active ? ' ' + styles.selected : '')} onKeyDown={event => { if (event.key === 'Enter') { event.preventDefault(); handleMenuClick(path); } }} onClick={() => handleMenuClick(path)}><Icon size={24} aria-hidden="true" />{!narrow && <span>{label}</span>}{count != null && count > 0 && <span className={styles.pendingBadge} aria-hidden="true">{count}</span>}</button>;
     })}
     <button type="button" className={styles.itemMenu + ' ' + styles.logout} title="Deslogar" aria-label="Deslogar" onClick={requestLogout}><SignOutIcon size={24} aria-hidden="true" />{!narrow && <span>Deslogar</span>}</button>
    </nav>

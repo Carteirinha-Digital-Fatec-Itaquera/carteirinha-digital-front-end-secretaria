@@ -134,3 +134,8 @@
 .list { margin-top: 0; max-width: none; }
 .listHeader { padding: 16px; background: var(--app-color-primary-soft); flex-wrap: wrap; gap: 12px; border: 1px solid var(--app-color-border); }
 @media(max-width:767px) { .container { padding: 24px 16px; } .filterBar { padding: 16px; } .filterSelects { grid-template-columns: 1fr; } }
+
+/* Refinamento no desktop; a tabela já usa valores de 13px. */
+@media (min-width: 768px) {
+  .listHeader, .listHeader span, .filterSelect { font-size: .9375rem; }
+}

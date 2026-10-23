@@ -189,7 +189,7 @@ export default function CreditsManageScreen() {
           </div>
           <div className={styles.headerActions}>
             <Link to="/creditos" className={styles.secondaryButton} target="_blank">
-              Visualizar Créditos Públicos
+              Visualizar Sobre
             </Link>
             <Link to="/creditos/novo" className={styles.primaryButton}>
               <Plus size={18} />
