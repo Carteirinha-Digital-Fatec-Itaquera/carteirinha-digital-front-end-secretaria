@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import {
   wrapSvgText,
   measureTextWidth,
@@ -75,6 +75,22 @@ describe('certificateTextLayout (C3 - Métricas e quebra de texto SVG)', () => {
     }
     for (const l of normalRes.lines) {
       expect(measureTextWidth(l, normalRes.fontSize, 'normal')).toBeLessThanOrEqual(500);
+    }
+  });
+});
+
+describe('browser font measurement', () => {
+  it('uses canvas metrics with the SVG font', () => {
+    const context = { font: '', measureText: vi.fn(() => ({ width: 123.45 })) };
+    vi.stubGlobal('CanvasRenderingContext2D', class {});
+    const spy = vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(context as unknown as CanvasRenderingContext2D);
+    try {
+      expect(measureTextWidth('WWW', 17, 'bold')).toBe(123.45);
+      expect(context.font).toBe('700 17px Helvetica, Arial, sans-serif');
+      expect(context.measureText).toHaveBeenCalledWith('WWW');
+    } finally {
+      spy.mockRestore();
+      vi.unstubAllGlobals();
     }
   });
 });

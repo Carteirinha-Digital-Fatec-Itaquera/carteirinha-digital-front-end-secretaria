@@ -7,7 +7,7 @@ export interface WrappedText {
 }
 
 /**
- * Razão de largura por caractere para fonte Helvetica / Arial baseada nas métricas reais da fonte.
+ * RazÃ£o de largura por caractere para fonte Helvetica / Arial baseada nas mÃ©tricas reais da fonte.
  */
 export function getCharWidthRatio(char: string, fontWeight: 'bold' | 'normal' = 'bold'): number {
   if (char === ' ' || char === '\t') return 0.28;
@@ -16,27 +16,35 @@ export function getCharWidthRatio(char: string, fontWeight: 'bold' | 'normal' = 
   if ('WM@%#&'.includes(char)) return fontWeight === 'bold' ? 0.90 : 0.84;
   if ('ABCDEFGHJKLNOPQRSTUVXYZ'.includes(char)) return fontWeight === 'bold' ? 0.70 : 0.64;
   if ('mw'.includes(char)) return fontWeight === 'bold' ? 0.74 : 0.68;
-  // Caracteres comuns minúsculos e dígitos
+  // Caracteres comuns minÃºsculos e dÃ­gitos
   return fontWeight === 'bold' ? 0.58 : 0.52;
 }
 
 /**
- * Mede a largura aproximada de um texto em pixels para fonte Helvetica.
+ * Mede o texto com a mesma família e peso usados no SVG.
  */
 export function measureTextWidth(
   text: string,
   fontSize: number,
   fontWeight: 'bold' | 'normal' = 'bold',
 ): number {
+  if (typeof document !== 'undefined' && typeof CanvasRenderingContext2D !== 'undefined') {
+    const context = document.createElement('canvas').getContext('2d');
+    if (context) {
+      context.font = `${fontWeight === 'bold' ? '700' : '400'} ${fontSize}px Helvetica, Arial, sans-serif`;
+      return context.measureText(text).width;
+    }
+  }
+  // Non-browser tests use conservative estimates; the browser measures the rendered font.
   let width = 0;
-  for (let i = 0; i < text.length; i++) {
-    width += getCharWidthRatio(text[i], fontWeight) * fontSize;
+  for (const char of text) {
+    width += getCharWidthRatio(char, fontWeight) * fontSize;
   }
   return width;
 }
 
 /**
- * Divide um token contínuo que não cabe em uma única linha em partes que respeitam maxWidth.
+ * Divide um token contÃ­nuo que nÃ£o cabe em uma Ãºnica linha em partes que respeitam maxWidth.
  */
 export function splitLongToken(
   token: string,
@@ -47,8 +55,7 @@ export function splitLongToken(
   const parts: string[] = [];
   let current = '';
 
-  for (let i = 0; i < token.length; i++) {
-    const char = token[i];
+  for (const char of Array.from(token)) {
     const candidate = current + char;
     if (measureTextWidth(candidate, fontSize, fontWeight) <= maxWidth) {
       current = candidate;
@@ -62,8 +69,8 @@ export function splitLongToken(
 }
 
 /**
- * Quebra e redimensiona texto para caber em contêineres SVG de forma proporcional.
- * Lida com palavras com espaços e tokens contínuos sem espaços, sinalizando overflow quando exceder o limite.
+ * Quebra e redimensiona texto para caber em contÃªineres SVG de forma proporcional.
+ * Lida com palavras com espaÃ§os e tokens contÃ­nuos sem espaÃ§os, sinalizando overflow quando exceder o limite.
  */
 export function wrapSvgText(
   text: string,
@@ -92,7 +99,7 @@ export function wrapSvgText(
     let currentLine = '';
     let fits = true;
 
-    // Pré-processa palavras: se alguma palavra for mais larga que maxWidth, quebra o token
+    // PrÃ©-processa palavras: se alguma palavra for mais larga que maxWidth, quebra o token
     const words: string[] = [];
     for (const w of rawWords) {
       if (measureTextWidth(w, size, fontWeight) > maxWidth) {
@@ -133,7 +140,7 @@ export function wrapSvgText(
     }
   }
 
-  // Fallback no tamanho mínimo com quebra estrita de tokens
+  // Fallback no tamanho mÃ­nimo com quebra estrita de tokens
   const fallbackSize = minSize;
   const lineHeight = Math.round(fallbackSize * 1.25);
   const words: string[] = [];
