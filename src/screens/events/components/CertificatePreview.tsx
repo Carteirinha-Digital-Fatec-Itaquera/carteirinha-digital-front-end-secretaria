@@ -138,6 +138,28 @@ export function CertificatePreview({
     };
   }, [template?.config?.backgroundAssetId]);
 
+  // Limpeza de Blobs ao desmontar ou trocar URLs
+  useEffect(() => {
+    return () => {
+      for (const url of Object.values(signatureUrls)) {
+        if (url) {
+          try {
+            URL.revokeObjectURL(url);
+          } catch {
+            // Ignora erro ao revogar URL temporária de assinatura
+          }
+        }
+      }
+      if (backgroundUrl) {
+        try {
+          URL.revokeObjectURL(backgroundUrl);
+        } catch {
+          // Ignora erro ao revogar URL temporária de plano de fundo
+        }
+      }
+    };
+  }, [signatureUrls, backgroundUrl]);
+
   // Acessibilidade e controle do modal de expansão
   useEffect(() => {
     if (!isExpanded) return;
@@ -247,41 +269,206 @@ export function CertificatePreview({
       style={isModal ? { width: '100%', height: 'auto', maxHeight: '80vh' } : undefined}
       xmlns="http://www.w3.org/2000/svg"
     >
-      {/* Fundo do Certificado */}
-      {backgroundUrl ? (
-        <image href={backgroundUrl} x="0" y="0" width="842" height="595" preserveAspectRatio="none" />
-      ) : isCustomTemplate ? (
-        /* Layout de Referência da Semana de Tecnologia */
-        <g id={isModal ? 'modal-reference-background' : 'reference-background'}>
-          <rect x="0" y="0" width="842" height="595" fill="#FAFAFA" />
-          {/* Moldura vermelha e faixa preta */}
-          <rect x="33" y="33" width="776" height="529" fill="none" stroke="#c00000" strokeWidth="5.5" />
-          <rect x="36" y="563" width="786" height="6" fill="#000000" />
-          <rect x="815" y="36" width="6" height="533" fill="#000000" />
+      {isCustomTemplate ? (
+        /* ==========================================================
+         * MODELO PERSONALIZADO (SEMANA DE TECNOLOGIA)
+         * ========================================================== */
+        <g id={isModal ? 'modal-custom-certificate' : 'custom-certificate'}>
+          {/* Fundo do Certificado */}
+          {backgroundUrl ? (
+            <image href={backgroundUrl} x="0" y="0" width="842" height="595" preserveAspectRatio="none" />
+          ) : (
+            <g id={isModal ? 'modal-reference-background' : 'reference-background'}>
+              <rect x="0" y="0" width="842" height="595" fill="#FAFAFA" />
+              {/* 4 fatias do background original da Semana */}
+              <image href="/technology-week-background-0.jpg" x="34.32" y="31.2" width="781.2" height="152.16" preserveAspectRatio="none" />
+              <image href="/technology-week-background-1.jpg" x="34.32" y="183.36" width="781.2" height="152.16" preserveAspectRatio="none" />
+              <image href="/technology-week-background-2.jpg" x="34.32" y="335.52" width="781.2" height="152.16" preserveAspectRatio="none" />
+              <image href="/technology-week-background-3.jpg" x="34.32" y="487.68" width="781.2" height="75.84" preserveAspectRatio="none" />
 
-          {/* Cabeçalho da Semana com algarismos romanos */}
-          <g transform="translate(48, 42)">
-            <text x="310" y="48" fontSize="42" fontWeight="bold" fill="#000000" textAnchor="end">
-              XIII
-            </text>
-            <text x="325" y="32" fontSize="15" fontWeight="bold" fill="#000000">
-              SEMANA DE
-            </text>
-            <text x="325" y="48" fontSize="15" fontWeight="bold" fill="#000000">
-              TECNOLOGIA
-            </text>
-            <text x="325" y="62" fontSize="9" fill="#555555">
-              FATEC ITAQUERA
-            </text>
-          </g>
+              {/* Logos oficiais da Semana de Tecnologia */}
+              <image href="/technology-week-logo-1.jpg" x="48.36" y="42.12" width="259.8" height="70.08" preserveAspectRatio="xMidYMid meet" />
+              <image href="/technology-week-logo-2.jpg" x="68.4" y="46.56" width="90.96" height="48.24" preserveAspectRatio="xMidYMid meet" />
+              <image href="/technology-week-logo-0.jpg" x="497.04" y="41.76" width="299.76" height="58.8" preserveAspectRatio="xMidYMid meet" />
+
+              {/* Numeral romano e título da edição */}
+              <text x="394" y="93" fontFamily="Helvetica, Arial, sans-serif" fontWeight="bold" fontSize="47" fill="#000000" textAnchor="end">
+                {(/^([IVX]+)\b/.exec(displayEdition)?.[1]) || 'XIII'}
+              </text>
+              <text x="397" y="66" fontFamily="Helvetica, Arial, sans-serif" fontWeight="bold" fontSize="17" fill="#000000">
+                SEMANA DE
+              </text>
+              <text x="397" y="83" fontFamily="Helvetica, Arial, sans-serif" fontWeight="bold" fontSize="17" fill="#000000">
+                TECNOLOGIA
+              </text>
+
+              {/* Moldura vermelha e faixas pretas da arte aprovada */}
+              <rect x="36" y="563.82" width="785.92" height="6" fill="#000000" />
+              <rect x="815.92" y="36" width="6" height="533.82" fill="#000000" />
+              <rect x="33" y="33" width="775.92" height="529.32" fill="none" stroke="#c00000" strokeWidth="5.5" />
+            </g>
+          )}
+
+          {/* Heading */}
+          <text
+            x="421"
+            y="160"
+            textAnchor="middle"
+            fontFamily="Helvetica, Arial, sans-serif"
+            fontWeight="bold"
+            fontStyle="italic"
+            fontSize="28"
+            fill="#000000"
+          >
+            {headingText}
+          </text>
+
+          {/* Texto corrido em foreignObject com proporções fiéis ao renderer da Semana */}
+          <foreignObject x="70" y="205" width="702" height="130">
+            <div
+              style={{
+                fontFamily: 'Helvetica, Arial, sans-serif',
+                fontSize: displayTitle.length > 50 || studentName.length > 35 ? '12.5px' : '14px',
+                lineHeight: '1.6',
+                color: '#000000',
+                textAlign: 'justify',
+                margin: 0,
+                padding: 0,
+              }}
+            >
+              Certificamos que{' '}
+              <strong><em>{studentName}</em></strong>{' '}
+              {actionText}: “<strong><em>{displayTitle}</em></strong>”,{' '}
+              {displayPromoter ? `promovida por ${displayPromoter}, ` : ''}
+              realizada no dia {dateText}{timeRangeText}, na {displayEdition}, com carga horária de {workloadText}.
+            </div>
+          </foreignObject>
+
+          {/* Localidade e Data */}
+          <text
+            x="421"
+            y="370"
+            textAnchor="middle"
+            fontFamily="Helvetica, Arial, sans-serif"
+            fontSize="14"
+            fill="#000000"
+          >
+            São Paulo, {dateText}.
+          </text>
+
+          {/* Marca d'água */}
+          <text
+            x="421"
+            y="320"
+            textAnchor="middle"
+            fontFamily="Helvetica, Arial, sans-serif"
+            fontWeight="bold"
+            fontSize={isModal ? '48' : '44'}
+            fill="#BA1A1A"
+            fillOpacity="0.25"
+            style={{ pointerEvents: 'none', userSelect: 'none' }}
+          >
+            PRÉVIA — SEM VALIDADE
+          </text>
+
+          {/* Assinaturas personalizadas */}
+          {selectedSigners.length > 0 && (
+            <g id={isModal ? 'modal-signatures-group' : 'signatures-group'}>
+              {(() => {
+                const count = selectedSigners.length;
+                const width = 600 / count;
+                return selectedSigners.map((signer, index) => {
+                  const x = 120 + index * width;
+                  const cx = x + width / 2;
+                  const imgUrl = signatureUrls[signer.id];
+                  const lineWidth = Math.min(260, width - 20);
+
+                  return (
+                    <g key={signer.id}>
+                      {imgUrl ? (
+                        <image
+                          href={imgUrl}
+                          x={cx - 55}
+                          y="404"
+                          width="110"
+                          height="45"
+                          preserveAspectRatio="xMidYMid meet"
+                        />
+                      ) : signer.assetId ? (
+                        <text
+                          x={cx}
+                          y="435"
+                          textAnchor="middle"
+                          fontFamily="Helvetica, Arial, sans-serif"
+                          fontSize="10"
+                          fill="#BA1A1A"
+                          fontStyle="italic"
+                        >
+                          [Falha ao carregar assinatura]
+                        </text>
+                      ) : (
+                        <text
+                          x={cx}
+                          y="435"
+                          textAnchor="middle"
+                          fontFamily="Helvetica, Arial, sans-serif"
+                          fontSize="10"
+                          fill="#94a3b8"
+                          fontStyle="italic"
+                        >
+                          [Sem imagem de assinatura]
+                        </text>
+                      )}
+
+                      <line
+                        x1={cx - lineWidth / 2}
+                        y1="457"
+                        x2={cx + lineWidth / 2}
+                        y2="457"
+                        stroke="#000000"
+                        strokeWidth="0.8"
+                      />
+
+                      <text
+                        x={cx}
+                        y="474"
+                        textAnchor="middle"
+                        fontFamily="Helvetica, Arial, sans-serif"
+                        fontSize={count > 1 ? 10 : 13}
+                        fontWeight="bold"
+                        fontStyle="italic"
+                        fill="#000000"
+                      >
+                        {signer.name}
+                      </text>
+
+                      <text
+                        x={cx}
+                        y="495"
+                        textAnchor="middle"
+                        fontFamily="Helvetica, Arial, sans-serif"
+                        fontSize={count > 1 ? 9 : 11}
+                        fill="#444444"
+                      >
+                        {signer.title} {signer.course ? `(${signer.course})` : ''}
+                      </text>
+                    </g>
+                  );
+                });
+              })()}
+            </g>
+          )}
         </g>
       ) : (
-        /* Modelo Institucional Padrão Fatec - correspondente fiel ao PDF gerado */
-        <g id={isModal ? 'modal-institutional-background' : 'institutional-background'}>
+        /* ==========================================================
+         * MODELO INSTITUCIONAL PADRÃO (PDF-GENERATOR FIEL)
+         * ========================================================== */
+        <g id={isModal ? 'modal-institutional-certificate' : 'institutional-certificate'}>
           <rect x="0" y="0" width="842" height="595" fill="#FFFFFF" />
-          {/* Moldura externa vermelha e interna cinza */}
+
+          {/* Molduras externa vermelha e interna cinza */}
           <rect x="24" y="24" width="794" height="547" fill="none" stroke="#BA1A1A" strokeWidth="2.5" />
-          <rect x="31" y="31" width="780" height="533" fill="none" stroke="#D9D9D9" strokeWidth="0.8" />
+          <rect x="31" y="31" width="780" height="533" fill="none" stroke="#E5E7EB" strokeWidth="0.8" />
 
           {/* Cantos decorativos vermelhos idênticos ao PDF real */}
           <path d="M 31 73 L 31 31 L 73 31" fill="none" stroke="#BA1A1A" strokeWidth="4" />
@@ -308,35 +495,18 @@ export function CertificatePreview({
           />
 
           {/* Cabeçalho central institucional */}
-          <text x="421" y="67" textAnchor="middle" fontFamily="Helvetica, Arial, sans-serif" fontSize="10.5" fontWeight="bold" fill="#1A1A1A">
+          <text x="421" y="67" textAnchor="middle" fontFamily="Helvetica, Arial, sans-serif" fontSize="10.5" fontWeight="bold" fill="#1F2937" letterSpacing="0.5">
             FACULDADE DE TECNOLOGIA DE ITAQUERA
           </text>
-          <text x="421" y="85" textAnchor="middle" fontFamily="Helvetica, Arial, sans-serif" fontSize="8.5" fill="#555555">
+          <text x="421" y="85" textAnchor="middle" fontFamily="Helvetica, Arial, sans-serif" fontSize="8.5" fill="#6B7280">
             Centro Estadual de Educação Tecnológica Paula Souza
           </text>
 
           {/* Linha divisória com detalhe em vermelho */}
-          <line x1="55" y1="113" x2="787" y2="113" stroke="#D9D9D9" strokeWidth="0.8" />
+          <line x1="55" y1="113" x2="787" y2="113" stroke="#E5E7EB" strokeWidth="0.8" />
           <line x1="55" y1="113" x2="170" y2="113" stroke="#BA1A1A" strokeWidth="2.5" />
-        </g>
-      )}
 
-      {/* Heading */}
-      {isCustomTemplate ? (
-        <text
-          x="421"
-          y="155"
-          textAnchor="middle"
-          fontFamily="Helvetica, Arial, sans-serif"
-          fontWeight="bold"
-          fontStyle="italic"
-          fontSize="32"
-          fill="#000000"
-        >
-          {headingText}
-        </text>
-      ) : (
-        <g id={isModal ? 'modal-institutional-heading' : 'institutional-heading'}>
+          {/* TÍTULO */}
           <text
             x="421"
             y="152"
@@ -345,186 +515,157 @@ export function CertificatePreview({
             fontWeight="bold"
             fontSize="31"
             fill="#BA1A1A"
+            letterSpacing="2"
           >
             CERTIFICADO
           </text>
           <text
             x="421"
-            y="172"
+            y="176"
             textAnchor="middle"
             fontFamily="Helvetica, Arial, sans-serif"
             fontWeight="bold"
             fontSize="9.5"
-            fill="#555555"
+            fill="#6B7280"
+            letterSpacing="2.6"
           >
             {isSpeaker ? 'DE MINISTRAÇÃO DE PALESTRA' : 'DE PARTICIPAÇÃO'}
           </text>
+
+          {/* "Certificamos que" */}
+          <text
+            x="421"
+            y="206"
+            textAnchor="middle"
+            fontFamily="Helvetica, Arial, sans-serif"
+            fontSize="10.5"
+            fill="#6B7280"
+          >
+            Certificamos que
+          </text>
+
+          {/* Nome do aluno/palestrante centralizado em destaque */}
+          <text
+            x="421"
+            y="244"
+            textAnchor="middle"
+            fontFamily="Helvetica, Arial, sans-serif"
+            fontWeight="bold"
+            fontSize={studentName.length > 35 ? '19' : '24'}
+            fill="#1F2937"
+          >
+            {studentName}
+          </text>
+          {/* Linha decorativa abaixo do nome */}
+          <line x1="301" y1="263" x2="541" y2="263" stroke="#E5E7EB" strokeWidth="0.7" />
+
+          {/* RA + Curso */}
+          <text
+            x="421"
+            y="280"
+            textAnchor="middle"
+            fontFamily="Helvetica, Arial, sans-serif"
+            fontSize="10"
+            fill="#6B7280"
+          >
+            {isSpeaker ? 'Palestrante Convidado' : 'RA 123456789012  •  Análise e Desenvolvimento de Sistemas'}
+          </text>
+
+          {/* "participou do evento" */}
+          <text
+            x="421"
+            y="308"
+            textAnchor="middle"
+            fontFamily="Helvetica, Arial, sans-serif"
+            fontSize="10.5"
+            fill="#6B7280"
+          >
+            {isSpeaker ? 'ministrou o evento' : 'participou do evento'}
+          </text>
+
+          {/* Título do evento centralizado em vermelho */}
+          <text
+            x="421"
+            y="338"
+            textAnchor="middle"
+            fontFamily="Helvetica, Arial, sans-serif"
+            fontWeight="bold"
+            fontSize={displayTitle.length > 45 ? '14' : '17'}
+            fill="#BA1A1A"
+          >
+            {displayTitle}
+          </text>
+
+          {/* Palestrante ministrante */}
+          {speaker && !isSpeaker && (
+            <text
+              x="421"
+              y="375"
+              textAnchor="middle"
+              fontFamily="Helvetica, Arial, sans-serif"
+              fontSize="10"
+              fill="#6B7280"
+            >
+              Ministrado por {speaker.trim()}
+            </text>
+          )}
+
+          {/* Data do evento e Carga horária (Meta Items) */}
+          <g id={isModal ? 'modal-meta-items' : 'meta-items'}>
+            <text x="311" y="416" textAnchor="middle" fontFamily="Helvetica, Arial, sans-serif" fontSize="8" fontWeight="bold" fill="#6B7280" letterSpacing="0.8">
+              DATA DO EVENTO
+            </text>
+            <text x="311" y="433" textAnchor="middle" fontFamily="Helvetica, Arial, sans-serif" fontSize="11" fontWeight="bold" fill="#1F2937">
+              {dateText}
+            </text>
+
+            <line x1="421" y1="410" x2="421" y2="446" stroke="#E5E7EB" strokeWidth="0.7" />
+
+            <text x="531" y="416" textAnchor="middle" fontFamily="Helvetica, Arial, sans-serif" fontSize="8" fontWeight="bold" fill="#6B7280" letterSpacing="0.8">
+              CARGA HORÁRIA
+            </text>
+            <text x="531" y="433" textAnchor="middle" fontFamily="Helvetica, Arial, sans-serif" fontSize="11" fontWeight="bold" fill="#1F2937">
+              {workloadText}
+            </text>
+          </g>
+
+          {/* Painel de Autenticidade */}
+          <g id={isModal ? 'modal-auth-panel' : 'auth-panel'}>
+            <rect x="50" y="470" width="742" height="82" rx="8" fill="#FAFAFA" stroke="#E5E7EB" strokeWidth="0.8" />
+            <rect x="62" y="479" width="64" height="64" fill="#FFFFFF" stroke="#D1D5DB" strokeWidth="0.5" />
+            <path d="M 66 483 h 18 v 18 h -18 z M 70 487 h 10 v 10 h -10 z M 104 483 h 18 v 18 h -18 z M 108 487 h 10 v 10 h -10 z M 66 521 h 18 v 18 h -18 z M 70 525 h 10 v 10 h -10 z M 90 493 h 8 v 8 h -8 z M 90 515 h 8 v 8 h -8 z M 106 525 h 12 v 12 h -12 z" fill="#1F2937" />
+
+            <text x="141" y="489" fontFamily="Helvetica, Arial, sans-serif" fontSize="8.5" fontWeight="bold" fill="#1F2937" letterSpacing="0.6">
+              VERIFICAÇÃO DE AUTENTICIDADE
+            </text>
+            <text x="141" y="504" fontFamily="Helvetica, Arial, sans-serif" fontSize="8.4" fill="#6B7280">
+              Código: DEMONSTRACAO-SEM-VALIDADE
+            </text>
+            <text x="141" y="518" fontFamily="Helvetica, Arial, sans-serif" fontSize="8.2" fill="#BA1A1A">
+              Validação pública: https://carteirinha-digital-fatec.sp.gov.br/validar
+            </text>
+            <text x="141" y="534" fontFamily="Helvetica, Arial, sans-serif" fontSize="7.6" fill="#6B7280">
+              Emitido em {new Date().toLocaleDateString('pt-BR')} • Documento assinado digitalmente
+            </text>
+          </g>
+
+          {/* Marca d'água inclinada -25deg idêntica ao PDF institucional */}
+          <text
+            x="421"
+            y="298"
+            textAnchor="middle"
+            fontFamily="Helvetica, Arial, sans-serif"
+            fontWeight="bold"
+            fontSize="48"
+            fill="#BA1A1A"
+            fillOpacity="0.25"
+            transform="rotate(-25 421 298)"
+            style={{ pointerEvents: 'none', userSelect: 'none' }}
+          >
+            PRÉVIA — SEM VALIDADE
+          </text>
         </g>
       )}
-
-      {/* Texto principal do certificado via foreignObject para quebra fiel e fluida */}
-      <foreignObject x="70" y={isCustomTemplate ? '200' : '196'} width="702" height="135">
-        <div
-          style={{
-            fontFamily: 'Helvetica, Arial, sans-serif',
-            fontSize: '14px',
-            lineHeight: '1.6',
-            color: '#1a1a1a',
-            textAlign: 'justify',
-            margin: 0,
-            padding: 0,
-          }}
-        >
-          Certificamos que{' '}
-          <strong><em>{studentName}</em></strong>{' '}
-          {actionText}: “<strong><em>{displayTitle}</em></strong>”,{' '}
-          {displayPromoter ? `promovida por ${displayPromoter}, ` : ''}
-          realizada no dia {dateText}{timeRangeText}, {isCustomTemplate ? `na ${displayEdition}, ` : ''}com carga horária de {workloadText}.
-        </div>
-      </foreignObject>
-
-      {/* Data e Localidade */}
-      <text
-        x="421"
-        y="360"
-        textAnchor="middle"
-        fontFamily="Helvetica, Arial, sans-serif"
-        fontSize="14"
-        fill="#333333"
-      >
-        São Paulo, {dateText}.
-      </text>
-
-      {/* Marca d'água SEM VALIDADE / DEMONSTRAÇÃO */}
-      <text
-        x="421"
-        y="310"
-        textAnchor="middle"
-        fontFamily="Helvetica, Arial, sans-serif"
-        fontWeight="bold"
-        fontSize={isModal ? '48' : '44'}
-        fill="#BA1A1A"
-        fillOpacity="0.22"
-        transform="rotate(-12 421 310)"
-        style={{ pointerEvents: 'none', userSelect: 'none' }}
-      >
-        PRÉVIA — SEM VALIDADE
-      </text>
-
-      {/* Assinaturas */}
-      {selectedSigners.length > 0 ? (
-        <g id={isModal ? 'modal-signatures-group' : 'signatures-group'}>
-          {(() => {
-            const count = selectedSigners.length;
-            const width = 600 / count;
-            return selectedSigners.map((signer, index) => {
-              const x = 120 + index * width;
-              const cx = x + width / 2;
-              const imgUrl = signatureUrls[signer.id];
-              const lineWidth = Math.min(260, width - 20);
-
-              return (
-                <g key={signer.id}>
-                  {imgUrl ? (
-                    <image
-                      href={imgUrl}
-                      x={cx - 55}
-                      y="405"
-                      width="110"
-                      height="45"
-                      preserveAspectRatio="xMidYMid meet"
-                    />
-                  ) : signer.assetId ? (
-                    /* Identifica explicitamente falha de carregamento da imagem */
-                    <text
-                      x={cx}
-                      y="435"
-                      textAnchor="middle"
-                      fontFamily="Helvetica, Arial, sans-serif"
-                      fontSize="10"
-                      fill="#BA1A1A"
-                      fontStyle="italic"
-                    >
-                      [Falha ao carregar assinatura]
-                    </text>
-                  ) : (
-                    /* Sem asset configurado */
-                    <text
-                      x={cx}
-                      y="435"
-                      textAnchor="middle"
-                      fontFamily="Helvetica, Arial, sans-serif"
-                      fontSize="10"
-                      fill="#94a3b8"
-                      fontStyle="italic"
-                    >
-                      [Sem imagem de assinatura]
-                    </text>
-                  )}
-
-                  {/* Linha horizontal de assinatura */}
-                  <line
-                    x1={cx - lineWidth / 2}
-                    y1="457"
-                    x2={cx + lineWidth / 2}
-                    y2="457"
-                    stroke="#000000"
-                    strokeWidth="1"
-                  />
-
-                  {/* Nome do assinante */}
-                  <text
-                    x={cx}
-                    y="475"
-                    textAnchor="middle"
-                    fontFamily="Helvetica, Arial, sans-serif"
-                    fontSize={count > 1 ? 11 : 13}
-                    fontWeight="bold"
-                    fontStyle="italic"
-                    fill="#000000"
-                  >
-                    {signer.name}
-                  </text>
-
-                  {/* Cargo e Curso */}
-                  <text
-                    x={cx}
-                    y="493"
-                    textAnchor="middle"
-                    fontFamily="Helvetica, Arial, sans-serif"
-                    fontSize={count > 1 ? 9.5 : 11}
-                    fill="#444444"
-                  >
-                    {signer.title} {signer.course ? `(${signer.course})` : ''}
-                  </text>
-                </g>
-              );
-            });
-          })()}
-        </g>
-      ) : !isCustomTemplate ? (
-        /* Assinaturas institucionais padrão demonstrativas */
-        <g id={isModal ? 'modal-default-signatures' : 'default-signatures'}>
-          <g transform="translate(240, 457)">
-            <line x1="-110" y1="0" x2="110" y2="0" stroke="#000000" strokeWidth="1" />
-            <text x="0" y="18" textAnchor="middle" fontFamily="Helvetica, Arial, sans-serif" fontSize="11" fontWeight="bold" fill="#000000">
-              Diretoria da Unidade
-            </text>
-            <text x="0" y="32" textAnchor="middle" fontFamily="Helvetica, Arial, sans-serif" fontSize="9.5" fill="#444444">
-              Fatec Itaquera
-            </text>
-          </g>
-          <g transform="translate(602, 457)">
-            <line x1="-110" y1="0" x2="110" y2="0" stroke="#000000" strokeWidth="1" />
-            <text x="0" y="18" textAnchor="middle" fontFamily="Helvetica, Arial, sans-serif" fontSize="11" fontWeight="bold" fill="#000000">
-              Coordenação do Curso
-            </text>
-            <text x="0" y="32" textAnchor="middle" fontFamily="Helvetica, Arial, sans-serif" fontSize="9.5" fill="#444444">
-              Fatec Itaquera
-            </text>
-          </g>
-        </g>
-      ) : null}
     </svg>
   );
 

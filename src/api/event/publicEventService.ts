@@ -1,6 +1,7 @@
 import { apiRequest } from "../config/apiRequest";
 import { privateFetch } from "../config/privateFetch";
 import { GLOBAL_VAR } from "../config/globalVar";
+import { onSessionClear } from "../auth/session";
 export interface Edition {
   id: string;
   title: string;
@@ -175,6 +176,21 @@ export function revokeAssetBlobUrl(assetId: string) {
     assetUrlCache.delete(assetId);
   }
 }
+
+export function revokeAllAssetBlobUrls() {
+  for (const [, url] of assetUrlCache.entries()) {
+    try {
+      URL.revokeObjectURL(url);
+    } catch {
+      // Ignora falha de revogação de blob
+    }
+  }
+  assetUrlCache.clear();
+}
+
+onSessionClear(() => {
+  revokeAllAssetBlobUrls();
+});
 
 export interface EventFeedbackItem {
   id: string;

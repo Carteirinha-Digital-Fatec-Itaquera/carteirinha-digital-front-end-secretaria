@@ -141,6 +141,14 @@ export function EventForm({
   const [pdfModalUrl, setPdfModalUrl] = useState<string | null>(null);
   const [pdfModalLoading, setPdfModalLoading] = useState(false);
 
+  useEffect(() => {
+    return () => {
+      if (pdfModalUrl) {
+        URL.revokeObjectURL(pdfModalUrl);
+      }
+    };
+  }, [pdfModalUrl]);
+
   // Catálogo público de modelos, assinantes e local padrão
   const [catalog, setCatalog] = useState<Catalog | null>(null);
 
