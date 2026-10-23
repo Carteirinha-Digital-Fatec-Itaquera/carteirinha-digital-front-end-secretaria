@@ -4,6 +4,7 @@ import {
   fetchAssetBlobUrl,
   releaseAssetBlobUrl,
 } from '../../../api/event/publicEventService';
+import { wrapSvgText } from './certificateTextLayout';
 import styles from './styleCertificatePreview.module.css';
 
 export interface CertificatePreviewProps {
@@ -23,93 +24,6 @@ export interface CertificatePreviewProps {
   onRoleChange?: (role: 'ATTENDEE' | 'SPEAKER') => void;
   onOpenPdfModal?: () => void;
   isSubmittingPdf?: boolean;
-}
-
-export interface WrappedText {
-  fontSize: number;
-  lineHeight: number;
-  lines: string[];
-  totalHeight: number;
-}
-
-export function wrapSvgText(
-  text: string,
-  maxWidth: number,
-  maxHeight: number,
-  maxSize: number,
-  minSize: number,
-  fontWeight: 'bold' | 'normal' = 'bold'
-): WrappedText {
-  const normalized = (text || '').trim();
-  if (!normalized) {
-    return {
-      fontSize: maxSize,
-      lineHeight: Math.round(maxSize * 1.25),
-      lines: [''],
-      totalHeight: Math.round(maxSize * 1.25),
-    };
-  }
-
-  const words = normalized.split(/\s+/);
-  const charFactor = fontWeight === 'bold' ? 0.58 : 0.52;
-
-  for (let size = maxSize; size >= minSize; size -= 0.5) {
-    const lineHeight = Math.round(size * 1.25);
-    const lines: string[] = [];
-    let currentLine = '';
-    let fits = true;
-
-    for (const word of words) {
-      const candidate = currentLine ? `${currentLine} ${word}` : word;
-      const candidateWidth = candidate.length * size * charFactor;
-      if (candidateWidth <= maxWidth) {
-        currentLine = candidate;
-      } else {
-        if (currentLine) {
-          lines.push(currentLine);
-          currentLine = word;
-          if (word.length * size * charFactor > maxWidth) {
-            fits = false;
-            break;
-          }
-        } else {
-          fits = false;
-          break;
-        }
-      }
-    }
-    if (currentLine) {
-      lines.push(currentLine);
-    }
-
-    const totalHeight = lines.length * lineHeight;
-    if (fits && totalHeight <= maxHeight) {
-      return { fontSize: size, lineHeight, lines, totalHeight };
-    }
-  }
-
-  const fallbackSize = minSize;
-  const lineHeight = Math.round(fallbackSize * 1.25);
-  const lines: string[] = [];
-  let currentLine = '';
-
-  for (const word of words) {
-    const candidate = currentLine ? `${currentLine} ${word}` : word;
-    if (candidate.length * fallbackSize * charFactor <= maxWidth) {
-      currentLine = candidate;
-    } else {
-      if (currentLine) lines.push(currentLine);
-      currentLine = word;
-    }
-  }
-  if (currentLine) lines.push(currentLine);
-
-  return {
-    fontSize: fallbackSize,
-    lineHeight,
-    lines: lines.length > 0 ? lines : [normalized],
-    totalHeight: Math.max(lines.length, 1) * lineHeight,
-  };
 }
 
 export function CertificatePreview({
@@ -179,7 +93,21 @@ export function CertificatePreview({
       for (const [id, info] of acquiredSignersRef.current.entries()) {
         if (info.url) currentUrls[id] = info.url;
       }
-      setSignatureUrls(currentUrls);
+      Promise.resolve().then(() => {
+        if (!controller.signal.aborted) {
+          setSignatureUrls((prev) => {
+            const keysPrev = Object.keys(prev);
+            const keysNext = Object.keys(currentUrls);
+            if (
+              keysPrev.length === keysNext.length &&
+              keysNext.every((k) => prev[k] === currentUrls[k])
+            ) {
+              return prev;
+            }
+            return currentUrls;
+          });
+        }
+      });
       return;
     }
 
@@ -209,6 +137,12 @@ export function CertificatePreview({
           if (info.url) next[id] = info.url;
         }
         setSignatureUrls(next);
+      } else {
+        for (const item of results) {
+          if (item.url && typeof releaseAssetBlobUrl === 'function') {
+            releaseAssetBlobUrl(item.assetId);
+          }
+        }
       }
     });
 
@@ -252,6 +186,8 @@ export function CertificatePreview({
             : null;
         if (!controller.signal.aborted) {
           setBackgroundUrl(url);
+        } else if (url && typeof releaseAssetBlobUrl === 'function') {
+          releaseAssetBlobUrl(bgId!);
         }
       } catch {
         if (!controller.signal.aborted) {
@@ -267,16 +203,18 @@ export function CertificatePreview({
 
   // Descarte de assets adquiridos ao desmontar o componente
   useEffect(() => {
+    const acquiredSigners = acquiredSignersRef.current;
     return () => {
-      for (const [, info] of acquiredSignersRef.current.entries()) {
+      for (const [, info] of acquiredSigners.entries()) {
         if (typeof releaseAssetBlobUrl === 'function') {
           releaseAssetBlobUrl(info.assetId);
         }
       }
-      acquiredSignersRef.current.clear();
-      if (acquiredBgAssetIdRef.current) {
+      acquiredSigners.clear();
+      const bgAssetId = acquiredBgAssetIdRef.current;
+      if (bgAssetId) {
         if (typeof releaseAssetBlobUrl === 'function') {
-          releaseAssetBlobUrl(acquiredBgAssetIdRef.current);
+          releaseAssetBlobUrl(bgAssetId);
         }
         acquiredBgAssetIdRef.current = null;
       }
@@ -380,6 +318,16 @@ export function CertificatePreview({
     "Semana de Tecnologia da Fatec Itaquera 'Professor Miguel Reale'";
   const headingText = template?.config?.heading || 'CERTIFICADO';
 
+  const titleLayout = useMemo(
+    () => wrapSvgText(displayTitle, 600, 52, 17, 11, 'bold'),
+    [displayTitle],
+  );
+  const nameLayout = useMemo(
+    () => wrapSvgText(studentName, 640, 46, 24, 16, 'bold'),
+    [studentName],
+  );
+  const hasTextOverflow = titleLayout.overflow || nameLayout.overflow;
+
   const timeRangeText =
     startTime && endTime ? `, das ${startTime} às ${endTime}` : '';
 
@@ -457,6 +405,8 @@ export function CertificatePreview({
                 textAlign: 'justify',
                 margin: 0,
                 padding: 0,
+                wordBreak: 'break-word',
+                overflowWrap: 'anywhere',
               }}
             >
               Certificamos que{' '}
@@ -669,7 +619,6 @@ export function CertificatePreview({
 
           {/* Nome do aluno/palestrante centralizado em destaque com quebra e escala dinâmicas */}
           {(() => {
-            const nameLayout = wrapSvgText(studentName, 640, 46, 24, 16, 'bold');
             const startY =
               244 -
               Math.round(nameLayout.totalHeight / 2) +
@@ -690,7 +639,12 @@ export function CertificatePreview({
                     x="421"
                     dy={idx === 0 ? 0 : nameLayout.lineHeight}
                   >
-                    {line}{idx < nameLayout.lines.length - 1 ? ' ' : ''}
+                    {line}
+                    {idx < nameLayout.lines.length - 1 &&
+                    /\s/.test(studentName) &&
+                    studentName.includes(line + ' ')
+                      ? ' '
+                      : ''}
                   </tspan>
                 ))}
               </text>
@@ -725,7 +679,6 @@ export function CertificatePreview({
 
           {/* Título do evento centralizado em vermelho com quebra e escala dinâmicas */}
           {(() => {
-            const titleLayout = wrapSvgText(displayTitle, 600, 52, 17, 11, 'bold');
             const startY =
               338 -
               Math.round(titleLayout.totalHeight / 2) +
@@ -746,7 +699,12 @@ export function CertificatePreview({
                     x="421"
                     dy={idx === 0 ? 0 : titleLayout.lineHeight}
                   >
-                    {line}{idx < titleLayout.lines.length - 1 ? ' ' : ''}
+                    {line}
+                    {idx < titleLayout.lines.length - 1 &&
+                    /\s/.test(displayTitle) &&
+                    displayTitle.includes(line + ' ')
+                      ? ' '
+                      : ''}
                   </tspan>
                 ))}
               </text>
@@ -776,7 +734,12 @@ export function CertificatePreview({
                     x="421"
                     dy={idx === 0 ? 0 : speakerLayout.lineHeight}
                   >
-                    {line}{idx < speakerLayout.lines.length - 1 ? ' ' : ''}
+                    {line}
+                    {idx < speakerLayout.lines.length - 1 &&
+                    /\s/.test(speakerText) &&
+                    speakerText.includes(line + ' ')
+                      ? ' '
+                      : ''}
                   </tspan>
                 ))}
               </text>
@@ -901,6 +864,16 @@ export function CertificatePreview({
       {isCustomTemplate && !signerIds.length && (
         <div className={styles.warningNotice}>
           ⚠️ Nenhuma assinatura selecionada. Selecione de 1 a 3 assinantes para compor o certificado.
+        </div>
+      )}
+
+      {hasTextOverflow && (
+        <div
+          role="alert"
+          className={styles.warningNotice}
+          style={{ background: '#fef2f2', color: '#991b1b', border: '1px solid #f87171' }}
+        >
+          ⚠️ Texto longo excede o limite suportado pelo layout do certificado. Ajuste o texto para evitar quebras anômalas.
         </div>
       )}
 
