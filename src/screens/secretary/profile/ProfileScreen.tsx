@@ -1,6 +1,5 @@
 import { getSessionSnapshot, inspectSessionToken, expireSession } from '../../../api/auth/session';
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
 import { FaEnvelope, FaClock } from "react-icons/fa";
 
 import { TitleComp } from "../../../components/title/TitleComp";
@@ -163,9 +162,6 @@ export default function ProfileScreen() {
                   <div className={styles.editButton}>
                     <ButtonComp text="Editar perfil" onClick={handleEdit} />
                   </div>
-                  <Link className={styles.creditsButton} to="/creditos">
-                    Créditos do projeto
-                  </Link>
                 </div>
               </>
             ) : (

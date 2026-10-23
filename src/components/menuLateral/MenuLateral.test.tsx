@@ -11,7 +11,7 @@ describe('Menu responsivo da Secretaria', () => {
     Object.defineProperty(HTMLDialogElement.prototype, 'close', { configurable: true, value: function (this: HTMLDialogElement) { this.open = false; } });
   });
   afterEach(() => { cleanup(); Reflect.deleteProperty(HTMLDialogElement.prototype, 'showModal'); Reflect.deleteProperty(HTMLDialogElement.prototype, 'close'); vi.unstubAllGlobals(); sessionStorage.clear(); });
-  const setup = () => render(<MemoryRouter initialEntries={['/students']}><MenuLateral /><Routes><Route path="/students" element={<h1>Alunos</h1>} /><Route path="/register" element={<h1>Cadastro</h1>} /><Route path="/login" element={<h1>Login</h1>} /></Routes></MemoryRouter>);
+  const setup = () => render(<MemoryRouter initialEntries={['/students']}><MenuLateral pendingPhotoCount={null} /><Routes><Route path="/students" element={<h1>Alunos</h1>} /><Route path="/register" element={<h1>Cadastro</h1>} /><Route path="/login" element={<h1>Login</h1>} /></Routes></MemoryRouter>);
   it('fecha o painel ao navegar sem remover a sessão', () => {
     sessionStorage.setItem('token', 'existing-session');
     setup();

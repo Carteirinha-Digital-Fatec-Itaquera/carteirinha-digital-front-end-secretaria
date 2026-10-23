@@ -73,7 +73,7 @@ export default function PhotosScreen() {
   return (
     <div className={layoutStyles.layoutContainer}>
       <div className={layoutStyles.menuWrapper}>
-        <MenuLateral />
+        <MenuLateral pendingPhotoCount={loading ? null : photos.length} />
       </div>
       <div className={layoutStyles.contentWrapper}>
         <div className={styles.container}>

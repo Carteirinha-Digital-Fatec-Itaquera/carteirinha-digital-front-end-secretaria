@@ -93,7 +93,7 @@ describe('Unified Credits Screens Layout & Responsiveness Scaffold', () => {
 
     await waitFor(() => {
       expect(screen.getByTestId('mock-menu-lateral')).toBeInTheDocument();
-      expect(screen.getByRole('heading', { name: /créditos do projeto/i })).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: /^Sobre$/i })).toBeInTheDocument();
       expect(screen.getByRole('link', { name: /novo colaborador/i })).toBeInTheDocument();
       expect(screen.getByText('Desenvolvedor Teste')).toBeInTheDocument();
     });
@@ -117,7 +117,7 @@ describe('Unified Credits Screens Layout & Responsiveness Scaffold', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByRole('heading', { name: /créditos do projeto/i })).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: /^Sobre$/i })).toBeInTheDocument();
       expect(screen.getByRole('link', { name: /novo colaborador/i })).toBeInTheDocument();
     });
   });
@@ -132,7 +132,7 @@ describe('Unified Credits Screens Layout & Responsiveness Scaffold', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByRole('heading', { name: /créditos do projeto/i })).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: /^Sobre$/i })).toBeInTheDocument();
       expect(screen.queryByTestId('mock-menu-lateral')).not.toBeInTheDocument();
       expect(screen.queryByRole('link', { name: /novo colaborador/i })).not.toBeInTheDocument();
       expect(screen.getByText('Desenvolvedor Teste')).toBeInTheDocument();
