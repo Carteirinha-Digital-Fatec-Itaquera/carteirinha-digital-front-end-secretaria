@@ -137,3 +137,7 @@
 .empty { color: var(--app-color-muted); padding: 32px; background: #fff; border-radius: 20px; }
 .reasonInput { border-color: var(--app-color-input-border); }
 @media(max-width:767px) { .container { padding: 24px 16px; } .grid { grid-template-columns: repeat(auto-fill,minmax(min(100%,240px),1fr)); gap: 16px; } .bulkActionsRight, .bulkActionsLeft { width: 100%; } .bulkActions button { flex: 1; } }
+
+@media (min-width: 768px) {
+  .info p { font-size: .875rem; line-height: 1.5; }
+}

@@ -33,3 +33,7 @@
   }
 }
 
+
+.itemMenu { position: relative; }
+.pendingBadge { flex-shrink: 0; margin-left: auto; min-width: 20px; padding: 2px 5px; border-radius: 999px; background: #d4e9ed; color: #123e46; font-size: .6875rem; font-weight: 700; line-height: 1.4; text-align: center; }
+.collapsed .pendingBadge { position: absolute; top: 0; right: 0; margin: 0; max-width: 100%; overflow-wrap: anywhere; }
