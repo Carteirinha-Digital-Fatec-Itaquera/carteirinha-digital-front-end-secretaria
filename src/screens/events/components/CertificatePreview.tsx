@@ -25,6 +25,93 @@ export interface CertificatePreviewProps {
   isSubmittingPdf?: boolean;
 }
 
+export interface WrappedText {
+  fontSize: number;
+  lineHeight: number;
+  lines: string[];
+  totalHeight: number;
+}
+
+export function wrapSvgText(
+  text: string,
+  maxWidth: number,
+  maxHeight: number,
+  maxSize: number,
+  minSize: number,
+  fontWeight: 'bold' | 'normal' = 'bold'
+): WrappedText {
+  const normalized = (text || '').trim();
+  if (!normalized) {
+    return {
+      fontSize: maxSize,
+      lineHeight: Math.round(maxSize * 1.25),
+      lines: [''],
+      totalHeight: Math.round(maxSize * 1.25),
+    };
+  }
+
+  const words = normalized.split(/\s+/);
+  const charFactor = fontWeight === 'bold' ? 0.58 : 0.52;
+
+  for (let size = maxSize; size >= minSize; size -= 0.5) {
+    const lineHeight = Math.round(size * 1.25);
+    const lines: string[] = [];
+    let currentLine = '';
+    let fits = true;
+
+    for (const word of words) {
+      const candidate = currentLine ? `${currentLine} ${word}` : word;
+      const candidateWidth = candidate.length * size * charFactor;
+      if (candidateWidth <= maxWidth) {
+        currentLine = candidate;
+      } else {
+        if (currentLine) {
+          lines.push(currentLine);
+          currentLine = word;
+          if (word.length * size * charFactor > maxWidth) {
+            fits = false;
+            break;
+          }
+        } else {
+          fits = false;
+          break;
+        }
+      }
+    }
+    if (currentLine) {
+      lines.push(currentLine);
+    }
+
+    const totalHeight = lines.length * lineHeight;
+    if (fits && totalHeight <= maxHeight) {
+      return { fontSize: size, lineHeight, lines, totalHeight };
+    }
+  }
+
+  const fallbackSize = minSize;
+  const lineHeight = Math.round(fallbackSize * 1.25);
+  const lines: string[] = [];
+  let currentLine = '';
+
+  for (const word of words) {
+    const candidate = currentLine ? `${currentLine} ${word}` : word;
+    if (candidate.length * fallbackSize * charFactor <= maxWidth) {
+      currentLine = candidate;
+    } else {
+      if (currentLine) lines.push(currentLine);
+      currentLine = word;
+    }
+  }
+  if (currentLine) lines.push(currentLine);
+
+  return {
+    fontSize: fallbackSize,
+    lineHeight,
+    lines: lines.length > 0 ? lines : [normalized],
+    totalHeight: Math.max(lines.length, 1) * lineHeight,
+  };
+}
+
 export function CertificatePreview({
   role = 'ATTENDEE',
   template,
@@ -580,18 +667,35 @@ export function CertificatePreview({
             Certificamos que
           </text>
 
-          {/* Nome do aluno/palestrante centralizado em destaque */}
-          <text
-            x="421"
-            y="244"
-            textAnchor="middle"
-            fontFamily="Helvetica, Arial, sans-serif"
-            fontWeight="bold"
-            fontSize={studentName.length > 35 ? '19' : '24'}
-            fill="#1F2937"
-          >
-            {studentName}
-          </text>
+          {/* Nome do aluno/palestrante centralizado em destaque com quebra e escala dinâmicas */}
+          {(() => {
+            const nameLayout = wrapSvgText(studentName, 640, 46, 24, 16, 'bold');
+            const startY =
+              244 -
+              Math.round(nameLayout.totalHeight / 2) +
+              Math.round(nameLayout.fontSize * 0.85);
+            return (
+              <text
+                x="421"
+                y={startY}
+                textAnchor="middle"
+                fontFamily="Helvetica, Arial, sans-serif"
+                fontWeight="bold"
+                fontSize={nameLayout.fontSize}
+                fill="#1F2937"
+              >
+                {nameLayout.lines.map((line, idx) => (
+                  <tspan
+                    key={idx}
+                    x="421"
+                    dy={idx === 0 ? 0 : nameLayout.lineHeight}
+                  >
+                    {line}{idx < nameLayout.lines.length - 1 ? ' ' : ''}
+                  </tspan>
+                ))}
+              </text>
+            );
+          })()}
           {/* Linha decorativa abaixo do nome */}
           <line x1="301" y1="263" x2="541" y2="263" stroke="#E5E7EB" strokeWidth="0.7" />
 
@@ -619,32 +723,65 @@ export function CertificatePreview({
             {isSpeaker ? 'ministrou o evento' : 'participou do evento'}
           </text>
 
-          {/* Título do evento centralizado em vermelho */}
-          <text
-            x="421"
-            y="338"
-            textAnchor="middle"
-            fontFamily="Helvetica, Arial, sans-serif"
-            fontWeight="bold"
-            fontSize={displayTitle.length > 45 ? '14' : '17'}
-            fill="#BA1A1A"
-          >
-            {displayTitle}
-          </text>
+          {/* Título do evento centralizado em vermelho com quebra e escala dinâmicas */}
+          {(() => {
+            const titleLayout = wrapSvgText(displayTitle, 600, 52, 17, 11, 'bold');
+            const startY =
+              338 -
+              Math.round(titleLayout.totalHeight / 2) +
+              Math.round(titleLayout.fontSize * 0.85);
+            return (
+              <text
+                x="421"
+                y={startY}
+                textAnchor="middle"
+                fontFamily="Helvetica, Arial, sans-serif"
+                fontWeight="bold"
+                fontSize={titleLayout.fontSize}
+                fill="#BA1A1A"
+              >
+                {titleLayout.lines.map((line, idx) => (
+                  <tspan
+                    key={idx}
+                    x="421"
+                    dy={idx === 0 ? 0 : titleLayout.lineHeight}
+                  >
+                    {line}{idx < titleLayout.lines.length - 1 ? ' ' : ''}
+                  </tspan>
+                ))}
+              </text>
+            );
+          })()}
 
-          {/* Palestrante ministrante */}
-          {speaker && !isSpeaker && (
-            <text
-              x="421"
-              y="375"
-              textAnchor="middle"
-              fontFamily="Helvetica, Arial, sans-serif"
-              fontSize="10"
-              fill="#6B7280"
-            >
-              Ministrado por {speaker.trim()}
-            </text>
-          )}
+          {/* Palestrante ministrante com quebra se longo */}
+          {speaker && !isSpeaker && (() => {
+            const speakerText = `Ministrado por ${speaker.trim()}`;
+            const speakerLayout = wrapSvgText(speakerText, 580, 22, 10, 8, 'normal');
+            const startY =
+              375 -
+              Math.round(speakerLayout.totalHeight / 2) +
+              Math.round(speakerLayout.fontSize * 0.85);
+            return (
+              <text
+                x="421"
+                y={startY}
+                textAnchor="middle"
+                fontFamily="Helvetica, Arial, sans-serif"
+                fontSize={speakerLayout.fontSize}
+                fill="#6B7280"
+              >
+                {speakerLayout.lines.map((line, idx) => (
+                  <tspan
+                    key={idx}
+                    x="421"
+                    dy={idx === 0 ? 0 : speakerLayout.lineHeight}
+                  >
+                    {line}{idx < speakerLayout.lines.length - 1 ? ' ' : ''}
+                  </tspan>
+                ))}
+              </text>
+            );
+          })()}
 
           {/* Data do evento e Carga horária (Meta Items) */}
           <g id={isModal ? 'modal-meta-items' : 'meta-items'}>
