@@ -44,6 +44,17 @@ export const ParticipantsPanel: React.FC<ParticipantsPanelProps> = ({
   const [correctedCourse, setCorrectedCourse] = useState('');
   const [modalError, setModalError] = useState<string | null>(null);
 
+  // Modal de reconciliação de entrega ambígua
+  const [reconcileModalData, setReconcileModalData] = useState<{
+    certId: string;
+    studentName: string;
+  } | null>(null);
+  const [reconcileResolution, setReconcileResolution] = useState<
+    'CONFIRM_SENT' | 'RESCHEDULE_SEND' | 'KEEP_AMBIGUOUS'
+  >('CONFIRM_SENT');
+  const [reconcileReason, setReconcileReason] = useState('');
+  const [reconcileError, setReconcileError] = useState<string | null>(null);
+
   // Carrega dados adicionais de certificados e auditoria se eventId estiver presente
   useEffect(() => {
     if (!eventId) return;
@@ -193,6 +204,54 @@ export const ParticipantsPanel: React.FC<ParticipantsPanelProps> = ({
       onRefresh();
     } catch (err: unknown) {
       setActionFeedback(err instanceof Error ? err.message : 'Falha ao reemitir certificado.');
+    } finally {
+      setActionBusy(false);
+    }
+  };
+
+  const handleOpenReconcileModal = (certId: string, studentName: string) => {
+    setReconcileModalData({ certId, studentName });
+    setReconcileResolution('CONFIRM_SENT');
+    setReconcileReason('');
+    setReconcileError(null);
+  };
+
+  const handleCloseReconcileModal = () => {
+    setReconcileModalData(null);
+    setReconcileReason('');
+    setReconcileError(null);
+  };
+
+  const handleReconcileSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!reconcileModalData) return;
+    if (reconcileReason.trim().length < 5) {
+      setReconcileError('Informe a justificativa/evidência da reconciliação (mínimo de 5 caracteres).');
+      return;
+    }
+    try {
+      setActionBusy(true);
+      await management(
+        `certificates/${reconcileModalData.certId}/reconcile-delivery`,
+        {
+          resolution: reconcileResolution,
+          reason: reconcileReason.trim(),
+        },
+      );
+      setActionFeedback(`Entrega reconciliada como ${reconcileResolution}.`);
+      handleCloseReconcileModal();
+      onRefresh();
+      if (eventId) {
+        management<AuditEntry[]>(`events/${eventId}/audit`)
+          .then((res) => {
+            if (Array.isArray(res)) setAuditList(res);
+          })
+          .catch(() => {});
+      }
+    } catch (err: unknown) {
+      setReconcileError(
+        err instanceof Error ? err.message : 'Falha ao reconciliar entrega do certificado.',
+      );
     } finally {
       setActionBusy(false);
     }
@@ -357,15 +416,34 @@ export const ParticipantsPanel: React.FC<ParticipantsPanelProps> = ({
                               {cert.revokedAt ? (
                                 <span className={styles.badgeCertRevoked}>Revogado</span>
                               ) : cert.artifact?.state === 'READY' ? (
-                                <button
-                                  type="button"
-                                  className={styles.btnAction}
-                                  onClick={() => handleDownloadCert(cert.id)}
-                                  disabled={actionBusy}
-                                  title="Baixar certificado PDF"
-                                >
-                                  Baixar PDF
-                                </button>
+                                <>
+                                  <button
+                                    type="button"
+                                    className={styles.btnAction}
+                                    onClick={() => handleDownloadCert(cert.id)}
+                                    disabled={actionBusy}
+                                    title="Baixar certificado PDF"
+                                  >
+                                    Baixar PDF
+                                  </button>
+                                  {cert.artifact?.deliveryState === 'AMBIGUOUS' && (
+                                    <button
+                                      type="button"
+                                      className={styles.btnAction}
+                                      onClick={() => handleOpenReconcileModal(cert.id, attendance.studentName)}
+                                      disabled={actionBusy}
+                                      title="Reconciliar entrega com status ambíguo"
+                                      style={{ color: '#d97706', borderColor: '#fcd34d' }}
+                                    >
+                                      Reconciliar Envio
+                                    </button>
+                                  )}
+                                  {cert.artifact?.deliveryState === 'SENT' && (
+                                    <span className={styles.badgeRole} style={{ color: '#059669', borderColor: '#a7f3d0' }}>
+                                      E-mail Enviado
+                                    </span>
+                                  )}
+                                </>
                               ) : cert.artifact?.state === 'RENDER_FAILED' || cert.artifact?.deliveryState === 'FAILED' ? (
                                 <button
                                   type="button"
@@ -409,6 +487,123 @@ export const ParticipantsPanel: React.FC<ParticipantsPanelProps> = ({
       )}
 
       {/* Modal de Atendimento Presencial */}
+      {reconcileModalData && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+          }}
+        >
+          <div
+            style={{
+              background: '#ffffff',
+              borderRadius: '8px',
+              padding: '24px',
+              width: '90%',
+              maxWidth: '520px',
+              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
+            }}
+          >
+            <h3 style={{ margin: '0 0 16px 0', fontSize: '18px', fontWeight: 600 }}>
+              Reconciliação Administrativa de Entrega
+            </h3>
+            <p style={{ fontSize: '14px', color: '#4b5563', marginBottom: '16px' }}>
+              Participante: <strong>{reconcileModalData.studentName}</strong>
+            </p>
+
+            {reconcileError && (
+              <div
+                style={{
+                  background: '#fef2f2',
+                  border: '1px solid #fecaca',
+                  color: '#b91c1c',
+                  padding: '10px',
+                  borderRadius: '6px',
+                  marginBottom: '16px',
+                  fontSize: '13px',
+                }}
+              >
+                {reconcileError}
+              </div>
+            )}
+
+            <form onSubmit={handleReconcileSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, marginBottom: '6px' }}>
+                  Resolução da Entrega:
+                </label>
+                <select
+                  value={reconcileResolution}
+                  onChange={(e) =>
+                    setReconcileResolution(
+                      e.target.value as 'CONFIRM_SENT' | 'RESCHEDULE_SEND' | 'KEEP_AMBIGUOUS',
+                    )
+                  }
+                  style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+                >
+                  <option value="CONFIRM_SENT">Confirmar Envio (comprovado no provedor/destinatário)</option>
+                  <option value="RESCHEDULE_SEND">Reagendar Envio (comprovado que não foi entregue)</option>
+                  <option value="KEEP_AMBIGUOUS">Manter Ambíguo (investigação pendente)</option>
+                </select>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, marginBottom: '6px' }}>
+                  Justificativa / Evidência obrigatória:
+                </label>
+                <textarea
+                  value={reconcileReason}
+                  onChange={(e) => setReconcileReason(e.target.value)}
+                  placeholder="Ex: Verificado no console Brevo message-id 12345 entregue com sucesso."
+                  required
+                  rows={3}
+                  style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', resize: 'vertical' }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '8px' }}>
+                <button
+                  type="button"
+                  onClick={handleCloseReconcileModal}
+                  disabled={actionBusy}
+                  style={{
+                    padding: '8px 16px',
+                    borderRadius: '6px',
+                    border: '1px solid #cbd5e1',
+                    background: '#ffffff',
+                    cursor: 'pointer',
+                  }}
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={actionBusy}
+                  style={{
+                    padding: '8px 16px',
+                    borderRadius: '6px',
+                    border: 'none',
+                    background: 'var(--app-color-primary, #005c6d)',
+                    color: '#ffffff',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                  }}
+                >
+                  {actionBusy ? 'Gravando...' : 'Reconciliar'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       {selectedParticipant && (
         <div className={styles.dialogOverlay} role="dialog" aria-modal="true" aria-labelledby="manual-dialog-title">
           <div className={styles.dialogBox}>
