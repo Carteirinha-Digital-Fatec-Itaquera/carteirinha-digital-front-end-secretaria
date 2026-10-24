@@ -19,7 +19,7 @@ export interface Template {
   role: string;
   version: number;
   status: string;
-  config: { heading: string; edition: string; backgroundAssetId?: string };
+  config: { heading: string; edition: string; backgroundAssetId?: string; design?: 'TECHNOLOGY_BLUE_2026'; attendeeAction?: string; speakerAction?: string };
 }
 export interface Signer {
   id: string;

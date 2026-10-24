@@ -308,8 +308,8 @@ export function CertificatePreview({
     : 'Nome completo de demonstração';
 
   const actionText = isSpeaker
-    ? 'ministrou a palestra intitulada'
-    : 'participou da palestra intitulada';
+    ? template?.config?.speakerAction || 'ministrou a palestra intitulada'
+    : template?.config?.attendeeAction || 'participou da palestra intitulada';
 
   const displayTitle = eventTitle.trim() || 'Título da palestra de demonstração';
   const displayPromoter = promoter?.trim();
@@ -348,6 +348,19 @@ export function CertificatePreview({
           {/* Fundo do Certificado */}
           {backgroundUrl ? (
             <image href={backgroundUrl} x="0" y="0" width="842" height="595" preserveAspectRatio="none" />
+          ) : template?.config?.design === 'TECHNOLOGY_BLUE_2026' ? (
+            <g id={isModal ? 'modal-blue-technology-background' : 'blue-technology-background'}>
+              <rect width="842" height="595" fill="#FFFFFF" />
+              <rect width="842" height="108" fill="#073B70" />
+              <rect y="108" width="842" height="5" fill="#16B8D4" />
+              <rect y="582" width="842" height="13" fill="#073B70" />
+              <rect x="24" y="20" width="794" height="550" rx="8" fill="none" stroke="#1687B7" strokeWidth="2" />
+              {[28, 62, 96, 745, 779, 813].map((x) => <g key={x} fill="none" stroke="#21C5DD" strokeWidth="1.4" opacity=".8"><path d={`M${x} 8 V29 H${x+18} V52`} /><circle cx={x+18} cy="52" r="3" fill="#FFD247" /></g>)}
+              <text x="54" y="48" fill="#FFFFFF" fontFamily="Helvetica, Arial, sans-serif" fontSize="15" fontWeight="bold">FATEC ITAQUERA</text>
+              <text x="54" y="68" fill="#C6F5FF" fontFamily="Helvetica, Arial, sans-serif" fontSize="9">PROF. MIGUEL REALE</text>
+              <text x="770" y="51" textAnchor="end" fill="#FFD247" fontFamily="Helvetica, Arial, sans-serif" fontSize="12" fontWeight="bold">XIII SEMANA DE TECNOLOGIA 2026</text>
+              <text x="770" y="68" textAnchor="end" fill="#FFFFFF" fontFamily="Helvetica, Arial, sans-serif" fontSize="8">26 A 29 DE OUTUBRO</text>
+            </g>
           ) : (
             <g id={isModal ? 'modal-reference-background' : 'reference-background'}>
               <rect x="0" y="0" width="842" height="595" fill="#FAFAFA" />
@@ -373,7 +386,7 @@ export function CertificatePreview({
                 TECNOLOGIA
               </text>
 
-              {/* Moldura vermelha e faixas pretas da arte aprovada */}
+              {/* Moldura legada preservada para os modelos anteriores. */}
               <rect x="36" y="563.82" width="785.92" height="6" fill="#000000" />
               <rect x="815.92" y="36" width="6" height="533.82" fill="#000000" />
               <rect x="33" y="33" width="775.92" height="529.32" fill="none" stroke="#c00000" strokeWidth="5.5" />
@@ -389,7 +402,7 @@ export function CertificatePreview({
             fontWeight="bold"
             fontStyle="italic"
             fontSize="28"
-            fill="#000000"
+            fill={template?.config?.design === 'TECHNOLOGY_BLUE_2026' ? '#073B70' : '#000000'}
           >
             {headingText}
           </text>
@@ -587,7 +600,7 @@ export function CertificatePreview({
             fontFamily="Helvetica, Arial, sans-serif"
             fontWeight="bold"
             fontSize="31"
-            fill="#BA1A1A"
+            fill={template?.config?.design === 'TECHNOLOGY_BLUE_2026' ? '#0A4C7A' : '#BA1A1A'}
             letterSpacing="2"
           >
             CERTIFICADO
@@ -602,7 +615,7 @@ export function CertificatePreview({
             fill="#6B7280"
             letterSpacing="2.6"
           >
-            {isSpeaker ? 'DE MINISTRAÇÃO DE PALESTRA' : 'DE PARTICIPAÇÃO'}
+            {isSpeaker ? (template?.config?.design === 'TECHNOLOGY_BLUE_2026' ? 'DE MINISTRAÇÃO DE ATIVIDADE' : 'DE MINISTRAÇÃO DE PALESTRA') : 'DE PARTICIPAÇÃO'}
           </text>
 
           {/* "Certificamos que" */}
