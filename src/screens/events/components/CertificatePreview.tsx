@@ -355,12 +355,12 @@ export function CertificatePreview({
               <svg x="0" y="0" width="842" height="595" viewBox="0 0 800 565.4" overflow="hidden">
                 <image href="/technology-2026-campaign-cover.png" width="1414" height="2000" />
               </svg>
-              <svg x="66" y="0" width="710" height="150" viewBox="0 0 1415 299" overflow="hidden">
+              {!isDark && (<svg x="66" y="0" width="710" height="150" viewBox="0 0 1415 299" overflow="hidden">
                 <image href="/technology-2026-campaign-banner.png" width="1415" height="508" />
-              </svg>
-              <rect x="54" y="195" width="734" height={isDark ? 383 : 373} fill={isDark ? '#123B66' : '#FFFFFF'} fillOpacity={isDark ? .92 : .97} />
-              {isDark && <rect x="66" y="513" width="122" height="65" fill="#D9EAF8" />}
-              <image href="/cps_logo_cor.png" x="70" y={isDark ? 517 : 510} width={isDark ? 110 : 85} height={isDark ? 58 : 45} preserveAspectRatio="xMidYMid meet" aria-label="Centro Paula Souza" />
+              </svg>)}
+              {isDark ? <rect data-testid="campaign-uniform-tint" x="0" y="0" width="842" height="595" fill="#092C50" fillOpacity=".45" /> : <rect x="54" y="195" width="734" height="373" fill="#FFFFFF" fillOpacity=".97" />}
+              {isDark && <image data-testid="campaign-foreground-heading" href="/technology-2026-campaign-heading.png" x="66" y="0" width="710" height="150" preserveAspectRatio="xMidYMid meet" />}
+              <image href={isDark ? '/cps_logo_branco_oficial.png' : '/cps_logo_cor.png'} x="70" y={isDark ? 517 : 510} width={isDark ? 110 : 85} height={isDark ? 58 : 45} preserveAspectRatio="xMidYMid meet" aria-label="Centro Paula Souza" />
             </g>
           ) : (
             <g id={isModal ? 'modal-reference-background' : 'reference-background'}>
