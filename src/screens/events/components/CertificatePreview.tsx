@@ -307,6 +307,8 @@ export function CertificatePreview({
     ? speaker?.trim() || 'Nome do Palestrante (Demonstração)'
     : 'Nome completo de demonstração';
 
+  const isDark = template?.config?.design === 'TECHNOLOGY_BLUE_2026_DARK';
+  const isCampaign = template?.config?.design === 'TECHNOLOGY_BLUE_2026' || isDark;
   const actionText = isSpeaker
     ? template?.config?.speakerAction || 'ministrou a palestra intitulada'
     : template?.config?.attendeeAction || 'participou da palestra intitulada';
@@ -348,7 +350,7 @@ export function CertificatePreview({
           {/* Fundo do Certificado */}
           {backgroundUrl ? (
             <image href={backgroundUrl} x="0" y="0" width="842" height="595" preserveAspectRatio="none" />
-          ) : template?.config?.design === 'TECHNOLOGY_BLUE_2026' ? (
+          ) : isCampaign ? (
             <g id={isModal ? 'modal-blue-technology-background' : 'blue-technology-background'}>
               <svg x="0" y="0" width="842" height="595" viewBox="0 0 800 565.4" overflow="hidden">
                 <image href="/technology-2026-campaign-cover.png" width="1414" height="2000" />
@@ -356,8 +358,9 @@ export function CertificatePreview({
               <svg x="66" y="0" width="710" height="150" viewBox="0 0 1415 299" overflow="hidden">
                 <image href="/technology-2026-campaign-banner.png" width="1415" height="508" />
               </svg>
-              <rect x="54" y="195" width="734" height="373" fill="#FFFFFF" fillOpacity=".97" />
-              <image href="/cps_logo_cor.png" x="70" y="510" width="85" height="45" preserveAspectRatio="xMidYMid meet" aria-label="Centro Paula Souza" />
+              <rect x="54" y="195" width="734" height={isDark ? 383 : 373} fill={isDark ? '#123B66' : '#FFFFFF'} fillOpacity={isDark ? .92 : .97} />
+              {isDark && <rect x="66" y="513" width="122" height="65" fill="#D9EAF8" />}
+              <image href="/cps_logo_cor.png" x="70" y={isDark ? 517 : 510} width={isDark ? 110 : 85} height={isDark ? 58 : 45} preserveAspectRatio="xMidYMid meet" aria-label="Centro Paula Souza" />
             </g>
           ) : (
             <g id={isModal ? 'modal-reference-background' : 'reference-background'}>
@@ -374,19 +377,19 @@ export function CertificatePreview({
               <image href="/technology-week-logo-0.jpg" x="497.04" y="41.76" width="299.76" height="58.8" preserveAspectRatio="xMidYMid meet" />
 
               {/* Numeral romano e título da edição */}
-              <text x="394" y="93" fontFamily="Helvetica, Arial, sans-serif" fontWeight="bold" fontSize="47" fill="#000000" textAnchor="end">
+              <text x="394" y="93" fontFamily="Helvetica, Arial, sans-serif" fontWeight="bold" fontSize="47" fill={isDark ? '#FFFFFF' : '#000000'} textAnchor="end">
                 {(/^([IVX]+)\b/.exec(displayEdition)?.[1]) || 'XIII'}
               </text>
-              <text x="397" y="66" fontFamily="Helvetica, Arial, sans-serif" fontWeight="bold" fontSize="17" fill="#000000">
+              <text x="397" y="66" fontFamily="Helvetica, Arial, sans-serif" fontWeight="bold" fontSize="17" fill={isDark ? '#FFFFFF' : '#000000'}>
                 SEMANA DE
               </text>
-              <text x="397" y="83" fontFamily="Helvetica, Arial, sans-serif" fontWeight="bold" fontSize="17" fill="#000000">
+              <text x="397" y="83" fontFamily="Helvetica, Arial, sans-serif" fontWeight="bold" fontSize="17" fill={isDark ? '#FFFFFF' : '#000000'}>
                 TECNOLOGIA
               </text>
 
               {/* Moldura legada preservada para os modelos anteriores. */}
-              <rect x="36" y="563.82" width="785.92" height="6" fill="#000000" />
-              <rect x="815.92" y="36" width="6" height="533.82" fill="#000000" />
+              <rect x="36" y="563.82" width="785.92" height="6" fill={isDark ? '#FFFFFF' : '#000000'} />
+              <rect x="815.92" y="36" width="6" height="533.82" fill={isDark ? '#FFFFFF' : '#000000'} />
               <rect x="33" y="33" width="775.92" height="529.32" fill="none" stroke="#c00000" strokeWidth="5.5" />
             </g>
           )}
@@ -394,25 +397,25 @@ export function CertificatePreview({
           {/* Heading */}
           <text
             x="421"
-            y={template?.config?.design === 'TECHNOLOGY_BLUE_2026' ? 177 : 160}
+            y={isCampaign ? 177 : 160}
             textAnchor="middle"
             fontFamily="Helvetica, Arial, sans-serif"
             fontWeight="bold"
             fontStyle="italic"
             fontSize="28"
-            fill={template?.config?.design === 'TECHNOLOGY_BLUE_2026' ? '#FF9900' : '#000000'}
+            fill={isCampaign ? '#FF9900' : '#000000'}
           >
             {headingText}
           </text>
 
           {/* Texto corrido em foreignObject com proporções fiéis ao renderer da Semana */}
-          <foreignObject x="70" y={template?.config?.design === 'TECHNOLOGY_BLUE_2026' ? 215 : 205} width="702" height="130">
+          <foreignObject x="70" y={isCampaign ? 215 : 205} width="702" height="130">
             <div
               style={{
                 fontFamily: 'Helvetica, Arial, sans-serif',
                 fontSize: displayTitle.length > 50 || studentName.length > 35 ? '12.5px' : '14px',
                 lineHeight: '1.6',
-                color: '#000000',
+                color: isDark ? '#FFFFFF' : '#000000',
                 textAlign: 'justify',
                 margin: 0,
                 padding: 0,
@@ -435,7 +438,7 @@ export function CertificatePreview({
             textAnchor="middle"
             fontFamily="Helvetica, Arial, sans-serif"
             fontSize="14"
-            fill="#000000"
+            fill={isDark ? '#FFFFFF' : '#000000'}
           >
             São Paulo, {dateText}.
           </text>
@@ -448,7 +451,7 @@ export function CertificatePreview({
             fontFamily="Helvetica, Arial, sans-serif"
             fontWeight="bold"
             fontSize={isModal ? '48' : '44'}
-            fill="#BA1A1A"
+            fill={isDark ? '#FFFFFF' : '#BA1A1A'}
             fillOpacity="0.25"
             style={{ pointerEvents: 'none', userSelect: 'none' }}
           >
@@ -469,6 +472,7 @@ export function CertificatePreview({
 
                   return (
                     <g key={signer.id}>
+                      {isDark && <rect x={cx - 59} y="400" width="118" height="53" fill="#D9EAF8" />}
                       {imgUrl ? (
                         <image
                           href={imgUrl}
@@ -509,7 +513,7 @@ export function CertificatePreview({
                         y1="457"
                         x2={cx + lineWidth / 2}
                         y2="457"
-                        stroke="#000000"
+                        stroke={isDark ? '#FFFFFF' : '#000000'}
                         strokeWidth="0.8"
                       />
 
@@ -521,7 +525,7 @@ export function CertificatePreview({
                         fontSize={count > 1 ? 10 : 13}
                         fontWeight="bold"
                         fontStyle="italic"
-                        fill="#000000"
+                        fill={isDark ? '#FFFFFF' : '#000000'}
                       >
                         {signer.name}
                       </text>
@@ -532,7 +536,7 @@ export function CertificatePreview({
                         textAnchor="middle"
                         fontFamily="Helvetica, Arial, sans-serif"
                         fontSize={count > 1 ? 9 : 11}
-                        fill="#444444"
+                        fill={isDark ? '#FFFFFF' : '#444444'}
                       >
                         {signer.title} {signer.course ? `(${signer.course})` : ''}
                       </text>
@@ -598,7 +602,7 @@ export function CertificatePreview({
             fontFamily="Helvetica, Arial, sans-serif"
             fontWeight="bold"
             fontSize="31"
-            fill={template?.config?.design === 'TECHNOLOGY_BLUE_2026' ? '#0A4C7A' : '#BA1A1A'}
+            fill={isCampaign ? '#0A4C7A' : '#BA1A1A'}
             letterSpacing="2"
           >
             CERTIFICADO
@@ -613,7 +617,7 @@ export function CertificatePreview({
             fill="#6B7280"
             letterSpacing="2.6"
           >
-            {isSpeaker ? (template?.config?.design === 'TECHNOLOGY_BLUE_2026' ? 'DE MINISTRAÇÃO DE ATIVIDADE' : 'DE MINISTRAÇÃO DE PALESTRA') : 'DE PARTICIPAÇÃO'}
+            {isSpeaker ? (isCampaign ? 'DE MINISTRAÇÃO DE ATIVIDADE' : 'DE MINISTRAÇÃO DE PALESTRA') : 'DE PARTICIPAÇÃO'}
           </text>
 
           {/* "Certificamos que" */}
