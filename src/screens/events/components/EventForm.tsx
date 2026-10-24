@@ -24,6 +24,7 @@ import {
   type Signer,
 } from '../../../api/event/publicEventService';
 import { CertificatePreview } from './CertificatePreview';
+import { CertificateCatalogManager } from './CertificateCatalogManager';
 import { PdfPreviewModal } from './PdfPreviewModal';
 import styles from './styleEventForm.module.css';
 
@@ -99,6 +100,10 @@ export function EventForm({
     message: string;
   } | null>(null);
 
+  const [showCatalogManagement, setShowCatalogManagement] = useState(false);
+  useEffect(() => {
+    if (showCatalogManagement) document.getElementById('catalogo-certificados')?.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
+  }, [showCatalogManagement]);
   // Modelos e assinaturas de certificados
   const [attendeeTemplateId, setAttendeeTemplateId] = useState(
     initialValue?.certificatePolicies?.ATTENDEE?.templateId ?? ''
@@ -118,6 +123,7 @@ export function EventForm({
   const [templateModalRole, setTemplateModalRole] = useState<'ATTENDEE' | 'SPEAKER'>('ATTENDEE');
   const [newTemplateName, setNewTemplateName] = useState('');
   const [newTemplateHeading, setNewTemplateHeading] = useState('CERTIFICADO');
+  const [newTemplateTextColor, setNewTemplateTextColor] = useState('#FFFFFF');
   const [newTemplateEdition, setNewTemplateEdition] = useState('');
   const [newTemplateFile, setNewTemplateFile] = useState<File | null>(null);
   const [templateFilePreviewUrl, setTemplateFilePreviewUrl] = useState<string | null>(null);
@@ -419,6 +425,7 @@ export function EventForm({
   function openNewTemplateModal(role: 'ATTENDEE' | 'SPEAKER') {
     setTemplateModalRole(role);
     setNewTemplateName('');
+    setNewTemplateTextColor('#FFFFFF');
     setNewTemplateHeading('CERTIFICADO');
     setNewTemplateEdition(title ? `${title} — Fatec Itaquera` : 'Semana de Tecnologia — Fatec Itaquera');
     setNewTemplateFile(null);
@@ -457,6 +464,7 @@ export function EventForm({
           edition: trimmedEdition,
           backgroundAssetId,
           autoPublish: true,
+          textColor: newTemplateTextColor,
           design: 'TECHNOLOGY_BLUE_2026_DARK',
         },
         'POST'
@@ -1104,6 +1112,7 @@ export function EventForm({
 
           {certificateEnabled && (
             <>
+              <button type="button" className={styles.secondaryActionBtn} onClick={() => setShowCatalogManagement(true)}>Editar ou excluir certificado / assinatura</button>
               <div className={styles.gridTwoCols}>
                 <div className={styles.fieldGroup}>
                   <label htmlFor="organizerCourse" className={styles.fieldLabel}>
@@ -1361,7 +1370,14 @@ export function EventForm({
           </button>
         </div>
       </form>
-      <a href="/eventos/catalogo" target="_blank" rel="noopener noreferrer">Gerenciar modelos de certificado e assinaturas (nova aba)</a>
+      <details id="catalogo-certificados" open={showCatalogManagement} onToggle={event => setShowCatalogManagement(event.currentTarget.open)}><summary>Editar ou excluir modelos de certificado e assinaturas</summary>{showCatalogManagement && <CertificateCatalogManager onChanged={async () => {
+        const next = await reloadCatalog();
+        if (!next) return;
+        setSignerIds(ids => ids.filter(id => next.signers.some(signer => signer.id === id && !signer.archived)));
+        setSpeakerSignerIds(ids => ids.filter(id => next.signers.some(signer => signer.id === id && !signer.archived)));
+        setAttendeeTemplateId(id => !id || next.templates.some(t => t.id === id && t.status === 'PUBLISHED') ? id : '');
+        setSpeakerTemplateId(id => !id || next.templates.some(t => t.id === id && t.status === 'PUBLISHED') ? id : '');
+      }} />}</details>
 
       {showTemplateModal && (
         <div
@@ -1391,6 +1407,7 @@ export function EventForm({
                     {newTemplateError}
                   </div>
                 )}
+                <label>Cor do texto do certificado<input type="color" value={newTemplateTextColor} onChange={e => setNewTemplateTextColor(e.target.value)} /></label>
                 <div className={styles.fieldGroup}>
                   <label htmlFor="modalTemplateName" className={styles.fieldLabel}>
                     Nome do modelo
