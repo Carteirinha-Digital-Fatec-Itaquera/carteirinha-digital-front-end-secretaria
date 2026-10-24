@@ -350,16 +350,14 @@ export function CertificatePreview({
             <image href={backgroundUrl} x="0" y="0" width="842" height="595" preserveAspectRatio="none" />
           ) : template?.config?.design === 'TECHNOLOGY_BLUE_2026' ? (
             <g id={isModal ? 'modal-blue-technology-background' : 'blue-technology-background'}>
-              <rect width="842" height="595" fill="#FFFFFF" />
-              <rect width="842" height="108" fill="#073B70" />
-              <rect y="108" width="842" height="5" fill="#16B8D4" />
-              <rect y="582" width="842" height="13" fill="#073B70" />
-              <rect x="24" y="20" width="794" height="550" rx="8" fill="none" stroke="#1687B7" strokeWidth="2" />
-              {[28, 62, 96, 745, 779, 813].map((x) => <g key={x} fill="none" stroke="#21C5DD" strokeWidth="1.4" opacity=".8"><path d={`M${x} 8 V29 H${x+18} V52`} /><circle cx={x+18} cy="52" r="3" fill="#FFD247" /></g>)}
-              <text x="54" y="48" fill="#FFFFFF" fontFamily="Helvetica, Arial, sans-serif" fontSize="15" fontWeight="bold">FATEC ITAQUERA</text>
-              <text x="54" y="68" fill="#C6F5FF" fontFamily="Helvetica, Arial, sans-serif" fontSize="9">PROF. MIGUEL REALE</text>
-              <text x="770" y="51" textAnchor="end" fill="#FFD247" fontFamily="Helvetica, Arial, sans-serif" fontSize="12" fontWeight="bold">XIII SEMANA DE TECNOLOGIA 2026</text>
-              <text x="770" y="68" textAnchor="end" fill="#FFFFFF" fontFamily="Helvetica, Arial, sans-serif" fontSize="8">26 A 29 DE OUTUBRO</text>
+              <svg x="0" y="0" width="842" height="595" viewBox="0 0 800 565.4" overflow="hidden">
+                <image href="/technology-2026-campaign-cover.png" width="1414" height="2000" />
+              </svg>
+              <svg x="66" y="0" width="710" height="150" viewBox="0 0 1415 299" overflow="hidden">
+                <image href="/technology-2026-campaign-banner.png" width="1415" height="508" />
+              </svg>
+              <rect x="54" y="195" width="734" height="373" fill="#FFFFFF" fillOpacity=".97" />
+              <image href="/cps_logo_cor.png" x="70" y="510" width="85" height="45" preserveAspectRatio="xMidYMid meet" aria-label="Centro Paula Souza" />
             </g>
           ) : (
             <g id={isModal ? 'modal-reference-background' : 'reference-background'}>
@@ -396,19 +394,19 @@ export function CertificatePreview({
           {/* Heading */}
           <text
             x="421"
-            y="160"
+            y={template?.config?.design === 'TECHNOLOGY_BLUE_2026' ? 177 : 160}
             textAnchor="middle"
             fontFamily="Helvetica, Arial, sans-serif"
             fontWeight="bold"
             fontStyle="italic"
             fontSize="28"
-            fill={template?.config?.design === 'TECHNOLOGY_BLUE_2026' ? '#073B70' : '#000000'}
+            fill={template?.config?.design === 'TECHNOLOGY_BLUE_2026' ? '#FF9900' : '#000000'}
           >
             {headingText}
           </text>
 
           {/* Texto corrido em foreignObject com proporções fiéis ao renderer da Semana */}
-          <foreignObject x="70" y="205" width="702" height="130">
+          <foreignObject x="70" y={template?.config?.design === 'TECHNOLOGY_BLUE_2026' ? 215 : 205} width="702" height="130">
             <div
               style={{
                 fontFamily: 'Helvetica, Arial, sans-serif',
