@@ -273,11 +273,11 @@ describe('CertificatePreview Component', () => {
   });
 });
 
-it('usa a arte original da campanha no modelo azul sem a moldura legada', async () => {
+it.each(['TECHNOLOGY_BLUE_2026', 'TECHNOLOGY_BLUE_2026_DARK'] as const)('usa arte original sem moldura legada: %s', async (design) => {
   const { act } = await import('@testing-library/react');
   let container: HTMLElement;
   await act(async () => {
-    ({ container } = render(<CertificatePreview template={{ id: 'blue', name: 'Azul Circuitos', role: 'ATTENDEE', status: 'PUBLISHED', version: 1, config: { heading: 'CERTIFICADO', edition: 'XIII Semana de Tecnologia', design: 'TECHNOLOGY_BLUE_2026', attendeeAction: 'participou da atividade' } }} signerIds={[]} allSigners={[]} eventTitle="Curso CLP Básico" />));
+    ({ container } = render(<CertificatePreview template={{ id: 'blue', name: 'Azul Circuitos', role: 'ATTENDEE', status: 'PUBLISHED', version: 1, config: { heading: 'CERTIFICADO', edition: 'XIII Semana de Tecnologia', design, attendeeAction: 'participou da atividade' } }} signerIds={[]} allSigners={[]} eventTitle="Curso CLP Básico" />));
   });
   expect(container!.querySelector('image[href="/technology-2026-campaign-banner.png"]')).not.toBeNull();
   expect(container!.querySelector('image[href="/technology-2026-campaign-cover.png"]')).not.toBeNull();
