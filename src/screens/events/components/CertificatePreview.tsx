@@ -377,19 +377,19 @@ export function CertificatePreview({
               <image href="/technology-week-logo-0.jpg" x="497.04" y="41.76" width="299.76" height="58.8" preserveAspectRatio="xMidYMid meet" />
 
               {/* Numeral romano e título da edição */}
-              <text x="394" y="93" fontFamily="Helvetica, Arial, sans-serif" fontWeight="bold" fontSize="47" fill={isDark ? '#FFFFFF' : '#000000'} textAnchor="end">
+              <text x="394" y="93" fontFamily="Helvetica, Arial, sans-serif" fontWeight="bold" fontSize="47" fill={template?.config?.textColor || (isDark ? '#FFFFFF' : '#000000')} textAnchor="end">
                 {(/^([IVX]+)\b/.exec(displayEdition)?.[1]) || 'XIII'}
               </text>
-              <text x="397" y="66" fontFamily="Helvetica, Arial, sans-serif" fontWeight="bold" fontSize="17" fill={isDark ? '#FFFFFF' : '#000000'}>
+              <text x="397" y="66" fontFamily="Helvetica, Arial, sans-serif" fontWeight="bold" fontSize="17" fill={template?.config?.textColor || (isDark ? '#FFFFFF' : '#000000')}>
                 SEMANA DE
               </text>
-              <text x="397" y="83" fontFamily="Helvetica, Arial, sans-serif" fontWeight="bold" fontSize="17" fill={isDark ? '#FFFFFF' : '#000000'}>
+              <text x="397" y="83" fontFamily="Helvetica, Arial, sans-serif" fontWeight="bold" fontSize="17" fill={template?.config?.textColor || (isDark ? '#FFFFFF' : '#000000')}>
                 TECNOLOGIA
               </text>
 
               {/* Moldura legada preservada para os modelos anteriores. */}
-              <rect x="36" y="563.82" width="785.92" height="6" fill={isDark ? '#FFFFFF' : '#000000'} />
-              <rect x="815.92" y="36" width="6" height="533.82" fill={isDark ? '#FFFFFF' : '#000000'} />
+              <rect x="36" y="563.82" width="785.92" height="6" fill={template?.config?.textColor || (isDark ? '#FFFFFF' : '#000000')} />
+              <rect x="815.92" y="36" width="6" height="533.82" fill={template?.config?.textColor || (isDark ? '#FFFFFF' : '#000000')} />
               <rect x="33" y="33" width="775.92" height="529.32" fill="none" stroke="#c00000" strokeWidth="5.5" />
             </g>
           )}
@@ -415,7 +415,7 @@ export function CertificatePreview({
                 fontFamily: 'Helvetica, Arial, sans-serif',
                 fontSize: displayTitle.length > 50 || studentName.length > 35 ? '12.5px' : '14px',
                 lineHeight: '1.6',
-                color: isDark ? '#FFFFFF' : '#000000',
+                color: template?.config?.textColor || (isDark ? '#FFFFFF' : '#000000'),
                 textAlign: 'justify',
                 margin: 0,
                 padding: 0,
@@ -438,7 +438,7 @@ export function CertificatePreview({
             textAnchor="middle"
             fontFamily="Helvetica, Arial, sans-serif"
             fontSize="14"
-            fill={isDark ? '#FFFFFF' : '#000000'}
+            fill={template?.config?.textColor || (isDark ? '#FFFFFF' : '#000000')}
           >
             São Paulo, {dateText}.
           </text>
@@ -472,7 +472,6 @@ export function CertificatePreview({
 
                   return (
                     <g key={signer.id}>
-                      {isDark && <rect x={cx - 59} y="400" width="118" height="53" fill="#D9EAF8" />}
                       {imgUrl ? (
                         <image
                           href={imgUrl}
@@ -513,7 +512,7 @@ export function CertificatePreview({
                         y1="457"
                         x2={cx + lineWidth / 2}
                         y2="457"
-                        stroke={isDark ? '#FFFFFF' : '#000000'}
+                        stroke={template?.config?.textColor || (isDark ? '#FFFFFF' : '#000000')}
                         strokeWidth="0.8"
                       />
 
@@ -525,7 +524,7 @@ export function CertificatePreview({
                         fontSize={count > 1 ? 10 : 13}
                         fontWeight="bold"
                         fontStyle="italic"
-                        fill={isDark ? '#FFFFFF' : '#000000'}
+                        fill={template?.config?.textColor || (isDark ? '#FFFFFF' : '#000000')}
                       >
                         {signer.name}
                       </text>
@@ -536,7 +535,7 @@ export function CertificatePreview({
                         textAnchor="middle"
                         fontFamily="Helvetica, Arial, sans-serif"
                         fontSize={count > 1 ? 9 : 11}
-                        fill={isDark ? '#FFFFFF' : '#444444'}
+                        fill={template?.config?.textColor || (isDark ? '#FFFFFF' : '#444444')}
                       >
                         {signer.title} {signer.course ? `(${signer.course})` : ''}
                       </text>

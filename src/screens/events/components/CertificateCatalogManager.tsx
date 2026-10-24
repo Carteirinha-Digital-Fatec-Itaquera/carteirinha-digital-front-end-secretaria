@@ -46,7 +46,7 @@ export function CertificateCatalogManager({ onChanged }: { onChanged?: () => voi
         if (!assetId) throw new Error('Selecione a imagem da assinatura.');
         body = { name, title: String(data.get('title') || '').trim(), course: String(data.get('course') || '').trim(), assetId, authorized: data.get('authorized') === 'on' };
       } else {
-        body = { ...editor.item?.config, name, role: editor.item?.role || data.get('role'), heading: String(data.get('heading') || '').trim(), edition: String(data.get('edition') || '').trim(), backgroundAssetId: assetId, design: editor.item?.config.design || 'TECHNOLOGY_BLUE_2026_DARK', autoPublish: true };
+        body = { ...editor.item?.config, textColor: String(data.get('textColor') || '#FFFFFF'), name, role: editor.item?.role || data.get('role'), heading: String(data.get('heading') || '').trim(), edition: String(data.get('edition') || '').trim(), backgroundAssetId: assetId, design: editor.item?.config.design || 'TECHNOLOGY_BLUE_2026_DARK', autoPublish: true };
       }
       if (editor.item) body.expectedVersion = editor.item.version ?? 1;
       await management(`${editor.kind}${editor.item ? `/${editor.item.id}` : ''}`, body, editor.item ? 'PATCH' : 'POST');
@@ -81,6 +81,7 @@ export function CertificateCatalogManager({ onChanged }: { onChanged?: () => voi
       <label>Nome<input autoFocus name="name" required minLength={3} maxLength={editor.kind === 'signers' ? 160 : 120} defaultValue={editor.item?.name} /></label>
       {editor.kind === 'templates' ? <>
         <label>Papel<select name="role" defaultValue={template?.role || 'ATTENDEE'} disabled={!!template}><option value="ATTENDEE">Participante</option><option value="SPEAKER">Palestrante</option></select></label>
+        <label>Cor do texto do certificado<input name="textColor" type="color" defaultValue={template?.config.textColor || '#FFFFFF'} /></label>
         <label>Título do certificado<input name="heading" required minLength={3} maxLength={160} defaultValue={template?.config.heading || 'CERTIFICADO'} /></label>
         <label>Edição ou identificação do evento<input name="edition" required minLength={3} maxLength={200} defaultValue={template?.config.edition || 'XIII Semana de Tecnologia da Fatec Itaquera'} /></label>
       </> : <>

@@ -14,6 +14,7 @@ import {
   Trash2,
 } from "lucide-react";
 
+import { CertificateCatalogManager } from './components/CertificateCatalogManager';
 import MenuLateral from "../../components/menuLateral/MenuLateral";
 import MessageModal from "../../components/messageModal/MessageModal";
 import { getEvents, cancelEvent, deleteEvent } from "../../api/event/eventService";
@@ -46,6 +47,7 @@ function getCheckpointState(
 }
 
 export default function SecretariaEventosScreen() {
+  const [showCatalog, setShowCatalog] = useState(false);
   const navigate = useNavigate();
 
   const [events, setEvents] = useState<EventView[]>([]);
@@ -161,9 +163,10 @@ export default function SecretariaEventosScreen() {
 
       <div className={layoutStyles.contentWrapper}>
         <div className={styles.container}>
+          {showCatalog && <CertificateCatalogManager />}
           <div className={styles.header}>
             <div>
-              <h1 className={styles.title}>Gerenciar Eventos</h1><button type="button" onClick={() => navigate('/eventos/catalogo')}>Gerenciar certificados e assinaturas</button>
+              <h1 className={styles.title}>Gerenciar Eventos</h1><button type="button" onClick={() => setShowCatalog(value => !value)}>Gerenciar certificados e assinaturas</button>
               <p className={styles.subtitle}>
                 Controle de presença, checkpoints e emissão de certificados
               </p>

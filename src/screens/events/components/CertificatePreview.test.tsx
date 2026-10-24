@@ -282,6 +282,7 @@ it.each(['TECHNOLOGY_BLUE_2026', 'TECHNOLOGY_BLUE_2026_DARK'] as const)('usa art
   expect(container!.querySelector(design === 'TECHNOLOGY_BLUE_2026_DARK' ? 'image[href="/technology-2026-campaign-heading.png"]' : 'image[href="/technology-2026-campaign-banner.png"]')).not.toBeNull();
   expect(container!.querySelector('image[href="/technology-2026-campaign-cover.png"]')).not.toBeNull();
   expect(container!.querySelector('#reference-background')).toBeNull();
+  expect(container!.querySelector('rect[width="118"][height="53"]')).toBeNull();
   expect(container!.textContent).toContain('participou da atividade');
   if (design === 'TECHNOLOGY_BLUE_2026_DARK') {
     const tint = container!.querySelector('[data-testid="campaign-uniform-tint"]');

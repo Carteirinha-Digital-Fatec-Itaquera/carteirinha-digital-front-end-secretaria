@@ -69,11 +69,22 @@ describe('EventForm - Seleção e Upload de Modelos de Certificado', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(publicEventService.management).mockImplementation(async (path) => {
-      if (path === 'catalog') {
+      if (path === 'catalog' || path === 'catalog/manage') {
         return mockCatalog as unknown as Awaited<ReturnType<typeof publicEventService.management>>;
       }
       return {} as unknown as Awaited<ReturnType<typeof publicEventService.management>>;
     });
+  });
+
+  it('abre a gestão na mesma página sem perder o preenchimento do evento', async () => {
+    render(<EventForm submitLabel="Salvar" onSubmit={vi.fn()} />);
+    await screen.findByLabelText('Modelo de participante');
+    const title = screen.getAllByRole('textbox')[0];
+    fireEvent.change(title, { target: { value: 'Evento preservado' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Editar ou excluir certificado / assinatura' }));
+    expect(await screen.findByRole('heading', { name: 'Modelos de certificado e assinaturas' })).toBeInTheDocument();
+    expect(title).toHaveValue('Evento preservado');
+    expect(screen.getByRole('button', { name: 'Nova assinatura' })).toBeInTheDocument();
   });
 
   it('exibe o modelo institucional padrão e os modelos prontos da Semana de Tecnologia no seletor', async () => {
@@ -108,7 +119,7 @@ describe('EventForm - Seleção e Upload de Modelos de Certificado', () => {
 
     vi.mocked(publicEventService.uploadAsset).mockResolvedValueOnce({ id: 'asset-bg-123' });
     vi.mocked(publicEventService.management).mockImplementation(async (path) => {
-      if (path === 'catalog') {
+      if (path === 'catalog' || path === 'catalog/manage') {
         return {
           ...mockCatalog,
           templates: [...mockCatalog.templates, createdTemplate],
@@ -178,7 +189,7 @@ describe('EventForm - Seleção e Upload de Modelos de Certificado', () => {
 
     vi.mocked(publicEventService.uploadAsset).mockResolvedValueOnce({ id: 'asset-sig-456' });
     vi.mocked(publicEventService.management).mockImplementation(async (path) => {
-      if (path === 'catalog') {
+      if (path === 'catalog' || path === 'catalog/manage') {
         return {
           ...mockCatalog,
           signers: [...mockCatalog.signers, createdSigner],

@@ -16,8 +16,9 @@ describe('Gestão de certificados e assinaturas', () => {
     render(<CertificateCatalogManager />);
     fireEvent.click(await screen.findByRole('button', { name: 'Editar Semana final' }));
     fireEvent.change(screen.getByLabelText('Nome'), { target: { value: 'Nome corrigido' } });
+    fireEvent.change(screen.getByLabelText('Cor do texto do certificado'), { target: { value: '#ffeecc' } });
     fireEvent.click(screen.getByRole('button', { name: 'Salvar cadastro' }));
-    await waitFor(() => expect(management).toHaveBeenCalledWith('templates/template-1', expect.objectContaining({ name: 'Nome corrigido', expectedVersion: 4, design: 'TECHNOLOGY_BLUE_2026_DARK' }), 'PATCH'));
+    await waitFor(() => expect(management).toHaveBeenCalledWith('templates/template-1', expect.objectContaining({ name: 'Nome corrigido', textColor: '#ffeecc', expectedVersion: 4, design: 'TECHNOLOGY_BLUE_2026_DARK' }), 'PATCH'));
     expect(await screen.findByRole('status')).toHaveTextContent('Cadastro salvo');
   });
   it('só exclui depois da confirmação e usa versão esperada', async () => {
