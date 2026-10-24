@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   FaBook,
   FaUser,
@@ -24,7 +24,7 @@ import {
   type Signer,
 } from '../../../api/event/publicEventService';
 import { CertificatePreview } from './CertificatePreview';
-import { CertificateCatalogManager } from './CertificateCatalogManager';
+import { CertificateItemDialog, type CatalogAction } from './CertificateItemDialog';
 import { PdfPreviewModal } from './PdfPreviewModal';
 import styles from './styleEventForm.module.css';
 
@@ -100,10 +100,15 @@ export function EventForm({
     message: string;
   } | null>(null);
 
-  const [showCatalogManagement, setShowCatalogManagement] = useState(false);
-  useEffect(() => {
-    if (showCatalogManagement) document.getElementById('catalogo-certificados')?.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
-  }, [showCatalogManagement]);
+  const [catalogAction, setCatalogAction] = useState<CatalogAction | null>(null);
+  const catalogTrigger = useRef<HTMLButtonElement | null>(null);
+  function openCatalogAction(target: CatalogAction, trigger: HTMLButtonElement) { catalogTrigger.current = trigger; setCatalogAction(target); }
+  function closeCatalogAction() { setCatalogAction(null); requestAnimationFrame(() => { if (catalogTrigger.current?.isConnected) catalogTrigger.current.focus(); else document.getElementById('attendeeTemplateId')?.focus(); }); }
+  function templateActions(id: string) {
+    const item = catalog?.templates.find(t => t.id === id);
+    if (!item) return null;
+    return <div className={styles.inlineCatalogActions}><button type="button" className={styles.secondaryActionBtn} onClick={event => openCatalogAction({kind:'templates',item,action:'edit'},event.currentTarget)}>Editar modelo</button><button type="button" className={styles.secondaryActionBtn} onClick={event => openCatalogAction({kind:'templates',item,action:'delete'},event.currentTarget)}>Excluir modelo</button></div>;
+  }
   // Modelos e assinaturas de certificados
   const [attendeeTemplateId, setAttendeeTemplateId] = useState(
     initialValue?.certificatePolicies?.ATTENDEE?.templateId ?? ''
@@ -1112,7 +1117,6 @@ export function EventForm({
 
           {certificateEnabled && (
             <>
-              <button type="button" className={styles.secondaryActionBtn} onClick={() => setShowCatalogManagement(true)}>Editar ou excluir certificado / assinatura</button>
               <div className={styles.gridTwoCols}>
                 <div className={styles.fieldGroup}>
                   <label htmlFor="organizerCourse" className={styles.fieldLabel}>
@@ -1150,6 +1154,7 @@ export function EventForm({
                   <label htmlFor="attendeeTemplateId" className={styles.fieldLabel}>
                     Modelo de participante
                   </label>
+                  <div className={styles.templateSelectorRow}>
                   <select
                     id="attendeeTemplateId"
                     name="attendeeTemplateId"
@@ -1168,6 +1173,8 @@ export function EventForm({
                         </option>
                       ))}
                   </select>
+                  {templateActions(attendeeTemplateId)}
+                  </div>
                   <div className={styles.templateActionRow}>
                     <span className={styles.hintText}>
                       Escolha um modelo pronto ou suba uma arte personalizada.
@@ -1186,6 +1193,7 @@ export function EventForm({
                   <label htmlFor="speakerTemplateId" className={styles.fieldLabel}>
                     Modelo de palestrante (opcional)
                   </label>
+                  <div className={styles.templateSelectorRow}>
                   <select
                     id="speakerTemplateId"
                     name="speakerTemplateId"
@@ -1204,6 +1212,8 @@ export function EventForm({
                         </option>
                       ))}
                   </select>
+                  {templateActions(speakerTemplateId)}
+                  </div>
                   <div className={styles.templateActionRow}>
                     <span className={styles.hintText}>
                       Opcional para palestras e convidados.
@@ -1228,7 +1238,7 @@ export function EventForm({
                     {catalog.signers
                       .filter((s) => !s.archived)
                       .map((s) => (
-                        <label key={s.id} className={styles.signerItem}>
+                        <div key={s.id} className={styles.signerItem}><label className={styles.signerChoice}>
                           <input
                             type="checkbox"
                             checked={signerIds.includes(s.id)}
@@ -1236,8 +1246,12 @@ export function EventForm({
                           />
                           <span>
                             <strong>{s.name}</strong> — {s.title} {s.course ? `(${s.course})` : ''}
+                            <small> · v{s.version ?? 1}</small>
                           </span>
-                        </label>
+                        </label><div className={styles.inlineCatalogActions}>
+                          <button type="button" className={styles.secondaryActionBtn} aria-label={`Editar assinatura ${s.name} versão ${s.version ?? 1}`} onClick={event => openCatalogAction({kind:'signers',item:s,action:'edit'},event.currentTarget)}>Editar</button>
+                          <button type="button" className={styles.secondaryActionBtn} aria-label={`Excluir assinatura ${s.name} versão ${s.version ?? 1}`} onClick={event => openCatalogAction({kind:'signers',item:s,action:'delete'},event.currentTarget)}>Excluir</button>
+                        </div></div>
                       ))}
                   </div>
                   <div style={{ marginTop: '8px', display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
@@ -1277,7 +1291,7 @@ export function EventForm({
                     {catalog.signers
                       .filter((s) => !s.archived)
                       .map((s) => (
-                        <label key={s.id} className={styles.signerItem}>
+                        <div key={s.id} className={styles.signerItem}><label className={styles.signerChoice}>
                           <input
                             type="checkbox"
                             checked={speakerSignerIds.includes(s.id)}
@@ -1285,8 +1299,12 @@ export function EventForm({
                           />
                           <span>
                             <strong>{s.name}</strong> — {s.title} {s.course ? `(${s.course})` : ''}
+                            <small> · v{s.version ?? 1}</small>
                           </span>
-                        </label>
+                        </label><div className={styles.inlineCatalogActions}>
+                          <button type="button" className={styles.secondaryActionBtn} aria-label={`Editar assinatura ${s.name} versão ${s.version ?? 1}`} onClick={event => openCatalogAction({kind:'signers',item:s,action:'edit'},event.currentTarget)}>Editar</button>
+                          <button type="button" className={styles.secondaryActionBtn} aria-label={`Excluir assinatura ${s.name} versão ${s.version ?? 1}`} onClick={event => openCatalogAction({kind:'signers',item:s,action:'delete'},event.currentTarget)}>Excluir</button>
+                        </div></div>
                       ))}
                   </div>
                   <div style={{ marginTop: '8px', display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
@@ -1370,14 +1388,14 @@ export function EventForm({
           </button>
         </div>
       </form>
-      <details id="catalogo-certificados" open={showCatalogManagement} onToggle={event => setShowCatalogManagement(event.currentTarget.open)}><summary>Editar ou excluir modelos de certificado e assinaturas</summary>{showCatalogManagement && <CertificateCatalogManager onChanged={async () => {
+      {catalogAction && <CertificateItemDialog key={`${catalogAction.kind}-${catalogAction.item.id}-${catalogAction.action}`} target={catalogAction} onClose={closeCatalogAction} onSaved={async () => {
         const next = await reloadCatalog();
-        if (!next) return;
-        setSignerIds(ids => ids.filter(id => next.signers.some(signer => signer.id === id && !signer.archived)));
-        setSpeakerSignerIds(ids => ids.filter(id => next.signers.some(signer => signer.id === id && !signer.archived)));
+        if (!next) { setErrorMessage('Alteração salva. Atualize a página para recarregar o catálogo.'); return; }
+        setSignerIds(ids => ids.filter(id => next.signers.some(s => s.id === id && !s.archived)));
+        setSpeakerSignerIds(ids => ids.filter(id => next.signers.some(s => s.id === id && !s.archived)));
         setAttendeeTemplateId(id => !id || next.templates.some(t => t.id === id && t.status === 'PUBLISHED') ? id : '');
         setSpeakerTemplateId(id => !id || next.templates.some(t => t.id === id && t.status === 'PUBLISHED') ? id : '');
-      }} />}</details>
+      }} />}
 
       {showTemplateModal && (
         <div

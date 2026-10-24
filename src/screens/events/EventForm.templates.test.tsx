@@ -76,15 +76,15 @@ describe('EventForm - Seleção e Upload de Modelos de Certificado', () => {
     });
   });
 
-  it('abre a gestão na mesma página sem perder o preenchimento do evento', async () => {
+  it('exibe editar/excluir no modelo selecionado e em cada assinatura', async () => {
     render(<EventForm submitLabel="Salvar" onSubmit={vi.fn()} />);
-    await screen.findByLabelText('Modelo de participante');
-    const title = screen.getAllByRole('textbox')[0];
-    fireEvent.change(title, { target: { value: 'Evento preservado' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Editar ou excluir certificado / assinatura' }));
-    expect(await screen.findByRole('heading', { name: 'Modelos de certificado e assinaturas' })).toBeInTheDocument();
-    expect(title).toHaveValue('Evento preservado');
-    expect(screen.getByRole('button', { name: 'Nova assinatura' })).toBeInTheDocument();
+    fireEvent.change(await screen.findByLabelText('Modelo de participante'), { target: { value: 'tmpl-week-att' } });
+    expect(screen.getByRole('button', { name: 'Editar modelo' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Excluir modelo' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Editar assinatura Prof. Carlos Henrique/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Excluir assinatura Prof. Carlos Henrique/ })).toBeInTheDocument();
+    expect(screen.queryByText('Modelos de certificado e assinaturas')).toBeNull();
+    expect(screen.queryByText('Mostrar excluídos e versões anteriores')).toBeNull();
   });
 
   it('exibe o modelo institucional padrão e os modelos prontos da Semana de Tecnologia no seletor', async () => {
