@@ -602,3 +602,10 @@
 }
 
 
+.inlineCatalogActions { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0; }
+.signerChoice { display: flex; align-items: center; flex: 1; gap: 10px; min-width: 0; overflow-wrap: anywhere; }
+.signerItem { flex-wrap: wrap; }
+.templateSelectorRow { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.templateSelectorRow select { flex: 1; min-width: 0; }
+.templateSelectorRow .inlineCatalogActions { margin: 0; flex-shrink: 0; }
+@media(max-width: 767px) { .templateSelectorRow { flex-wrap: wrap; } .templateSelectorRow select { flex-basis: 100%; } .signerChoice { flex-basis: 100%; } }

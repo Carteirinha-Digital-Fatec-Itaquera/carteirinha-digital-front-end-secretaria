@@ -1,15 +1,10 @@
-.panel { margin: 24px 0; padding: clamp(16px, 3vw, 28px); background: #fff; color: #243746; border: 1px solid #d7e2e7; border-radius: 12px; }
-.panel h2:focus { outline: 2px solid #005e6b; outline-offset: 4px; }
 .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
-.panel button { min-height: 44px; padding: 10px 16px; border: 1px solid #005e6b; border-radius: 8px; background: #fff; color: #005e6b; cursor: pointer; font: inherit; }
-.panel button:focus-visible, .panel input:focus-visible, .panel select:focus-visible { outline: 3px solid #008b9b; outline-offset: 2px; }
-.panel button:disabled { opacity: .6; cursor: wait; }
-.editor { padding: 20px; margin: 20px 0; background: #f3f7f9; border-radius: 10px; display: grid; gap: 16px; }
+.dialog { width: min(640px, calc(100vw - 32px)); max-height: 90vh; overflow-y: auto; border: 1px solid #dce5e9; border-radius: 16px; color: #202f38; padding: 20px; font-family: 'Poppins', system-ui, sans-serif; }
+.dialog::backdrop { background: #102f3db3; }
+.dialog button { min-height: 44px; padding: 10px 16px; border: 1px solid #005e6b; border-radius: 8px; background: white; color: #005e6b; cursor: pointer; font: inherit; }
+.dialog button:disabled { opacity: .6; cursor: wait; }
+.dialog :focus-visible { outline: 3px solid #008b9b; outline-offset: 2px; }
+.editor { padding: 20px; margin: 12px 0; background: #f3f7f9; border-radius: 10px; display: grid; gap: 16px; }
 .editor label { display: grid; gap: 8px; }
 .editor input:not([type="checkbox"]), .editor select { box-sizing: border-box; min-width: 0; width: 100%; min-height: 44px; padding: 10px; border: 1px solid #9db3c0; border-radius: 6px; color: #243746; background: white; font: inherit; }
-.list { list-style: none; padding: 0; }
-.list li { padding: 16px 0; border-bottom: 1px solid #d7e2e7; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; overflow-wrap: anywhere; }
-.list li p { margin: 6px 0; }
-
 .editor fieldset { border: 0; margin: 0; padding: 0; display: grid; gap: 16px; min-width: 0; }
-.panel { font-family: 'Poppins', system-ui, sans-serif; border-radius: var(--app-radius-card, 20px); }
