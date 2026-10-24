@@ -163,7 +163,7 @@ export default function SecretariaEventosScreen() {
         <div className={styles.container}>
           <div className={styles.header}>
             <div>
-              <h1 className={styles.title}>Gerenciar Eventos</h1>
+              <h1 className={styles.title}>Gerenciar Eventos</h1><button type="button" onClick={() => navigate('/eventos/catalogo')}>Gerenciar certificados e assinaturas</button>
               <p className={styles.subtitle}>
                 Controle de presença, checkpoints e emissão de certificados
               </p>
