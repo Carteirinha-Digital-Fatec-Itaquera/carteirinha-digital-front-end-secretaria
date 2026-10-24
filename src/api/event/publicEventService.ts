@@ -28,6 +28,7 @@ export interface Signer {
   course?: string;
   assetId?: string;
   archived: boolean;
+  version?: number;
 }
 export interface ManagedEvent {
   id: string;

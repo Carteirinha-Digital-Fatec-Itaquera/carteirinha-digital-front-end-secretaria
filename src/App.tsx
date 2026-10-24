@@ -16,6 +16,7 @@ import PhotosScreen from "./screens/secretary/photos/PhotosScreen";
 import ChangePasswordScreen from "./screens/changepassword/ChangePasswordScreen";
 
 import RequireSecretarySession from "./components/auth/RequireSecretarySession";
+import CertificateCatalogScreen from './screens/events/CertificateCatalogScreen';
 import SecretariaEventosScreen from "./screens/events/SecretariaEventosScreen";
 import SecretariaNovoEventoScreen from "./screens/events/SecretariaNovoEventoScreen";
 import SecretariaEditarEventoScreen from "./screens/events/SecretariaEditarEventoScreen";
@@ -61,6 +62,7 @@ export default function App() {
 
         {/* Rotas administrativas de eventos */}
           <Route path="/eventos" element={<SecretariaEventosScreen />} />
+          <Route path="/eventos/catalogo" element={<CertificateCatalogScreen />} />
           <Route path="/eventos/publicos" element={<Navigate to="/eventos" replace />} />
           <Route path="/eventos/:id/publico" element={<RedirectPublicoToGerenciar />} />
           <Route path="/eventos/novo" element={<SecretariaNovoEventoScreen />} />

@@ -457,6 +457,7 @@ export function EventForm({
           edition: trimmedEdition,
           backgroundAssetId,
           autoPublish: true,
+          design: 'TECHNOLOGY_BLUE_2026_DARK',
         },
         'POST'
       );
@@ -1360,6 +1361,7 @@ export function EventForm({
           </button>
         </div>
       </form>
+      <a href="/eventos/catalogo" target="_blank" rel="noopener noreferrer">Gerenciar modelos de certificado e assinaturas (nova aba)</a>
 
       {showTemplateModal && (
         <div
