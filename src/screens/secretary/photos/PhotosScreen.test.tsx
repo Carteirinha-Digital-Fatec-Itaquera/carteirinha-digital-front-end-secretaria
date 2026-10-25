@@ -35,4 +35,21 @@ describe('Badge após decisões sobre fotos', () => {
     expect(screen.getByRole('button', { name: 'Fotos pendentes: 1 aguardando análise' })).toBeInTheDocument();
     expect(getPendingPhotos).toHaveBeenCalledTimes(1);
   });
+  it.each([false, true])('preserva motivo e seleção após ampliar; lote=%s', async (bulk) => {
+    render(<MemoryRouter><PhotosScreen /></MemoryRouter>);
+    const reason = await screen.findByRole('textbox', { name: 'Motivo da reprovação de Aluno' });
+    fireEvent.change(reason, { target: { value: 'Foto desfocada. Envie outra.' } });
+    const checkbox = screen.getByRole('checkbox', { name: 'Selecionar foto de Aluno' });
+    fireEvent.click(checkbox);
+    fireEvent.click(screen.getByRole('button', { name: 'Ampliar foto de Aluno' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Fechar visualização da foto' }));
+    expect(checkbox).toBeChecked();
+    expect(reason).toHaveValue('Foto desfocada. Envie outra.');
+    expect(approvePhoto).not.toHaveBeenCalled();
+    expect(getPendingPhotos).toHaveBeenCalledTimes(1);
+    fireEvent.click(screen.getByRole('button', { name: bulk ? 'Reprovar selecionados (1)' : 'Reprovar' }));
+    await screen.findByText('Nenhuma solicitação pendente.');
+    expect(approvePhoto).toHaveBeenCalledWith('1', false, 'Foto desfocada. Envie outra.');
+  });
+
 });
