@@ -73,6 +73,7 @@ export function CertificateItemDialog({
         body = {
           ...editor.item?.config,
           textColor: String(data.get("textColor") || "#FFFFFF"),
+          wordingVersion: String(data.get("wordingVersion") || "LEGACY"),
           name,
           role: editor.item?.role || data.get("role"),
           heading: String(data.get("heading") || "").trim(),
@@ -174,6 +175,23 @@ export function CertificateItemDialog({
                   </select>
                 </label>
                 <label>
+                  Redação
+                  <select
+                    name="wordingVersion"
+                    defaultValue={
+                      template?.config.wordingVersion ||
+                      (template?.config.design === "TECHNOLOGY_BLUE_2026_DARK"
+                        ? "LECTURE_LISTENER_2026"
+                        : "LEGACY")
+                    }
+                  >
+                    <option value="LECTURE_LISTENER_2026">
+                      Palestra: ouvinte e palestrante
+                    </option>
+                    <option value="LEGACY">Atividade: redação anterior</option>
+                  </select>
+                </label>
+                <label>
                   Cor do texto do certificado
                   <input
                     name="textColor"
@@ -258,10 +276,7 @@ export function CertificateItemDialog({
         </form>
       )}
       {deleting && (
-        <div
-          aria-labelledby="catalog-delete-title"
-          className={styles.editor}
-        >
+        <div aria-labelledby="catalog-delete-title" className={styles.editor}>
           <h3 id="catalog-delete-title">Excluir {deleting.item?.name}?</h3>
           <p>
             O item deixa de aparecer nas novas seleções. Vínculos históricos e

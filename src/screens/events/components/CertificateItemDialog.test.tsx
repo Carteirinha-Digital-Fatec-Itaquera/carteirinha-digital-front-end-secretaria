@@ -21,8 +21,14 @@ const item = {
 beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(management).mockResolvedValue({});
-  HTMLDialogElement.prototype.showModal = vi.fn(function(this: HTMLDialogElement) { this.setAttribute('open', ''); });
-  HTMLDialogElement.prototype.close = vi.fn(function(this: HTMLDialogElement) { this.removeAttribute('open'); });
+  HTMLDialogElement.prototype.showModal = vi.fn(function (
+    this: HTMLDialogElement,
+  ) {
+    this.setAttribute("open", "");
+  });
+  HTMLDialogElement.prototype.close = vi.fn(function (this: HTMLDialogElement) {
+    this.removeAttribute("open");
+  });
 });
 it("edita somente o item acionado com versão e cor", async () => {
   const onSaved = vi.fn(async () => {}),
@@ -48,6 +54,7 @@ it("edita somente o item acionado com versão e cor", async () => {
         name: "Modelo corrigido",
         textColor: "#ffeecc",
         expectedVersion: 4,
+        wordingVersion: "LECTURE_LISTENER_2026",
       }),
       "PATCH",
     ),
