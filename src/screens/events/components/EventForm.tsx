@@ -128,6 +128,7 @@ export function EventForm({
   const [templateModalRole, setTemplateModalRole] = useState<'ATTENDEE' | 'SPEAKER'>('ATTENDEE');
   const [newTemplateName, setNewTemplateName] = useState('');
   const [newTemplateHeading, setNewTemplateHeading] = useState('CERTIFICADO');
+  const [newTemplateWording, setNewTemplateWording] = useState<'LECTURE_LISTENER_2026' | 'LEGACY'>('LECTURE_LISTENER_2026');
   const [newTemplateTextColor, setNewTemplateTextColor] = useState('#FFFFFF');
   const [newTemplateEdition, setNewTemplateEdition] = useState('');
   const [newTemplateFile, setNewTemplateFile] = useState<File | null>(null);
@@ -430,7 +431,9 @@ export function EventForm({
   function openNewTemplateModal(role: 'ATTENDEE' | 'SPEAKER') {
     setTemplateModalRole(role);
     setNewTemplateName('');
+    setNewTemplateWording('LECTURE_LISTENER_2026');
     setNewTemplateTextColor('#FFFFFF');
+    setNewTemplateWording('LECTURE_LISTENER_2026');
     setNewTemplateHeading('CERTIFICADO');
     setNewTemplateEdition(title ? `${title} — Fatec Itaquera` : 'Semana de Tecnologia — Fatec Itaquera');
     setNewTemplateFile(null);
@@ -470,6 +473,7 @@ export function EventForm({
           backgroundAssetId,
           autoPublish: true,
           textColor: newTemplateTextColor,
+          wordingVersion: newTemplateWording,
           design: 'TECHNOLOGY_BLUE_2026_DARK',
         },
         'POST'
@@ -1425,6 +1429,7 @@ export function EventForm({
                     {newTemplateError}
                   </div>
                 )}
+                <label>Redação<select value={newTemplateWording} onChange={e => setNewTemplateWording(e.target.value as 'LECTURE_LISTENER_2026' | 'LEGACY')}><option value="LECTURE_LISTENER_2026">Palestra: ouvinte e palestrante</option><option value="LEGACY">Atividade: redação anterior</option></select></label>
                 <label>Cor do texto do certificado<input type="color" value={newTemplateTextColor} onChange={e => setNewTemplateTextColor(e.target.value)} /></label>
                 <div className={styles.fieldGroup}>
                   <label htmlFor="modalTemplateName" className={styles.fieldLabel}>

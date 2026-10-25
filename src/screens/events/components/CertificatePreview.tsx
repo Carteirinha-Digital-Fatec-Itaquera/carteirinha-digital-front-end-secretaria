@@ -309,9 +309,10 @@ export function CertificatePreview({
 
   const isDark = template?.config?.design === 'TECHNOLOGY_BLUE_2026_DARK';
   const isCampaign = template?.config?.design === 'TECHNOLOGY_BLUE_2026' || isDark;
-  const actionText = isSpeaker
-    ? template?.config?.speakerAction || 'ministrou a palestra intitulada'
-    : template?.config?.attendeeAction || 'participou da palestra intitulada';
+  const newWording = template?.config?.wordingVersion === 'LECTURE_LISTENER_2026' || (isDark && !template?.config?.wordingVersion);
+  const actionText = newWording
+    ? isSpeaker ? 'ministrou a palestra intitulada' : 'participou como ouvinte da palestra'
+    : isSpeaker ? template?.config?.speakerAction || 'ministrou a palestra intitulada' : template?.config?.attendeeAction || 'participou da palestra intitulada';
 
   const displayTitle = eventTitle.trim() || 'Título da palestra de demonstração';
   const displayPromoter = promoter?.trim();
@@ -328,11 +329,15 @@ export function CertificatePreview({
     () => wrapSvgText(studentName, 640, 46, 24, 16, 'bold'),
     [studentName],
   );
-  const hasTextOverflow = titleLayout.overflow || nameLayout.overflow;
+
 
   const timeRangeText =
     startTime && endTime ? `, das ${startTime} às ${endTime}` : '';
 
+  const bodyText = `Certificamos que ${studentName} ${actionText}${newWording ? '' : ':'} “${displayTitle}”, ${newWording && !isSpeaker ? `ministrada por ${speaker?.trim() || 'Palestrante de demonstração'}, ` : ''}${displayPromoter ? `promovida por ${displayPromoter}, ` : ''}realizada ${newWording ? 'em' : 'no dia'} ${dateText}${timeRangeText}, ${newWording ? 'durante a' : 'na'} ${displayEdition}, com carga horária de ${workloadText}.`;
+  // Reserve the same 124pt body region as the PDF, accounting for CSS line-height 1.6.
+  const bodyLayout = wrapSvgText(bodyText, 702, 96, 14, 10, 'bold');
+  const hasTextOverflow = titleLayout.overflow || nameLayout.overflow || (newWording && bodyLayout.overflow);
   const isCustomTemplate = Boolean(template && template.config);
 
   const renderSvgContent = (isModal = false) => (
@@ -360,7 +365,7 @@ export function CertificatePreview({
               </svg>)}
               {isDark ? <rect data-testid="campaign-uniform-tint" x="0" y="0" width="842" height="595" fill="#092C50" fillOpacity=".45" /> : <rect x="54" y="195" width="734" height="373" fill="#FFFFFF" fillOpacity=".97" />}
               {isDark && <image data-testid="campaign-foreground-heading" href="/technology-2026-campaign-heading.png" x="66" y="0" width="710" height="150" preserveAspectRatio="xMidYMid meet" />}
-              <image href={isDark ? '/cps_logo_branco_oficial.png' : '/cps_logo_cor.png'} x="70" y={isDark ? 517 : 510} width={isDark ? 110 : 85} height={isDark ? 58 : 45} preserveAspectRatio="xMidYMid meet" aria-label="Centro Paula Souza" />
+              <image href={isDark ? '/cps_logo_branco_oficial.png' : '/cps_logo_cor.png'} x={isDark || template?.config.wordingVersion ? (842 - (isDark ? 110 : 85)) / 2 : 70} y={isDark ? 517 : 510} width={isDark ? 110 : 85} height={isDark ? 58 : 45} preserveAspectRatio="xMidYMid meet" aria-label="Centro Paula Souza" />
             </g>
           ) : (
             <g id={isModal ? 'modal-reference-background' : 'reference-background'}>
@@ -413,7 +418,7 @@ export function CertificatePreview({
             <div
               style={{
                 fontFamily: 'Helvetica, Arial, sans-serif',
-                fontSize: displayTitle.length > 50 || studentName.length > 35 ? '12.5px' : '14px',
+                fontSize: newWording ? `${bodyLayout.fontSize}px` : displayTitle.length > 50 || studentName.length > 35 ? '12.5px' : '14px',
                 lineHeight: '1.6',
                 color: template?.config?.textColor || (isDark ? '#FFFFFF' : '#000000'),
                 textAlign: 'justify',
@@ -425,9 +430,10 @@ export function CertificatePreview({
             >
               Certificamos que{' '}
               <strong><em>{studentName}</em></strong>{' '}
-              {actionText}: “<strong><em>{displayTitle}</em></strong>”,{' '}
+              {actionText}{newWording ? '' : ':'} “<strong><em>{displayTitle}</em></strong>”,{' '}
+              {newWording && !isSpeaker ? `ministrada por ${speaker?.trim() || 'Palestrante de demonstração'}, ` : ''}
               {displayPromoter ? `promovida por ${displayPromoter}, ` : ''}
-              realizada no dia {dateText}{timeRangeText}, na {displayEdition}, com carga horária de {workloadText}.
+              realizada {newWording ? 'em' : 'no dia'} {dateText}{timeRangeText}, {newWording ? 'durante a' : 'na'} {displayEdition}, com carga horária de {workloadText}.
             </div>
           </foreignObject>
 

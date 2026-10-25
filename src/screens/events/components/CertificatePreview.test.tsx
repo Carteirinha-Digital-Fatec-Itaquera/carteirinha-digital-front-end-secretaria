@@ -283,7 +283,11 @@ it.each(['TECHNOLOGY_BLUE_2026', 'TECHNOLOGY_BLUE_2026_DARK'] as const)('usa art
   expect(container!.querySelector('image[href="/technology-2026-campaign-cover.png"]')).not.toBeNull();
   expect(container!.querySelector('#reference-background')).toBeNull();
   expect(container!.querySelector('rect[width="118"][height="53"]')).toBeNull();
-  expect(container!.textContent).toContain('participou da atividade');
+  expect(container!.textContent).toContain(design === 'TECHNOLOGY_BLUE_2026_DARK' ? 'participou como ouvinte da palestra' : 'participou da atividade');
+  if (design === 'TECHNOLOGY_BLUE_2026_DARK') {
+    expect(container!.textContent).toContain('ministrada por Palestrante de demonstração');
+    expect(container!.querySelector('image[aria-label="Centro Paula Souza"]')).toHaveAttribute('x', '366');
+  }
   if (design === 'TECHNOLOGY_BLUE_2026_DARK') {
     const tint = container!.querySelector('[data-testid="campaign-uniform-tint"]');
     expect(tint).toHaveAttribute('x', '0');
