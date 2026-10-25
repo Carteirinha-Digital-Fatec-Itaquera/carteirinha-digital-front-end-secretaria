@@ -6,6 +6,7 @@ import MenuLateral from "../../../components/menuLateral/MenuLateral";
 import { getPendingPhotos } from "../../../api/student/getPendingPhotos";
 import { approvePhoto } from "../../../api/student/approvePhoto";
 import { toast } from "react-toastify";
+import PendingPhotoPreview from "./PendingPhotoPreview";
 import styles from "./style.module.css";
 import layoutStyles from "../../../styles/layoutWithMenu.module.css";
 
@@ -106,7 +107,7 @@ export default function PhotosScreen() {
                     onClick={() => toggleSelect(p.ra)}
                   >
                     
-                    <img src={p.photo} alt={p.name} className={styles.photo} />
+                    <PendingPhotoPreview key={p.photo} src={p.photo} name={p.name} />
                     <div className={styles.info}>
                       <p><strong>Nome:</strong> {p.name}</p>
                       <p><strong>RA:</strong> {p.ra}</p>
