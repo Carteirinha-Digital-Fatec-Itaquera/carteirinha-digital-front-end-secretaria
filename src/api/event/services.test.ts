@@ -18,13 +18,15 @@ import {
 } from '../attendance/attendanceService';
 import type { CreateEventRequest, UpdateEventRequest } from '../../domains/Event';
 
+const testSessionToken = [btoa(JSON.stringify({ alg: 'HS256' })), btoa(JSON.stringify({ exp: 4102444800 })), btoa('fixture-signature')].map(part => part.replace(/=+$/, '')).join('.');
+
 describe('Event, Checkpoint and Attendance Services', () => {
   const originalFetch = globalThis.fetch;
   let fetchMock: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
-    sessionStorage.clear();
-    sessionStorage.setItem('token', 'eyJhbGciOiJIUzI1NiJ9.eyJleHAiOjQxMDI0NDQ4MDB9.c2lnbmF0dXJl');
+    localStorage.clear();
+    localStorage.setItem('token', testSessionToken);
     vi.restoreAllMocks();
     fetchMock = vi.fn();
     globalThis.fetch = fetchMock as unknown as typeof fetch;

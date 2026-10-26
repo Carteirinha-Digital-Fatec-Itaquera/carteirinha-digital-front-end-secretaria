@@ -25,7 +25,7 @@ describe('HTTP Real Integration: Event Lifecycle', () => {
       console.warn(`Backend local inacessível em ${BACKEND_URL}. Testes de integração HTTP real ignorados.`);
     }
 
-    sessionStorage.setItem('token', SECRETARY_TOKEN);
+    localStorage.setItem('token', SECRETARY_TOKEN);
   });
 
   it('createsListsAndReadsRealEvent', async () => {

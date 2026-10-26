@@ -18,7 +18,18 @@ export function inspectSessionToken(token: string | null, nowMs = Date.now()) {
 export type SessionContext = { token: string | null; generation: number };
 type SessionState = SessionContext & { notice: boolean };
 function readToken() {
-  try { return sessionStorage.getItem('token'); } catch { return null; }
+  try {
+    const persisted = localStorage.getItem('token');
+    if (persisted) return persisted;
+    const legacy = sessionStorage.getItem('token');
+    if (legacy) {
+      localStorage.setItem('token', legacy);
+      sessionStorage.removeItem('token');
+    }
+    return legacy;
+  } catch {
+    try { return sessionStorage.getItem('token'); } catch { return null; }
+  }
 }
 let state: SessionState = { token: readToken(), generation: 0, notice: false };
 const listeners = new Set<() => void>();
@@ -37,7 +48,8 @@ function publish(next: SessionState) {
   listeners.forEach(listener => listener());
 }
 function clearPrivateStorage() {
-  // This frontend currently persists only its token. Keep unrelated preferences.
+  // Remove authentication from both stores, preserving unrelated preferences.
+  try { localStorage.removeItem('token'); } catch { /* storage unavailable */ }
   try { sessionStorage.removeItem('token'); } catch { /* storage unavailable */ }
   clearCallbacks.forEach(cb => { try { cb(); } catch { /* ignore */ } });
 }
@@ -62,7 +74,8 @@ export function checkSession() {
 }
 export function startSession(token: string) {
   if (!inspectSessionToken(token)) throw new Error('Token de sessão inválido. Entre novamente.');
-  sessionStorage.setItem('token', token);
+  localStorage.setItem('token', token);
+  sessionStorage.removeItem('token');
   // Always advance, even when the backend returns the same JWT on another login.
   publish({ token, generation: state.generation + 1, notice: false });
 }
@@ -87,6 +100,7 @@ export function watchSessionLifecycle() {
   const unsubscribe = subscribeSession(schedule);
   window.addEventListener('focus', resume);
   window.addEventListener('pageshow', resume);
+  window.addEventListener('storage', resume);
   document.addEventListener('visibilitychange', resume);
   resume();
   return () => {
@@ -94,6 +108,7 @@ export function watchSessionLifecycle() {
     unsubscribe();
     window.removeEventListener('focus', resume);
     window.removeEventListener('pageshow', resume);
+    window.removeEventListener('storage', resume);
     document.removeEventListener('visibilitychange', resume);
   };
 }

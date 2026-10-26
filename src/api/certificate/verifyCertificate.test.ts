@@ -5,11 +5,11 @@ import { ApiRequestError } from '../config/apiRequest';
 describe('verifyCertificate Service', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
-    sessionStorage.clear();
+    localStorage.clear();
   });
 
   it('faz requisicao para a rota publica codificando o codigo e sem enviar Authorization', async () => {
-    sessionStorage.setItem('token', 'secret-admin-token');
+    localStorage.setItem('token', 'secret-admin-token');
 
     const fakeResponse = {
       valid: true,
