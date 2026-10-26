@@ -1,105 +1,46 @@
-import { describe, it, expect, vi } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { act, render, screen } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { PictureInPictureQr } from "./PictureInPictureQr";
-
-describe("PictureInPictureQr Component", () => {
-  const defaultProps = {
-    eventTitle: "Semana de Tecnologia 2026",
-    checkpointType: "check-in" as const,
-    qrValue: "https://carteirinha-digital-front-end-aluno.vercel.app/p/validref123",
-    qrLoading: false,
-    qrError: null,
-    onRefresh: vi.fn(),
-    onClose: vi.fn(),
-    onSizeChange: vi.fn(),
-  };
-
-  it("renderiza o cabeçalho, indicador AO VIVO e título do evento", () => {
-    render(<PictureInPictureQr {...defaultProps} />);
-
-    expect(screen.getByText("AO VIVO")).toBeInTheDocument();
-    expect(screen.getByText("Check-in")).toBeInTheDocument();
-    expect(screen.getByText("Semana de Tecnologia 2026")).toBeInTheDocument();
+const props = { eventTitle: "Atividade teste", checkpointType: "check-in" as const, qrValue: "https://carteirinha-digital-front-end-aluno.vercel.app/p/test_reference_1234567", qrLoading: false, qrError: null };
+afterEach(() => vi.unstubAllGlobals());
+describe("Projeção mínima do QR", () => {
+  it("mostra somente QR e legenda, com estilos próprios", () => {
+    render(<PictureInPictureQr {...props} />);
+    expect(screen.getByText("CHECK-IN")).toBeInTheDocument();
+    expect(screen.getByTestId("pip-attendance-qr")).toBeInTheDocument();
+    expect(screen.queryByText(props.eventTitle)).not.toBeInTheDocument();
+    expect(screen.queryByText("AO VIVO")).not.toBeInTheDocument();
+    expect(screen.queryAllByRole("button")).toHaveLength(0);
+    expect(screen.getByTestId("pip-qr-container")).toHaveStyle({ display: "grid", background: "#fff" });
   });
-
-  it("renderiza o QRCodeSVG quando qrValue está presente", () => {
-    render(<PictureInPictureQr {...defaultProps} />);
-
-    const qr = screen.getByTestId("pip-attendance-qr");
-    expect(qr).toBeInTheDocument();
-    expect(screen.queryByText(/Validade restante/i)).not.toBeInTheDocument();
-    expect(screen.getByText(/QR válido até encerramento ou renovação manual/i)).toBeInTheDocument();
-    expect(qr).toHaveAttribute("aria-label", "QR Code de presença em modo Picture-in-Picture");
+  it("atualiza a legenda ao mudar de etapa", () => {
+    const { rerender } = render(<PictureInPictureQr {...props} />);
+    rerender(<PictureInPictureQr {...props} checkpointType="check-out" />);
+    expect(screen.getByText("CHECK-OUT")).toBeInTheDocument();
+    expect(screen.queryByText("CHECK-IN")).not.toBeInTheDocument();
   });
-
-  it("permite alternar entre os tamanhos P, M e G", () => {
-    const onSizeChange = vi.fn();
-    render(<PictureInPictureQr {...defaultProps} onSizeChange={onSizeChange} />);
-
-    const buttonP = screen.getByRole("button", { name: "P" });
-    const buttonM = screen.getByRole("button", { name: "M" });
-    const buttonG = screen.getByRole("button", { name: "G" });
-
-    expect(buttonP).toHaveAttribute("aria-pressed", "true");
-
-    fireEvent.click(buttonP);
-    expect(buttonP).toHaveAttribute("aria-pressed", "true");
-    expect(buttonM).toHaveAttribute("aria-pressed", "false");
-    expect(onSizeChange).toHaveBeenCalledWith("sm");
-
-    fireEvent.click(buttonG);
-    expect(buttonG).toHaveAttribute("aria-pressed", "true");
-    expect(onSizeChange).toHaveBeenCalledWith("lg");
+  it("mede o menor espaço disponível e mantém QR quadrado", () => {
+    let notify!: ResizeObserverCallback;
+    const disconnect = vi.fn();
+    vi.stubGlobal("ResizeObserver", class { constructor(callback: ResizeObserverCallback) { notify = callback; } observe() {} disconnect = disconnect; });
+    const { unmount } = render(<PictureInPictureQr {...props} />);
+    const resize = (width: number, height: number) => act(() => notify([{ contentRect: { width, height } } as ResizeObserverEntry], {} as ResizeObserver));
+    resize(400, 120);
+    expect(screen.getByTestId("pip-attendance-qr")).toHaveAttribute("width", "120");
+    expect(screen.getByTestId("pip-attendance-qr")).toHaveAttribute("height", "120");
+    resize(90, 300);
+    expect(screen.getByTestId("pip-attendance-qr")).toHaveAttribute("width", "90");
+    unmount(); expect(disconnect).toHaveBeenCalledOnce();
   });
-
-  it("dispara onRefresh ao clicar no botão de renovar", () => {
-    const onRefresh = vi.fn();
-    render(<PictureInPictureQr {...defaultProps} onRefresh={onRefresh} />);
-
-    const refreshButton = screen.getByRole("button", { name: /Renovar/i });
-    fireEvent.click(refreshButton);
-
-    expect(onRefresh).toHaveBeenCalledTimes(1);
+  it("mostra estados de carregamento e falha sem QR antigo", () => {
+    const { rerender } = render(<PictureInPictureQr {...props} qrValue={null} qrLoading />);
+    expect(screen.getByRole("status")).toHaveTextContent("Carregando");
+    rerender(<PictureInPictureQr {...props} qrError="Falha ao obter QR" />);
+    expect(screen.getByRole("alert")).toHaveTextContent("Falha ao obter QR");
+    expect(screen.queryByTestId("pip-attendance-qr")).not.toBeInTheDocument();
   });
-
-  it("dispara onClose ao clicar no botão de fechar", () => {
-    const onClose = vi.fn();
-    render(<PictureInPictureQr {...defaultProps} onClose={onClose} />);
-
-    const closeButton = screen.getByRole("button", { name: /Fechar Picture-in-Picture/i });
-    fireEvent.click(closeButton);
-
-    expect(onClose).toHaveBeenCalledTimes(1);
+  it("o fallback pode ser redimensionado sem moldura do aplicativo", () => {
+    render(<PictureInPictureQr {...props} isFloating />);
+    expect(screen.getByTestId("pip-qr-container")).toHaveStyle({ resize: "both", width: "180px", height: "200px" });
   });
-
-  it("exibe estado de carregamento e mensagem de erro quando apropriado", () => {
-    render(
-      <PictureInPictureQr
-        {...defaultProps}
-        qrValue={null}
-        qrLoading={true}
-        qrError="Erro de conexão com o servidor"
-      />
-    );
-
-    expect(screen.getByText("Renovando QR Code...")).toBeInTheDocument();
-    expect(screen.getByRole("alert")).toHaveTextContent("Erro de conexão com o servidor");
-  });
-
-  it("renderiza classe flutuante quando isFloating for verdadeiro", () => {
-    render(<PictureInPictureQr {...defaultProps} isFloating={true} />);
-
-    const container = screen.getByTestId("pip-qr-container");
-    expect(container.className).toContain("floatingWidget");
-  });
-  it("abre compacto e redimensiona também o fallback sem fixar pixels do QR", () => {
-    render(<PictureInPictureQr {...defaultProps} isFloating />);
-    const box = screen.getByTestId("pip-qr-container");
-    expect(box).toHaveStyle({ width: "180px", height: "212px" });
-    expect(screen.getByTestId("pip-attendance-qr")).toHaveAttribute("viewBox");
-    fireEvent.click(screen.getByRole("button", { name: "G" }));
-    expect(box).toHaveStyle({ width: "340px", height: "372px" });
-    expect(screen.getByRole("button", { name: "Renovar QR Code" })).toBeEnabled();
-  });
-
 });

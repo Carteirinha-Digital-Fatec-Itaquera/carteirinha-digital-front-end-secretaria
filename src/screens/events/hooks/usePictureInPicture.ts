@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { PIP_DIMENSIONS, type PipSize } from "../pictureInPictureSizing";
+import { PIP_INITIAL_DIMENSIONS } from "../pictureInPictureSizing";
 
 // Declaração de tipos para a Web API nativa Document Picture-in-Picture
 interface DocumentPictureInPictureOptions {
@@ -21,17 +21,11 @@ declare global {
   }
 }
 
-function copyStylesToDocument(targetDoc: Document) {
-  try {
-    const styleElements = document.querySelectorAll(
-      'link[rel="stylesheet"], style'
-    );
-    styleElements.forEach((el) => {
-      targetDoc.head.appendChild(el.cloneNode(true));
-    });
-  } catch (err) {
-    console.warn("Não foi possível copiar todos os estilos para a janela PiP:", err);
-  }
+function prepareProjectionDocument(doc: Document) {
+  doc.title = "Presença — Fatec Itaquera";
+  doc.querySelectorAll('link[rel="stylesheet"], style').forEach(element => element.remove());
+  Object.assign(doc.documentElement.style, { width: "100%", height: "100%", margin: "0", padding: "0" });
+  Object.assign(doc.body.style, { width: "100%", height: "100%", margin: "0", padding: "0", backgroundColor: "#fff", overflow: "hidden" });
 }
 
 export function usePictureInPicture(activeCheckpoint: string | null) {
@@ -63,9 +57,9 @@ export function usePictureInPicture(activeCheckpoint: string | null) {
   }, []);
 
   const openPip = useCallback(
-    async (initialSize: PipSize = "sm") => {
+    async () => {
       setPipError(null);
-      const dims = PIP_DIMENSIONS[initialSize];
+      const dims = PIP_INITIAL_DIMENSIONS;
 
       // 1. Tenta API Nativa Document Picture-in-Picture (Chromium / PWA Edge e Chrome)
       if (typeof window !== "undefined" && window.documentPictureInPicture?.requestWindow) {
@@ -77,14 +71,7 @@ export function usePictureInPicture(activeCheckpoint: string | null) {
             preferInitialWindowPlacement: true,
           });
 
-          pipWin.document.title = "QR Code de Presença - Fatec Itaquera";
-          pipWin.document.body.style.margin = "0";
-          pipWin.document.body.style.padding = "0";
-          pipWin.document.body.style.backgroundColor = "#ffffff";
-          pipWin.document.body.style.overflow = "hidden";
-          pipWin.document.body.style.height = "100vh";
-
-          copyStylesToDocument(pipWin.document);
+          prepareProjectionDocument(pipWin.document);
           const handleClose = () => {
             pipWindowRef.current = null;
             setPipWindow(null);
@@ -112,14 +99,7 @@ export function usePictureInPicture(activeCheckpoint: string | null) {
         );
 
         if (popupWin && !popupWin.closed) {
-          popupWin.document.title = "QR Code de Presença - Fatec Itaquera";
-          popupWin.document.body.style.margin = "0";
-          popupWin.document.body.style.padding = "0";
-          popupWin.document.body.style.backgroundColor = "#ffffff";
-          popupWin.document.body.style.overflow = "hidden";
-          popupWin.document.body.style.height = "100vh";
-
-          copyStylesToDocument(popupWin.document);
+          prepareProjectionDocument(popupWin.document);
 
           const handleClose = () => {
             pipWindowRef.current = null;
@@ -147,29 +127,15 @@ export function usePictureInPicture(activeCheckpoint: string | null) {
   );
 
   const togglePip = useCallback(
-    (initialSize: PipSize = "sm") => {
+    () => {
       if (isPipActive) {
         closePip();
       } else {
-        void openPip(initialSize);
+        void openPip();
       }
     },
     [isPipActive, closePip, openPip]
   );
-
-  const handleSizeChange = useCallback((newSize: PipSize) => {
-    if (pipWindowRef.current && !pipWindowRef.current.closed) {
-      const dims = PIP_DIMENSIONS[newSize];
-      try {
-        const pip = pipWindowRef.current;
-        const frameWidth = Math.max(0, (pip.outerWidth || 0) - (pip.innerWidth || 0));
-        const frameHeight = Math.max(0, (pip.outerHeight || 0) - (pip.innerHeight || 0));
-        pip.resizeTo(dims.width + frameWidth, dims.height + frameHeight);
-      } catch {
-        // Restrições de segurança de alguns navegadores em resizeTo são silenciosamente ignoradas
-      }
-    }
-  }, []);
 
   // Fecha o PiP automaticamente caso o checkpoint seja encerrado.
   useEffect(() => {
@@ -201,6 +167,5 @@ export function usePictureInPicture(activeCheckpoint: string | null) {
     openPip,
     closePip,
     togglePip,
-    handleSizeChange,
   };
 }

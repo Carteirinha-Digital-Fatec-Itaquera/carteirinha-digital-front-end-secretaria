@@ -1,158 +1,52 @@
-import { useState } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { QRCodeSVG } from "qrcode.react";
-import { RefreshCw, X } from "lucide-react";
-import styles from "./PictureInPictureQr.module.css";
+import { PIP_INITIAL_DIMENSIONS } from "../pictureInPictureSizing";
 
-import { PIP_DIMENSIONS, type PipSize } from "../pictureInPictureSizing";
-export type { PipSize } from "../pictureInPictureSizing";
-
-export interface PictureInPictureQrProps {
+type Props = {
   eventTitle: string;
   checkpointType: "check-in" | "check-out";
   qrValue: string | null;
   qrLoading: boolean;
   qrError: string | null;
-  onRefresh: () => void;
-  onClose: () => void;
-  onSizeChange?: (size: PipSize) => void;
-  initialSize?: PipSize;
   isFloating?: boolean;
-}
-
-export function PictureInPictureQr({
-  eventTitle,
-  checkpointType,
-  qrValue,
-  qrLoading,
-  qrError,
-  onRefresh,
-  onClose,
-  onSizeChange,
-  initialSize = "sm",
-  isFloating = false,
-}: PictureInPictureQrProps) {
-  const [size, setSize] = useState<PipSize>(initialSize);
-
-  const handleSelectSize = (newSize: PipSize) => {
-    setSize(newSize);
-    onSizeChange?.(newSize);
-  };
-
-  const dimensions = PIP_DIMENSIONS[size];
-
-  return (
-    <div
-      className={`${styles.pipContainer} ${isFloating ? styles.floatingWidget : ""}`}
-      style={isFloating ? { width: `${dimensions.width}px`, height: `${dimensions.height}px` } : undefined}
-      role="region"
-      aria-label={`${eventTitle} — ${checkpointType === "check-in" ? "Check-in" : "Check-out"}`}
-      data-testid="pip-qr-container"
-    >
-      {/* Header */}
-      <header className={styles.pipHeader}>
-        <div className={styles.headerLeft}>
-          <div className={styles.liveTagGroup}>
-            <span className={styles.liveBadge}>
-              <span className={styles.liveDot} />
-              AO VIVO
-            </span>
-            <span className={styles.checkpointBadge}>
-              {checkpointType === "check-in" ? "Check-in" : "Check-out"}
-            </span>
-          </div>
-          <h2 className={styles.eventTitle} title={eventTitle}>
-            {eventTitle}
-          </h2>
-        </div>
-
-        <div className={styles.headerControls}>
-          <div
-            className={styles.sizeSelector}
-            role="group"
-            aria-label="Controle de tamanho do QR Code"
-          >
-            <button
-              type="button"
-              className={`${styles.sizeButton} ${size === "sm" ? styles.sizeButtonActive : ""}`}
-              onClick={() => handleSelectSize("sm")}
-              title="Janela pequena"
-              aria-pressed={size === "sm"}
-            >
-              P
-            </button>
-            <button
-              type="button"
-              className={`${styles.sizeButton} ${size === "md" ? styles.sizeButtonActive : ""}`}
-              onClick={() => handleSelectSize("md")}
-              title="Janela média"
-              aria-pressed={size === "md"}
-            >
-              M
-            </button>
-            <button
-              type="button"
-              className={`${styles.sizeButton} ${size === "lg" ? styles.sizeButtonActive : ""}`}
-              onClick={() => handleSelectSize("lg")}
-              title="Janela grande"
-              aria-pressed={size === "lg"}
-            >
-              G
-            </button>
-          </div>
-
-          <button type="button" className={styles.refreshButton} onClick={onRefresh} disabled={qrLoading}
-            aria-label="Renovar QR Code" title="Renovar QR Code (invalida o anterior)">
-            <RefreshCw size={14} className={qrLoading ? styles.spinning : ""} />
-          </button>
-
-          <button
-            type="button"
-            className={styles.closeButton}
-            onClick={onClose}
-            title="Fechar Picture-in-Picture"
-            aria-label="Fechar Picture-in-Picture"
-          >
-            <X size={15} />
-          </button>
-        </div>
-      </header>
-
-      {/* Body / QR Code */}
-      <main className={styles.pipBody}>
-        {qrValue ? (
-          <div className={styles.qrCard}>
-            <QRCodeSVG
-              value={qrValue}
-              size={1024}
-              level="M"
-              bgColor="#ffffff"
-              fgColor="#000000"
-              includeMargin
-              data-testid="pip-attendance-qr"
-              role="img"
-              aria-label="QR Code de presença em modo Picture-in-Picture"
-            />
-          </div>
-        ) : (
-          <div className={styles.loadingCard}>
-            <RefreshCw size={32} className={styles.spinning} />
-            <span>
-              {qrLoading
-                ? "Renovando QR Code..."
-                : qrError || "Aguardando novo código..."}
-            </span>
-          </div>
-        )}
-
-        {qrError && (
-          <div className={styles.errorCard} role="alert">
-            <span>{qrError}</span>
-          </div>
-        )}
-      </main>
-
-      {/* A janela controla o tamanho; a margem branca do próprio QR é preservada. */}
-      <span className={styles.srOnly}>QR válido até encerramento ou renovação manual. Redimensione pelas bordas da janela.</span>
+};
+const frame: CSSProperties = {
+  display: "grid", gridTemplateRows: "minmax(0, 1fr) 20px", width: "100%", height: "100%",
+  minWidth: 0, minHeight: 0, margin: 0, padding: 0, border: 0, boxSizing: "border-box",
+  overflow: "hidden", background: "#fff", color: "#111", fontFamily: "system-ui, sans-serif",
+};
+// O PiP recebe estilos próprios no HTML, sem depender do CSS do aplicativo.
+export function PictureInPictureQr({ eventTitle, checkpointType, qrValue, qrLoading, qrError, isFloating = false }: Props) {
+  const area = useRef<HTMLDivElement>(null);
+  const [side, setSide] = useState(160);
+  useEffect(() => {
+    const element = area.current;
+    if (!element) return;
+    const view = element.ownerDocument.defaultView;
+    const Observer = view?.ResizeObserver;
+    if (!Observer) return;
+    const observer = new Observer(entries => {
+      const box = entries[0]?.contentRect;
+      if (box) setSide(Math.max(1, Math.floor(Math.min(box.width, box.height))));
+    });
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, []);
+  const floating: CSSProperties = isFloating ? {
+    position: "fixed", right: 12, bottom: 12, zIndex: 9998,
+    width: PIP_INITIAL_DIMENSIONS.width, height: PIP_INITIAL_DIMENSIONS.height,
+    maxWidth: "calc(100vw - 24px)", maxHeight: "calc(100dvh - 24px)",
+    minWidth: 100, minHeight: 120, resize: "both",
+  } : {};
+  return <div role="region" aria-label={`${eventTitle} — ${checkpointType}`} data-testid="pip-qr-container" style={{ ...frame, ...floating }}>
+    <div ref={area} data-testid="pip-qr-area" style={{ minWidth: 0, minHeight: 0, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", margin: 0, padding: 0, border: 0 }}>
+      {qrValue && !qrError ? <QRCodeSVG value={qrValue} size={side} level="M" bgColor="#fff" fgColor="#000" includeMargin
+        style={{ display: "block", width: side, height: side, maxWidth: "100%", maxHeight: "100%", flexShrink: 0 }}
+        data-testid="pip-attendance-qr" role="img" aria-label="QR Code de presença" />
+        : <span role={qrError ? "alert" : "status"} style={{ fontSize: 11, textAlign: "center", color: "#111", padding: 4, overflowWrap: "anywhere" }}>{qrError || (qrLoading ? "Carregando QR Code..." : "Aguardando QR Code...")}</span>}
     </div>
-  );
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: 20, margin: 0, padding: 0, border: 0, fontSize: 12, lineHeight: "20px", fontWeight: 700, letterSpacing: "0.03em", color: "#111", background: "#fff", whiteSpace: "nowrap" }}>
+      {checkpointType === "check-in" ? "CHECK-IN" : "CHECK-OUT"}
+    </div>
+  </div>;
 }
