@@ -2,6 +2,8 @@
  * Dicionário e formatador de ações de auditoria para exibição amigável à secretaria e usuários leigos.
  */
 const AUDIT_ACTION_MAP: Record<string, string> = {
+  MANUAL_CERTIFICATE_ISSUED: 'Certificado emitido por regularização administrativa',
+  MANUAL_CERTIFICATE_ALREADY_ISSUED: 'Certificado existente consultado na regularização',
   // Abertura e encerramento de checkpoints
   CHECKPOINT_OPEN_CHECK_IN: 'Check-in (Entrada) aberto',
   CHECKPOINT_CLOSE_CHECK_IN: 'Check-in (Entrada) encerrado',

@@ -1,3 +1,4 @@
+import { ManualCertificatePanel } from './components/ManualCertificatePanel';
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate, useParams } from "react-router-dom";
@@ -1125,16 +1126,19 @@ export default function SecretariaGerenciarEventoScreen() {
           )}
 
 
+          <ManualCertificatePanel event={event} onUpdated={() => { void participants.refresh().catch(() => undefined); }} />
+
           {/* Painel de Participantes (Issue #7) */}
           <div style={{ marginTop: "24px" }}>
             <ParticipantsPanel
+              eventStatus={event.status}
               items={participants.items}
               loading={participants.loading}
               refreshing={participants.refreshing}
               stale={participants.stale}
               error={participants.error}
               lastUpdatedAt={participants.lastUpdatedAt}
-              onRefresh={participants.refresh}
+              onRefresh={() => { void participants.refresh().catch(() => undefined); }}
               eventId={id}
             />
           </div>

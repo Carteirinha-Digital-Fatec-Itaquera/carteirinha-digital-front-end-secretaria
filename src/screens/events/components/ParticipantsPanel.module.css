@@ -342,3 +342,15 @@
   border-bottom: 1px dashed #f1f5f9;
 }
 
+
+.nameActions { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.rowMenu summary { display: flex; align-items: center; justify-content: center; cursor: pointer; min-width: 44px; min-height: 44px; border: 1px solid #cbd5e1; border-radius: 6px; color: #005c6d; list-style: none; }
+.rowMenu summary::-webkit-details-marker { display: none; }
+.rowMenuContent { display: flex; flex-direction: column; gap: 8px; min-width: 190px; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; background: #fff; }
+.rowMenuContent button, .dialogActions button { min-height: 44px; padding: 8px 12px; border: 1px solid #005c6d; border-radius: 6px; background: #fff; color: #005c6d; font: inherit; cursor: pointer; }
+.rowMenuContent button:disabled, .dialogActions button:disabled { opacity: .5; cursor: not-allowed; }
+.nativeDialog { border: 0; color: #253e49; max-height: 90vh; overflow: auto; margin: auto; }
+.nativeDialog::backdrop { background: rgb(0 0 0 / 50%); }
+.manualReason { box-sizing: border-box; width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #aabec7; border-radius: 6px; font: inherit; }
+.dialogActions { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 12px; margin-top: 16px; }
+.rowMenu :focus-visible, .nativeDialog :focus-visible { outline: 3px solid #007e99; outline-offset: 3px; }

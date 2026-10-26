@@ -1,3 +1,5 @@
+import { EllipsisVertical } from 'lucide-react';
+import { ManualCheckoutDialog } from './ManualCheckoutDialog';
 import React, { useState, useEffect } from 'react';
 import type { AttendanceView } from '../../../domains/Attendance';
 import { formatEventTime } from '../../../utils/eventPresentation';
@@ -19,6 +21,7 @@ export interface ParticipantsPanelProps {
   lastUpdatedAt: Date | null;
   onRefresh: () => void;
   eventId?: string;
+  eventStatus?: string;
 }
 
 export const ParticipantsPanel: React.FC<ParticipantsPanelProps> = ({
@@ -30,9 +33,11 @@ export const ParticipantsPanel: React.FC<ParticipantsPanelProps> = ({
   lastUpdatedAt,
   onRefresh,
   eventId,
+  eventStatus,
 }) => {
   const [participantsDetails, setParticipantsDetails] = useState<Map<string, Participant>>(new Map());
   const [auditList, setAuditList] = useState<AuditEntry[]>([]);
+  const [manualCheckout, setManualCheckout] = useState<AttendanceView | null>(null);
   const [actionBusy, setActionBusy] = useState(false);
   const [actionFeedback, setActionFeedback] = useState<string | null>(null);
 
@@ -70,7 +75,7 @@ export const ParticipantsPanel: React.FC<ParticipantsPanelProps> = ({
         if (isMounted) {
           const map = new Map<string, Participant>();
           for (const p of people) {
-            map.set(p.id, p);
+            if (p.attendance?.id) map.set(p.attendance.id, p);
           }
           setParticipantsDetails(map);
           setAuditList(history);
@@ -126,20 +131,8 @@ export const ParticipantsPanel: React.FC<ParticipantsPanelProps> = ({
   };
 
   const handleOpenManualModal = (item: AttendanceView) => {
-    const detail = participantsDetails.get(item.id);
-    const p: Participant = detail || {
-      id: item.id,
-      name: item.studentName,
-      course: item.studentCourse,
-      role: 'ATTENDEE',
-      visitorId: item.studentRa ? null : 'visitor',
-      attendance: {
-        checkInAt: item.checkInAt,
-        checkOutAt: item.checkOutAt,
-        status: item.status,
-      },
-      certificate: null,
-    };
+    const p = participantsDetails.get(item.id);
+    if (!p) { setActionFeedback('Atualize a lista para carregar a identificação do participante.'); return; }
     setSelectedParticipant(p);
     setCorrectedName(p.name);
     setCorrectedCourse(p.course || '');
@@ -152,8 +145,8 @@ export const ParticipantsPanel: React.FC<ParticipantsPanelProps> = ({
     e.preventDefault();
     if (!selectedParticipant) return;
     const reason = modalReason.trim();
-    if (!reason) {
-      setModalError('A justificativa é obrigatória para ações auditadas.');
+    if (reason.length < 10) {
+      setModalError('A justificativa deve ter pelo menos 10 caracteres.');
       return;
     }
 
@@ -165,6 +158,7 @@ export const ParticipantsPanel: React.FC<ParticipantsPanelProps> = ({
         if (!eventId) throw new Error('Identificador do evento não disponível.');
         await management(`events/${eventId}/manual-presence`, {
           participantId: selectedParticipant.id,
+          checkpoint: 'CHECK_OUT',
           reason,
         });
         setActionFeedback(`Presença confirmada manualmente para ${selectedParticipant.name}.`);
@@ -361,7 +355,7 @@ export const ParticipantsPanel: React.FC<ParticipantsPanelProps> = ({
                 <th scope="col">Entrada</th>
                 <th scope="col">Saída</th>
                 <th scope="col">Status</th>
-                {eventId && <th scope="col">Ações e Certificado</th>}
+                {eventId && <th scope="col">Certificado</th>}
               </tr>
             </thead>
             <tbody>
@@ -373,7 +367,16 @@ export const ParticipantsPanel: React.FC<ParticipantsPanelProps> = ({
                   <tr key={attendance.id}>
                     <td>
                       <div>
-                        <strong>{attendance.studentName}</strong>
+                        <div className={styles.nameActions}><strong>{attendance.studentName}</strong>
+                          {eventId && <details className={styles.rowMenu} onKeyDown={e => { if (e.key === 'Escape') { e.currentTarget.open = false; e.currentTarget.querySelector('summary')?.focus(); } }}>
+                            <summary aria-label={`Ações para ${attendance.studentName}`} title="Ações do participante"><EllipsisVertical size={20} aria-hidden="true" /></summary>
+                            <div className={styles.rowMenuContent}>
+                              {attendance.checkInAt && !attendance.checkOutAt && attendance.status === 'CHECKED_IN' && <button type="button" disabled={actionBusy || eventStatus === 'CANCELLED'} onClick={e => { const menu = e.currentTarget.closest('details'); if (menu) { menu.open = false; menu.querySelector('summary')?.focus(); } setManualCheckout(attendance); }}>Registrar saída manual</button>}
+                              {attendance.checkOutAt && <span>Presença já confirmada</span>}
+                              {detail && <button type="button" disabled={actionBusy || eventStatus === 'CANCELLED'} onClick={e => { const menu = e.currentTarget.closest('details'); if (menu) menu.open = false; handleOpenManualModal(attendance); }}>Outras ações de atendimento</button>}
+                            </div>
+                          </details>}
+                        </div>
                         {detail?.role && detail.role !== 'ATTENDEE' && (
                           <span className={styles.badgeRole} style={{ marginLeft: '6px' }}>
                             {detail.role === 'SPEAKER' ? 'Palestrante' : detail.role}
@@ -401,16 +404,6 @@ export const ParticipantsPanel: React.FC<ParticipantsPanelProps> = ({
                     {eventId && (
                       <td>
                         <div className={styles.cellActions}>
-                          <button
-                            type="button"
-                            className={styles.btnAction}
-                            onClick={() => handleOpenManualModal(attendance)}
-                            disabled={actionBusy}
-                            title="Atendimento presencial, papel ou correção"
-                          >
-                            Atendimento
-                          </button>
-
                           {cert && (
                             <>
                               {cert.revokedAt ? (
@@ -470,6 +463,9 @@ export const ParticipantsPanel: React.FC<ParticipantsPanelProps> = ({
           </table>
         </div>
       )}
+
+      {manualCheckout && eventId && <ManualCheckoutDialog eventId={eventId} attendanceId={manualCheckout.id} name={manualCheckout.studentName}
+        onClose={() => setManualCheckout(null)} onSaved={() => { setActionFeedback(`Presença confirmada manualmente para ${manualCheckout.studentName}.`); onRefresh(); }} />}
 
       {/* Histórico administrativo auditado */}
       {eventId && auditList.length > 0 && (

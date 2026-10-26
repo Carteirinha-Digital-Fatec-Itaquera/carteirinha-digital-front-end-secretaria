@@ -66,6 +66,7 @@ export interface Participant {
   role: string;
   visitorId: string | null;
   attendance: {
+    id?: string;
     checkInAt: string | null;
     checkOutAt: string | null;
     status: string;
