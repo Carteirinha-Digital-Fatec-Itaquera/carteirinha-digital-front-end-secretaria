@@ -86,6 +86,8 @@ export default function SecretariaGerenciarEventoScreen() {
   >(null);
   const [qrData, setQrData] = useState<{
     qrToken: string;
+    checkpoint: "check-in" | "check-out";
+    eventId: string;
     qrUrl?: string;
   } | null>(null);
   const [qrLoading, setQrLoading] = useState(false);
@@ -228,6 +230,8 @@ export default function SecretariaGerenciarEventoScreen() {
 
         setQrData({
           qrToken: response.qrToken,
+          checkpoint: type,
+          eventId: id,
           qrUrl: validUrl,
         });
       } catch (err: unknown) {
@@ -370,7 +374,7 @@ export default function SecretariaGerenciarEventoScreen() {
     !isCancelled && checkOutStatus === "finished" &&
     Boolean(checkOutCp?.openedAt) && checkInStatus !== "open";
 
-  const qrValue = qrData?.qrUrl
+  const qrValue = qrData?.qrUrl && qrData.checkpoint === activeCheckpoint && qrData.eventId === id
     ? validatedAttendanceQrUrl(qrData.qrUrl, GLOBAL_VAR.STUDENT_APP_URL)
     : null;
 
@@ -930,7 +934,7 @@ export default function SecretariaGerenciarEventoScreen() {
                   <button
                     type="button"
                     className={`${styles.pipButton} ${pip.isPipActive ? styles.pipButtonActive : ""}`}
-                    onClick={() => pip.togglePip("sm")}
+                    onClick={() => pip.togglePip()}
                     title={
                       pip.isPipActive
                         ? "Fechar Picture-in-Picture"
@@ -1172,9 +1176,7 @@ export default function SecretariaGerenciarEventoScreen() {
 
                 qrLoading={qrLoading}
                 qrError={qrError}
-                onRefresh={() => void fetchQrToken(activeCheckpoint, true)}
-                onClose={pip.closePip}
-                onSizeChange={pip.handleSizeChange}
+
               />,
               pip.pipWindow.document.body
             )}
@@ -1187,9 +1189,7 @@ export default function SecretariaGerenciarEventoScreen() {
 
               qrLoading={qrLoading}
               qrError={qrError}
-              onRefresh={() => void fetchQrToken(activeCheckpoint, true)}
-              onClose={pip.closePip}
-              onSizeChange={pip.handleSizeChange}
+
               isFloating
             />
           )}
