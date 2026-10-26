@@ -8,7 +8,7 @@ import RequireSecretarySession from './RequireSecretarySession';
 import { checkSession, expireSession, getSessionSnapshot, logoutSession, startSession } from '../../api/auth/session';
 
 const token = 'e30.eyJleHAiOjQxMDI0NDQ4MDB9.c2ln';
-beforeEach(() => { logoutSession(); sessionStorage.clear(); vi.stubGlobal('fetch', vi.fn()); });
+beforeEach(() => { logoutSession(); localStorage.clear(); vi.stubGlobal('fetch', vi.fn()); });
 afterEach(() => { cleanup(); logoutSession(); vi.unstubAllGlobals(); });
 
 describe('private routes and recovery', () => {
@@ -33,7 +33,7 @@ describe('private routes and recovery', () => {
     expect(screen.getByText('Login secretaria')).toBeInTheDocument();
   });
   it.each(['invalid', 'e30.eyJleHAiOjF9.c2ln'])('rejects stored token %s and displays exactly one accessible notice', stored => {
-    sessionStorage.setItem('token', stored);
+    localStorage.setItem('token', stored);
     window.history.replaceState({}, '', '/students');
     render(<App />);
     expect(window.location.pathname).toBe('/login');
@@ -71,7 +71,7 @@ describe('private routes and recovery', () => {
     expect(screen.getByText('Public screen')).toBeInTheDocument();
     fireEvent.click(screen.getByText('New login'));
     expect(screen.getByLabelText('Private draft')).toHaveValue('');
-    act(() => { sessionStorage.removeItem('token'); checkSession(); });
+    act(() => { localStorage.removeItem('token'); checkSession(); });
     expect(screen.queryByLabelText('Private draft')).not.toBeInTheDocument();
   });
 });
