@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import type { AttendanceView } from '../../../domains/Attendance';
-import { selectRaffleWinner } from '../raffle';
+import { isRaffleEligible, selectRaffleWinner } from '../raffle';
 import styles from './RafflePanel.module.css';
 
 export interface RafflePanelProps {
@@ -24,7 +24,7 @@ export const RafflePanel: React.FC<RafflePanelProps> = ({
   const isMountedRef = useRef<boolean>(true);
   const isDrawingRef = useRef<boolean>(false);
 
-  const eligibleItems = items.filter((item) => item.status === 'CONFIRMED');
+  const eligibleItems = items.filter(isRaffleEligible);
 
   const handleDraw = async () => {
     if (isDrawingRef.current || drawing || loading || refreshing) return;
@@ -37,7 +37,7 @@ export const RafflePanel: React.FC<RafflePanelProps> = ({
     try {
       // Atualiza lista via API antes do sorteio
       const updatedItems = await onRefresh();
-      const updatedEligible = updatedItems.filter((item) => item.status === 'CONFIRMED');
+      const updatedEligible = updatedItems.filter(isRaffleEligible);
 
       if (updatedEligible.length === 0) {
         setDrawing(false);
@@ -104,13 +104,13 @@ export const RafflePanel: React.FC<RafflePanelProps> = ({
 
       {eligibleItems.length === 0 && !drawing && (
         <div className={styles.emptyWarning} role="status">
-          Nenhum participante com presença confirmada (check-out realizado) para participar do sorteio.
+          Nenhum participante com check-in registrado para participar do sorteio.
         </div>
       )}
 
       {drawing && (
         <div className={styles.drawingState} aria-live="polite">
-          <span>🎲 Sorteando entre os participantes com presença confirmada...</span>
+          <span>🎲 Sorteando entre os participantes com check-in registrado...</span>
         </div>
       )}
 

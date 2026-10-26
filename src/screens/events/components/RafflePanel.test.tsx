@@ -36,17 +36,17 @@ describe('RafflePanel Component', () => {
     vi.useRealTimers();
   });
 
-  it('exibe aviso e desabilita botao quando nao ha participantes confirmados', () => {
+  it('exibe aviso e desabilita botao quando nao ha check-ins', () => {
     render(
       <RafflePanel
-        items={[fakeCheckedIn]}
+        items={[]}
         loading={false}
         refreshing={false}
-        onRefresh={vi.fn().mockResolvedValue([fakeCheckedIn])}
+        onRefresh={vi.fn().mockResolvedValue([])}
       />
     );
 
-    expect(screen.getByText(/Nenhum participante com presença confirmada/i)).toBeInTheDocument();
+    expect(screen.getByText(/Nenhum participante com check-in registrado/i)).toBeInTheDocument();
     const button = screen.getByRole('button', { name: /Realizar Sorteio/i });
     expect(button).toBeDisabled();
   });
@@ -138,4 +138,15 @@ describe('RafflePanel Component', () => {
 
     expect(onRefreshMock).toHaveBeenCalledTimes(1);
   });
+  it('sorteia durante o evento usando check-in retornado pela API sem exigir saída', async () => {
+    vi.useFakeTimers();
+    const onRefresh = vi.fn().mockResolvedValue([fakeCheckedIn]);
+    render(<RafflePanel items={[fakeCheckedIn]} loading={false} refreshing={false} onRefresh={onRefresh} />);
+    expect(screen.getByText('1 elegível')).toBeInTheDocument();
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: /Realizar Sorteio/i })); });
+    await act(async () => { vi.advanceTimersByTime(2000); });
+    expect(onRefresh).toHaveBeenCalledTimes(1);
+    expect(screen.getByText('Bruno Lima')).toBeInTheDocument();
+  });
+
 });
