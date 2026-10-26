@@ -1131,13 +1131,14 @@ export default function SecretariaGerenciarEventoScreen() {
           {/* Painel de Participantes (Issue #7) */}
           <div style={{ marginTop: "24px" }}>
             <ParticipantsPanel
+              eventStatus={event.status}
               items={participants.items}
               loading={participants.loading}
               refreshing={participants.refreshing}
               stale={participants.stale}
               error={participants.error}
               lastUpdatedAt={participants.lastUpdatedAt}
-              onRefresh={participants.refresh}
+              onRefresh={() => { void participants.refresh().catch(() => undefined); }}
               eventId={id}
             />
           </div>
