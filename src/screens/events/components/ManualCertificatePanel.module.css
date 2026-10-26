@@ -1,0 +1,20 @@
+.panel { background: #fff; border: 1px solid #d7e2e6; border-radius: 12px; padding: 24px; margin-top: 24px; color: #253e49; }
+.header { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
+.header h2 { font-size: 1.25rem; margin: 0 0 8px; color: #005e6e; }
+.panel p { line-height: 1.6; }
+.panel button { min-height: 44px; padding: 10px 16px; border: 1px solid #005e6e; border-radius: 8px; background: #005e6e; color: #fff; font: inherit; cursor: pointer; }
+.panel button:disabled { opacity: .6; cursor: wait; }
+.form { margin-top: 20px; }
+.form fieldset { border: 0; padding: 0; min-width: 0; }
+.form legend { font-weight: 600; margin-bottom: 16px; }
+.form label { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; font-weight: 500; }
+.form input, .form select, .form textarea { box-sizing: border-box; width: 100%; min-height: 44px; padding: 12px; font: inherit; border: 1px solid #aabec7; border-radius: 8px; background: #fff; color: #253e49; }
+.grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 24px; }
+.grid p { grid-column: 1 / -1; }
+.form .confirm { flex-direction: row; align-items: flex-start; }
+.form .confirm input { width: 20px; min-height: 20px; flex-shrink: 0; }
+.result { margin-top: 24px; padding: 16px; background: #eef8f7; border: 1px solid #96c7c1; border-radius: 8px; overflow-wrap: anywhere; }
+.actions { display: flex; flex-wrap: wrap; gap: 12px; }
+.error { color: #a11717; }
+.panel :focus-visible { outline: 3px solid #007e99; outline-offset: 3px; }
+@media (max-width: 600px) { .panel { padding: 16px; } .grid { grid-template-columns: 1fr; } .panel button { width: 100%; } }
