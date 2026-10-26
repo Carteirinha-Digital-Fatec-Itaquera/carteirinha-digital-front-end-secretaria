@@ -40,7 +40,7 @@ describe("PictureInPictureQr Component", () => {
     const buttonM = screen.getByRole("button", { name: "M" });
     const buttonG = screen.getByRole("button", { name: "G" });
 
-    expect(buttonM).toHaveAttribute("aria-pressed", "true");
+    expect(buttonP).toHaveAttribute("aria-pressed", "true");
 
     fireEvent.click(buttonP);
     expect(buttonP).toHaveAttribute("aria-pressed", "true");
@@ -92,4 +92,14 @@ describe("PictureInPictureQr Component", () => {
     const container = screen.getByTestId("pip-qr-container");
     expect(container.className).toContain("floatingWidget");
   });
+  it("abre compacto e redimensiona também o fallback sem fixar pixels do QR", () => {
+    render(<PictureInPictureQr {...defaultProps} isFloating />);
+    const box = screen.getByTestId("pip-qr-container");
+    expect(box).toHaveStyle({ width: "180px", height: "212px" });
+    expect(screen.getByTestId("pip-attendance-qr")).toHaveAttribute("viewBox");
+    fireEvent.click(screen.getByRole("button", { name: "G" }));
+    expect(box).toHaveStyle({ width: "340px", height: "372px" });
+    expect(screen.getByRole("button", { name: "Renovar QR Code" })).toBeEnabled();
+  });
+
 });

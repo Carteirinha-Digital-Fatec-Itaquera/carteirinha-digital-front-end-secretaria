@@ -930,7 +930,7 @@ export default function SecretariaGerenciarEventoScreen() {
                   <button
                     type="button"
                     className={`${styles.pipButton} ${pip.isPipActive ? styles.pipButtonActive : ""}`}
-                    onClick={() => pip.togglePip("md")}
+                    onClick={() => pip.togglePip("sm")}
                     title={
                       pip.isPipActive
                         ? "Fechar Picture-in-Picture"

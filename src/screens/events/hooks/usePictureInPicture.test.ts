@@ -41,7 +41,7 @@ describe("usePictureInPicture Hook", () => {
       await result.current.openPip("md");
     });
 
-    expect(requestWindowMock).toHaveBeenCalledWith({ width: 350, height: 480 });
+    expect(requestWindowMock).toHaveBeenCalledWith({ width: 240, height: 272, disallowReturnToOpener: true, preferInitialWindowPlacement: true });
     expect(result.current.isPipActive).toBe(true);
     expect(result.current.pipWindow).toBe(mockPipWindow);
     expect(result.current.isFloating).toBe(false);
@@ -75,7 +75,7 @@ describe("usePictureInPicture Hook", () => {
     expect(windowOpenSpy).toHaveBeenCalledWith(
       "",
       "FatecAttendanceQrPip",
-      expect.stringContaining("width=290,height=410")
+      expect.stringContaining("width=180,height=212")
     );
     expect(result.current.isPipActive).toBe(true);
     expect(result.current.pipWindow).toBe(mockPopup);
@@ -158,4 +158,13 @@ describe("usePictureInPicture Hook", () => {
     expect(closeMock).toHaveBeenCalledTimes(1);
     expect(result.current.isPipActive).toBe(false);
   });
+  it("preserva dimensões úteis ao aplicar tamanho incluindo moldura do Windows", async () => {
+    const popup = { document: { title: "", body: { style: {} }, head: { appendChild: vi.fn() } }, addEventListener: vi.fn(), close: vi.fn(), closed: false, innerWidth: 180, outerWidth: 198, innerHeight: 212, outerHeight: 255, resizeTo: vi.fn() } as unknown as Window;
+    vi.spyOn(window, "open").mockReturnValue(popup);
+    const { result } = renderHook(() => usePictureInPicture("check-in"));
+    await act(async () => { await result.current.openPip(); });
+    act(() => result.current.handleSizeChange("lg"));
+    expect(popup.resizeTo).toHaveBeenCalledWith(358, 415);
+  });
+
 });
