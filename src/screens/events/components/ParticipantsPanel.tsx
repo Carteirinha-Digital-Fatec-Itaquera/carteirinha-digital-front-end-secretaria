@@ -37,6 +37,11 @@ export const ParticipantsPanel: React.FC<ParticipantsPanelProps> = ({
 }) => {
   const [participantsDetails, setParticipantsDetails] = useState<Map<string, Participant>>(new Map());
   const [auditList, setAuditList] = useState<AuditEntry[]>([]);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [bulkTargets, setBulkTargets] = useState<AttendanceView[] | null>(null);
+  const pendingRows = items.filter(row => row.checkInAt && !row.checkOutAt && row.status === 'CHECKED_IN');
+  const selectedRows = pendingRows.filter(row => selectedIds.includes(row.id));
+  const allSelected = pendingRows.length > 0 && selectedRows.length === pendingRows.length;
   const [manualCheckout, setManualCheckout] = useState<AttendanceView | null>(null);
   const [actionBusy, setActionBusy] = useState(false);
   const [actionFeedback, setActionFeedback] = useState<string | null>(null);
@@ -272,6 +277,7 @@ export const ParticipantsPanel: React.FC<ParticipantsPanelProps> = ({
         </div>
 
         <div className={styles.actionsBar}>
+          {eventId && <button type="button" className={styles.refreshButton} disabled={!selectedRows.length || eventStatus === 'CANCELLED' || actionBusy || loading} onClick={() => setBulkTargets([...selectedRows])}>Confirmar saídas selecionadas ({selectedRows.length})</button>}
           {items.length > 0 && (
             <button
               type="button"
@@ -349,6 +355,7 @@ export const ParticipantsPanel: React.FC<ParticipantsPanelProps> = ({
           <table className={styles.table}>
             <thead>
               <tr>
+                {eventId && <th scope="col"><input type="checkbox" aria-label="Selecionar todos com saída pendente" checked={allSelected} ref={element => { if (element) element.indeterminate = selectedRows.length > 0 && !allSelected; }} disabled={!pendingRows.length || eventStatus === 'CANCELLED'} onChange={() => setSelectedIds(allSelected ? [] : pendingRows.map(row => row.id))} /></th>}
                 <th scope="col">Nome</th>
                 <th scope="col">RA</th>
                 <th scope="col">Curso</th>
@@ -365,6 +372,7 @@ export const ParticipantsPanel: React.FC<ParticipantsPanelProps> = ({
 
                 return (
                   <tr key={attendance.id}>
+                    {eventId && <td>{attendance.checkInAt && !attendance.checkOutAt && attendance.status === 'CHECKED_IN' && <input type="checkbox" aria-label={`Selecionar ${attendance.studentName}`} checked={selectedIds.includes(attendance.id)} disabled={eventStatus === 'CANCELLED'} onChange={() => setSelectedIds(current => current.includes(attendance.id) ? current.filter(id => id !== attendance.id) : [...current, attendance.id])} />}</td>}
                     <td>
                       <div>
                         <div className={styles.nameActions}><strong>{attendance.studentName}</strong>
@@ -464,6 +472,8 @@ export const ParticipantsPanel: React.FC<ParticipantsPanelProps> = ({
         </div>
       )}
 
+      {bulkTargets && eventId && <ManualCheckoutDialog eventId={eventId} attendances={bulkTargets.map(row => ({ id: row.id, name: row.studentName }))}
+        onClose={() => setBulkTargets(null)} onSaved={ids => { const done = ids ?? []; setSelectedIds(current => current.filter(id => !done.includes(id))); setActionFeedback(`Lote processado: ${done.length} participantes.`); onRefresh(); }} />}
       {manualCheckout && eventId && <ManualCheckoutDialog eventId={eventId} attendanceId={manualCheckout.id} name={manualCheckout.studentName}
         onClose={() => setManualCheckout(null)} onSaved={() => { setActionFeedback(`Presença confirmada manualmente para ${manualCheckout.studentName}.`); onRefresh(); }} />}
 
