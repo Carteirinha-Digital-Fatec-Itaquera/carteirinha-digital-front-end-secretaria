@@ -112,7 +112,8 @@ describe('SecretariaGerenciarEventoScreen - QR Code & Projeção Telão', () => 
     fireEvent.click(telaoButton);
 
     expect(screen.getByText('Sair do Telão (ESC)')).toBeInTheDocument();
-    expect(screen.getByText('Renovação preventiva em:')).toBeInTheDocument();
+    expect(screen.queryByText('Renovação preventiva em:')).not.toBeInTheDocument();
+    expect(screen.getByText('QR válido até encerramento ou renovação manual.')).toBeInTheDocument();
   });
 
   it('exibe botão de Fixar no Canto (PiP) e ativa modo flutuante quando acionado', async () => {
@@ -232,7 +233,7 @@ describe('SecretariaGerenciarEventoScreen - QR Code & Projeção Telão', () => 
     expect(getQrSpy).toHaveBeenCalledTimes(1);
   });
 
-  it('limpa o QR Code da tela se expirar antes de renovar para evitar leituras inválidas', async () => {
+  it('mantém QR manual após uma hora sem contador ou renovação automática', async () => {
     const now = Date.now();
     const getQrSpy = vi.spyOn(checkpointService, 'getCheckpointQr');
     const expiringRef = 'expiringRef'.padEnd(22, '0');
@@ -240,8 +241,8 @@ describe('SecretariaGerenciarEventoScreen - QR Code & Projeção Telão', () => 
       qrToken: 'token-expiring',
       qrUrl: `https://carteirinha-digital-front-end-aluno.vercel.app/p/${expiringRef}`,
       serverTime: new Date(now).toISOString(),
-      expiresInSeconds: 2,
-      expiresAt: new Date(now + 2000).toISOString(),
+      expiresInSeconds: null,
+      expiresAt: null,
       checkpointVersion: 1,
     });
     // Segunda chamada (renovação) fica pendente
@@ -261,13 +262,12 @@ describe('SecretariaGerenciarEventoScreen - QR Code & Projeção Telão', () => 
 
     // Avança 2.5s para expirar o QR
     act(() => {
-      vi.advanceTimersByTime(2500);
+      vi.advanceTimersByTime(3600000);
     });
 
-    // O QR vencido foi limpo da tela, mostrando estado de renovação
-    expect(
-      screen.getByText(/Renovando QR Code\.\.\.|Aguardando novo QR Code\.\.\./i)
-    ).toBeInTheDocument();
+    expect(screen.getByTestId('attendance-qr')).toBeInTheDocument();
+    expect(screen.queryByText(/Validade restante|Renovação preventiva/i)).not.toBeInTheDocument();
+    expect(getQrSpy).toHaveBeenCalledTimes(1);
   });
 
   it('renderiza o SVG com data-testid="attendance-qr" quando a qrUrl for válida', async () => {

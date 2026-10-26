@@ -7,7 +7,6 @@ describe("PictureInPictureQr Component", () => {
     eventTitle: "Semana de Tecnologia 2026",
     checkpointType: "check-in" as const,
     qrValue: "https://carteirinha-digital-front-end-aluno.vercel.app/p/validref123",
-    secondsRemaining: 18,
     qrLoading: false,
     qrError: null,
     onRefresh: vi.fn(),
@@ -28,6 +27,8 @@ describe("PictureInPictureQr Component", () => {
 
     const qr = screen.getByTestId("pip-attendance-qr");
     expect(qr).toBeInTheDocument();
+    expect(screen.queryByText(/Validade restante/i)).not.toBeInTheDocument();
+    expect(screen.getByText(/QR válido até encerramento ou renovação manual/i)).toBeInTheDocument();
     expect(qr).toHaveAttribute("aria-label", "QR Code de presença em modo Picture-in-Picture");
   });
 

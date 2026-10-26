@@ -27,7 +27,7 @@ export interface AttendanceQrResponse {
   qrToken: string;
   qrUrl?: string;
   serverTime?: IsoDateTime;
-  expiresInSeconds: number;
-  expiresAt: IsoDateTime;
+  expiresInSeconds: number | null;
+  expiresAt: IsoDateTime | null;
   checkpointVersion: number;
 }
