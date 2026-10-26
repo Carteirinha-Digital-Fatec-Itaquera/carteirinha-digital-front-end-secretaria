@@ -413,26 +413,12 @@ export default function SecretariaGerenciarEventoScreen() {
   const checkInStatus = computeCheckpointStatus(checkInCp);
   const checkOutStatus = computeCheckpointStatus(checkOutCp);
 
-  const nowMs = Date.now() + serverOffsetMsRef.current;
-  const isCheckInExpired = Boolean(
-    checkInCp?.closesAt && new Date(checkInCp.closesAt).getTime() <= nowMs
-  );
-  const isCheckOutExpired = Boolean(
-    checkOutCp?.closesAt && new Date(checkOutCp.closesAt).getTime() <= nowMs
-  );
-
   const canReopenCheckIn =
-    !isCancelled &&
-    checkInStatus === "finished" &&
-    !checkOutCp?.openedAt &&
-    !isCheckInExpired &&
-    event?.status !== "COMPLETED";
+    !isCancelled && checkInStatus === "finished" && checkOutStatus !== "open";
 
   const canReopenCheckOut =
-    !isCancelled &&
-    checkOutStatus === "finished" &&
-    Boolean(checkOutCp?.openedAt) &&
-    !isCheckOutExpired;
+    !isCancelled && checkOutStatus === "finished" &&
+    Boolean(checkOutCp?.openedAt) && checkInStatus !== "open";
 
   const qrValue = qrData?.qrUrl
     ? validatedAttendanceQrUrl(qrData.qrUrl, GLOBAL_VAR.STUDENT_APP_URL)
@@ -856,18 +842,14 @@ export default function SecretariaGerenciarEventoScreen() {
                           onClick={() => handleOpenCheckpoint("check-in")}
                           disabled={actionLoading}
                           type="button"
-                          title="Reabrir Check-in enquanto o Check-out não foi iniciado"
+                          title="Reabrir Check-in após encerrar o Check-out"
                         >
                           <RotateCcw size={18} />
                           Reabrir Check-in
                         </button>
                       ) : (
                         <p className={styles.reopenNotice}>
-                          {checkOutCp?.openedAt
-                            ? "Reabertura indisponível: Check-out já iniciado."
-                            : isCheckInExpired
-                            ? "Reabertura indisponível: Janela de 15 minutos expirada."
-                            : "Reabertura indisponível."}
+                          Encerre o Check-out antes de reabrir o Check-in.
                         </p>
                       )}
                     </div>
@@ -960,16 +942,14 @@ export default function SecretariaGerenciarEventoScreen() {
                           onClick={() => handleOpenCheckpoint("check-out")}
                           disabled={actionLoading}
                           type="button"
-                          title="Reabrir Check-out dentro da janela original de 15 minutos"
+                          title="Reabrir Check-out sem limite de horário"
                         >
                           <RotateCcw size={18} />
                           Reabrir Check-out
                         </button>
                       ) : (
                         <p className={styles.reopenNotice}>
-                          {isCheckOutExpired
-                            ? "Reabertura indisponível: Janela de 15 minutos expirada."
-                            : "Reabertura indisponível."}
+                          Encerre o Check-in antes de reabrir o Check-out.
                         </p>
                       )}
                     </div>

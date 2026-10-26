@@ -28,7 +28,9 @@ export default function CheckpointWindow({
     return () => clearInterval(id);
   }, [closesAt]);
 
-  if (!closesAt) return null;
+  if (!closesAt) return isOpen ? (
+    <p role="status">Registro aberto até encerramento manual pela Secretaria.</p>
+  ) : null;
   const seconds = Math.max(
     0,
     Math.ceil((Date.parse(closesAt) - now - offset) / 1000),

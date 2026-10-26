@@ -449,7 +449,7 @@ describe('SecretariaGerenciarEventoScreen - QR Code & Projeção Telão', () => 
     ).toBeInTheDocument();
   });
 
-  it('permite reabrir o Check-in quando encerrado e o Check-out ainda não foi iniciado', async () => {
+  it('permite reabrir Check-in em evento concluído após encerrar Check-out', async () => {
     const openCheckpointSpy = vi.spyOn(checkpointService, 'openCheckpoint').mockResolvedValue({
       eventId: 'evt-test-100',
       type: 'CHECK_IN',
@@ -461,7 +461,7 @@ describe('SecretariaGerenciarEventoScreen - QR Code & Projeção Telão', () => 
 
     vi.spyOn(eventService, 'getEvent').mockResolvedValue({
       ...fakeEvent,
-      status: 'IN_PROGRESS',
+      status: 'COMPLETED',
       checkpoints: [
         {
           id: 'cp-in',
@@ -478,8 +478,8 @@ describe('SecretariaGerenciarEventoScreen - QR Code & Projeção Telão', () => 
           type: 'CHECK_OUT' as const,
           isOpen: false,
           version: 1,
-          openedAt: null,
-          closedAt: null,
+          openedAt: '2026-10-10T11:00:00.000Z',
+          closedAt: '2026-10-10T11:15:00.000Z',
         },
       ],
     });
@@ -506,7 +506,7 @@ describe('SecretariaGerenciarEventoScreen - QR Code & Projeção Telão', () => 
     });
   });
 
-  it('bloqueia reabertura do Check-in quando o Check-out já foi iniciado', async () => {
+  it('bloqueia reabertura do Check-in enquanto Check-out está aberto', async () => {
     vi.spyOn(eventService, 'getEvent').mockResolvedValue({
       ...fakeEvent,
       status: 'IN_PROGRESS',
@@ -545,7 +545,7 @@ describe('SecretariaGerenciarEventoScreen - QR Code & Projeção Telão', () => 
     });
 
     expect(screen.queryByRole('button', { name: /Reabrir Check-in/i })).not.toBeInTheDocument();
-    expect(screen.getByText(/Reabertura indisponível: Check-out já iniciado/i)).toBeInTheDocument();
+    expect(screen.getByText(/Encerre o Check-out antes de reabrir o Check-in/i)).toBeInTheDocument();
   });
 
   it('permite reabrir o Check-out quando encerrado e dentro da janela original de 15 minutos', async () => {
@@ -607,7 +607,7 @@ describe('SecretariaGerenciarEventoScreen - QR Code & Projeção Telão', () => 
     });
   });
 
-  it('bloqueia reabertura do Check-out quando a janela de 15 minutos expirou', async () => {
+  it('permite reabertura do Check-out após expiração da janela antiga', async () => {
     vi.spyOn(eventService, 'getEvent').mockResolvedValue({
       ...fakeEvent,
       status: 'COMPLETED',
@@ -646,8 +646,7 @@ describe('SecretariaGerenciarEventoScreen - QR Code & Projeção Telão', () => 
       expect(screen.getByText('Check-out encerrado')).toBeInTheDocument();
     });
 
-    expect(screen.queryByRole('button', { name: /Reabrir Check-out/i })).not.toBeInTheDocument();
-    expect(screen.getByText(/Reabertura indisponível: Janela de 15 minutos expirada/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Reabrir Check-out/i })).toBeEnabled();
   });
 });
 
