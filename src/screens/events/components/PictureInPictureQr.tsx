@@ -3,7 +3,8 @@ import { QRCodeSVG } from "qrcode.react";
 import { RefreshCw, X } from "lucide-react";
 import styles from "./PictureInPictureQr.module.css";
 
-export type PipSize = "sm" | "md" | "lg";
+import { PIP_DIMENSIONS, type PipSize } from "../pictureInPictureSizing";
+export type { PipSize } from "../pictureInPictureSizing";
 
 export interface PictureInPictureQrProps {
   eventTitle: string;
@@ -18,18 +19,6 @@ export interface PictureInPictureQrProps {
   isFloating?: boolean;
 }
 
-const QR_PIXEL_MAP: Record<PipSize, number> = {
-  sm: 180,
-  md: 240,
-  lg: 300,
-};
-
-const CONTAINER_WIDTH_MAP: Record<PipSize, number> = {
-  sm: 260,
-  md: 320,
-  lg: 380,
-};
-
 export function PictureInPictureQr({
   eventTitle,
   checkpointType,
@@ -39,7 +28,7 @@ export function PictureInPictureQr({
   onRefresh,
   onClose,
   onSizeChange,
-  initialSize = "md",
+  initialSize = "sm",
   isFloating = false,
 }: PictureInPictureQrProps) {
   const [size, setSize] = useState<PipSize>(initialSize);
@@ -49,13 +38,14 @@ export function PictureInPictureQr({
     onSizeChange?.(newSize);
   };
 
-  const qrPixelSize = QR_PIXEL_MAP[size];
-  const containerWidth = isFloating ? CONTAINER_WIDTH_MAP[size] : "100%";
+  const dimensions = PIP_DIMENSIONS[size];
 
   return (
     <div
       className={`${styles.pipContainer} ${isFloating ? styles.floatingWidget : ""}`}
-      style={isFloating ? { width: `${containerWidth}px` } : undefined}
+      style={isFloating ? { width: `${dimensions.width}px`, height: `${dimensions.height}px` } : undefined}
+      role="region"
+      aria-label={`${eventTitle} — ${checkpointType === "check-in" ? "Check-in" : "Check-out"}`}
       data-testid="pip-qr-container"
     >
       {/* Header */}
@@ -85,7 +75,7 @@ export function PictureInPictureQr({
               type="button"
               className={`${styles.sizeButton} ${size === "sm" ? styles.sizeButtonActive : ""}`}
               onClick={() => handleSelectSize("sm")}
-              title="Tamanho Pequeno (180px)"
+              title="Janela pequena"
               aria-pressed={size === "sm"}
             >
               P
@@ -94,7 +84,7 @@ export function PictureInPictureQr({
               type="button"
               className={`${styles.sizeButton} ${size === "md" ? styles.sizeButtonActive : ""}`}
               onClick={() => handleSelectSize("md")}
-              title="Tamanho Médio (240px - Padrão)"
+              title="Janela média"
               aria-pressed={size === "md"}
             >
               M
@@ -103,12 +93,17 @@ export function PictureInPictureQr({
               type="button"
               className={`${styles.sizeButton} ${size === "lg" ? styles.sizeButtonActive : ""}`}
               onClick={() => handleSelectSize("lg")}
-              title="Tamanho Grande (300px)"
+              title="Janela grande"
               aria-pressed={size === "lg"}
             >
               G
             </button>
           </div>
+
+          <button type="button" className={styles.refreshButton} onClick={onRefresh} disabled={qrLoading}
+            aria-label="Renovar QR Code" title="Renovar QR Code (invalida o anterior)">
+            <RefreshCw size={14} className={qrLoading ? styles.spinning : ""} />
+          </button>
 
           <button
             type="button"
@@ -128,7 +123,7 @@ export function PictureInPictureQr({
           <div className={styles.qrCard}>
             <QRCodeSVG
               value={qrValue}
-              size={qrPixelSize}
+              size={1024}
               level="M"
               bgColor="#ffffff"
               fgColor="#000000"
@@ -156,27 +151,8 @@ export function PictureInPictureQr({
         )}
       </main>
 
-      {/* Footer / Progress & Hint */}
-      <footer className={styles.pipFooter}>
-        <p>QR válido até encerramento ou renovação manual.</p>
-
-        <div className={styles.footerActions}>
-          <p className={styles.footerHint}>
-            Aponte a câmera do celular para o código
-          </p>
-
-          <button
-            type="button"
-            className={styles.refreshButton}
-            onClick={onRefresh}
-            disabled={qrLoading}
-            title="Forçar renovação imediata do QR Code"
-          >
-            <RefreshCw size={11} className={qrLoading ? styles.spinning : ""} />
-            Renovar
-          </button>
-        </div>
-      </footer>
+      {/* A janela controla o tamanho; a margem branca do próprio QR é preservada. */}
+      <span className={styles.srOnly}>QR válido até encerramento ou renovação manual. Redimensione pelas bordas da janela.</span>
     </div>
   );
 }
