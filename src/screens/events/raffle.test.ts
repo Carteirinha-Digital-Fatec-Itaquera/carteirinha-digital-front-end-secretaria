@@ -39,22 +39,22 @@ describe('selectRaffleWinner', () => {
     checkOutAt: '2026-10-05T21:05:00.000Z',
   };
 
-  it('neverSelectsCheckedIn: nunca seleciona participantes que nao confirmaram saida', () => {
+  it('seleciona participante com check-in antes de registrar saída', () => {
     const winner = selectRaffleWinner([checkedInAttendance]);
-    expect(winner).toBeNull();
+    expect(winner?.id).toBe(checkedInAttendance.id);
   });
 
-  it('returnsNullForNoConfirmed: retorna null quando a lista esta vazia ou sem confirmados', () => {
+  it('retorna null sem entrada registrada', () => {
     expect(selectRaffleWinner([])).toBeNull();
-    expect(selectRaffleWinner([checkedInAttendance])).toBeNull();
+    expect(selectRaffleWinner([{ ...checkedInAttendance, checkInAt: null }])).toBeNull();
   });
 
   it('selectsFirstAndLastEligible: seleciona primeira e ultima posicao usando gerador deterministico', () => {
     const items = [checkedInAttendance, confirmedAttendance1, confirmedAttendance2];
 
-    // random() = 0 -> primeiro confirmado (confirmedAttendance1)
+    // random() = 0 -> primeira entrada registrada (checkedInAttendance)
     const winnerFirst = selectRaffleWinner(items, () => 0);
-    expect(winnerFirst?.id).toBe(confirmedAttendance1.id);
+    expect(winnerFirst?.id).toBe(checkedInAttendance.id);
 
     // random() = 0.999999 -> ultimo confirmado (confirmedAttendance2)
     const winnerLast = selectRaffleWinner(items, () => 0.999999);

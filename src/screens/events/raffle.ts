@@ -1,18 +1,22 @@
 import type { AttendanceView } from '../../domains/Attendance';
 
+export function isRaffleEligible(item: AttendanceView): boolean {
+  return Boolean(item.checkInAt) && (item.status === 'CHECKED_IN' || item.status === 'CONFIRMED');
+}
+
 /**
  * Seleciona um participante vencedor de sorteio a partir de uma lista de presenças.
- * Critério obrigatório: apenas participantes com status CONFIRMED são elegíveis.
+ * Critério obrigatório: participantes com entrada registrada são elegíveis, com ou sem check-out.
  *
  * @param items Lista de presenças do evento
  * @param random Gerador de número pseudoaleatório no intervalo [0, 1). Padrão: Math.random
- * @returns O participante sorteado, ou null se não houver participantes confirmados
+ * @returns O participante sorteado, ou null se não houver participantes com entrada registrada
  */
 export function selectRaffleWinner(
   items: AttendanceView[],
   random: () => number = Math.random
 ): AttendanceView | null {
-  const eligible = items.filter((item) => item.status === 'CONFIRMED');
+  const eligible = items.filter(isRaffleEligible);
 
   if (eligible.length === 0) {
     return null;
