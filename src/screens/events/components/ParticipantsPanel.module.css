@@ -354,3 +354,7 @@
 .manualReason { box-sizing: border-box; width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #aabec7; border-radius: 6px; font: inherit; }
 .dialogActions { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 12px; margin-top: 16px; }
 .rowMenu :focus-visible, .nativeDialog :focus-visible { outline: 3px solid #007e99; outline-offset: 3px; }
+
+.bulkConfirm { display: flex; align-items: flex-start; gap: 10px; line-height: 1.5; margin: 12px 0; }
+.bulkConfirm input { width: 20px; height: 20px; flex-shrink: 0; }
+.table input[type="checkbox"] { width: 24px; height: 24px; cursor: pointer; }

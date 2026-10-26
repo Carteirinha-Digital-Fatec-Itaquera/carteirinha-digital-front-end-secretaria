@@ -2,6 +2,7 @@
  * Dicionário e formatador de ações de auditoria para exibição amigável à secretaria e usuários leigos.
  */
 const AUDIT_ACTION_MAP: Record<string, string> = {
+  BULK_MANUAL_CHECK_OUT: 'Saídas confirmadas em lote pela Secretaria',
   MANUAL_CERTIFICATE_ISSUED: 'Certificado emitido por regularização administrativa',
   MANUAL_CERTIFICATE_ALREADY_ISSUED: 'Certificado existente consultado na regularização',
   // Abertura e encerramento de checkpoints
