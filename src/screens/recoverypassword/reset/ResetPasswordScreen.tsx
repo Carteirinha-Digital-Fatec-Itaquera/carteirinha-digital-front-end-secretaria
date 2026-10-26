@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
 import { TitleComp } from "../../../components/title/TitleComp";
@@ -19,6 +19,12 @@ export default function ResetPasswordScreen() {
   const token = searchParams.get("token");
   const id = searchParams.get("id");
   const type = searchParams.get("type");
+  useEffect(() => {
+    if (type !== 'student') return;
+    const target = new URL('/reset-password', GLOBAL_VAR.STUDENT_APP_URL);
+    target.search = searchParams.toString();
+    window.location.replace(target.toString());
+  }, [searchParams, type]);
 
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -51,6 +57,8 @@ export default function ResetPasswordScreen() {
 
     setOnLoading(false);
   };
+
+  if (type === 'student') return <p role="status">Redirecionando para a recuperação de senha do aluno...</p>;
 
   return (
     <div className={styles.container}>
