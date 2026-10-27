@@ -43,7 +43,10 @@ export default function StudentsListScreen() {
       const matchSituacao = !situacaoFilter || s.status === situacaoFilter;
       const matchCurso = !cursoFilter || s.course === cursoFilter;
       return matchSituacao && matchCurso;
-    });
+    }).sort((a, b) =>
+      a.name.trim().localeCompare(b.name.trim(), 'pt-BR', { sensitivity: 'base' }) ||
+      a.ra.localeCompare(b.ra, 'pt-BR', { numeric: true })
+    );
   }, [students, situacaoFilter, cursoFilter]);
 
   useEffect(() => {
