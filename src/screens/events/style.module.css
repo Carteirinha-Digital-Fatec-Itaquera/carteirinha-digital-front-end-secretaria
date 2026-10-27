@@ -641,4 +641,4 @@
 .addBtn { background: var(--app-color-primary); border-color: var(--app-color-primary); border-radius: 12px; }
 .title { font-size: clamp(1.5rem,2.5vw,2rem); }
 .tabsContainer { flex-wrap: wrap; gap: 8px; }
-@media(max-width:767px) { .container { padding: 24px 16px; } .header { flex-direction: column; gap: 16px; } .addBtn { width: 100%; } .tabButton { padding: 12px; flex: 1; justify-content: center; } }
+@media(max-width:767px) { .container { padding: 24px 16px; } .header { flex-direction: column; gap: 16px; } .addBtn { width: 100%; } .tabButton { padding: 12px; flex: 1 0 100%; justify-content: center; white-space: normal; } }
