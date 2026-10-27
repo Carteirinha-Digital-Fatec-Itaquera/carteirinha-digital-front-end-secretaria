@@ -23,6 +23,7 @@ import layoutStyles from "../../../styles/layoutWithMenu.module.css";
 import { FaBook, FaEnvelope, FaFlag, FaIdCard, FaUser, FaCalendarCheck } from "react-icons/fa";
  
 import { removePhoto } from "../../../api/student/removePhoto";
+import StudentEventHistory from './StudentEventHistory';
 
 const generateAdmissionOptions = (): string[] => {
   const currentYear = new Date().getFullYear();
@@ -302,6 +303,7 @@ export default function UpdateStudentScreen() {
               />
             </div>
           )}
+          {student && paramRa && <StudentEventHistory key={paramRa} ra={paramRa} />}
         </div>
       </div>
     </div>
