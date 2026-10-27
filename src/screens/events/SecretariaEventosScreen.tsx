@@ -27,6 +27,13 @@ import styles from "./style.module.css";
 import layoutStyles from "../../styles/layoutWithMenu.module.css";
 
 type CheckpointDisplayStatus = "open" | "closed" | "finished";
+type EventTab = "active" | "completed" | "cancelled";
+
+function eventTab(event: EventView, now: number): EventTab {
+  if (event.status === "CANCELLED") return "cancelled";
+  if (event.status === "COMPLETED" || Date.parse(event.endsAt) <= now) return "completed";
+  return "active";
+}
 
 const statusLabel: Record<CheckpointDisplayStatus, string> = {
   open: "Aberto",
@@ -51,8 +58,9 @@ export default function SecretariaEventosScreen() {
   const [events, setEvents] = useState<EventView[]>([]);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [activeTab, setActiveTab] = useState<"active" | "cancelled">("active");
-  const [sortOrder, setSortOrder] = useState<"recent" | "oldest">("recent");
+  const [activeTab, setActiveTab] = useState<EventTab>("active");
+  const [sortOrder, setSortOrder] = useState<"agenda" | "recent" | "oldest">("agenda");
+  const [now, setNow] = useState(Date.now);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [cancellingEvent, setCancellingEvent] = useState<EventView | null>(null);
@@ -65,6 +73,7 @@ export default function SecretariaEventosScreen() {
       setError(null);
       const data = await getEvents();
       setEvents(data);
+      setNow(Date.now());
     } catch (err: unknown) {
       const message =
         err instanceof Error ? err.message : "Erro ao carregar a lista de eventos";
@@ -92,30 +101,28 @@ export default function SecretariaEventosScreen() {
 
   useEffect(() => {
     void loadEvents();
+    // Keep a long-lived panel current, including after returning from slides.
+    const updateClock = () => setNow(Date.now());
+    const timer = window.setInterval(updateClock, 30_000);
+    window.addEventListener("focus", updateClock);
+    return () => {
+      window.clearInterval(timer);
+      window.removeEventListener("focus", updateClock);
+    };
   }, []);
 
   const counts = useMemo(() => {
-    let active = 0;
-    let cancelled = 0;
+    const totals = { active: 0, completed: 0, cancelled: 0 };
     for (const evt of events) {
-      if (evt.status === "CANCELLED") {
-        cancelled++;
-      } else {
-        active++;
-      }
+      totals[eventTab(evt, now)]++;
     }
-    return { active, cancelled };
-  }, [events]);
+    return totals;
+  }, [events, now]);
 
   const filteredEvents = useMemo(() => {
     const list = events.filter((event) => {
-      // Filtro de aba: ativos vs cancelados
-      if (activeTab === "active" && event.status === "CANCELLED") {
-        return false;
-      }
-      if (activeTab === "cancelled" && event.status !== "CANCELLED") {
-        return false;
-      }
+      // Filtro de aba: ativos, concluídos e cancelados.
+      if (eventTab(event, now) !== activeTab) return false;
 
       const searchText = search.toLowerCase();
       const matchesSearch =
@@ -123,7 +130,7 @@ export default function SecretariaEventosScreen() {
         event.speaker.toLowerCase().includes(searchText);
 
       if (!matchesSearch) return false;
-      if (statusFilter === "all") return true;
+      if (activeTab !== "active" || statusFilter === "all") return true;
 
       const checkInStatus = getCheckpointState(event.checkpoints, "CHECK_IN");
       const checkOutStatus = getCheckpointState(event.checkpoints, "CHECK_OUT");
@@ -131,11 +138,16 @@ export default function SecretariaEventosScreen() {
       return checkInStatus === statusFilter || checkOutStatus === statusFilter;
     });
 
-    // Ordenação por data: mais atuais primeiro por padrão
+    // Agenda prioriza os eventos em andamento e depois o próximo início.
     list.sort((a, b) => {
       const timeA = new Date(a.startsAt).getTime();
       const timeB = new Date(b.startsAt).getTime();
-      if (sortOrder === "recent") {
+      if (sortOrder === "agenda" && activeTab === "active") {
+        const ongoingA = timeA <= now;
+        const ongoingB = timeB <= now;
+        if (ongoingA !== ongoingB) return ongoingA ? -1 : 1;
+      }
+      if (sortOrder === "recent" || (sortOrder === "agenda" && activeTab !== "active")) {
         if (timeB !== timeA) return timeB - timeA;
         return new Date(b.endsAt).getTime() - new Date(a.endsAt).getTime();
       } else {
@@ -145,7 +157,7 @@ export default function SecretariaEventosScreen() {
     });
 
     return list;
-  }, [events, activeTab, search, statusFilter, sortOrder]);
+  }, [events, activeTab, search, statusFilter, sortOrder, now]);
 
   function getStatusClass(status: CheckpointDisplayStatus) {
     if (status === "open") return styles.statusOpen;
@@ -200,6 +212,17 @@ export default function SecretariaEventosScreen() {
             <button
               type="button"
               role="tab"
+              aria-selected={activeTab === "completed"}
+              className={`${styles.tabButton} ${activeTab === "completed" ? styles.tabButtonActive : ""}`}
+              onClick={() => setActiveTab("completed")}
+            >
+              Eventos Concluídos
+              <span className={styles.tabCount}>{counts.completed}</span>
+            </button>
+
+            <button
+              type="button"
+              role="tab"
               aria-selected={activeTab === "cancelled"}
               className={`${styles.tabButton} ${
                 activeTab === "cancelled" ? styles.tabButtonActive : ""
@@ -214,6 +237,11 @@ export default function SecretariaEventosScreen() {
               </span>
             </button>
           </div>
+
+          <p className={styles.subtitle}>
+            Horário de Brasília (America/Sao_Paulo). Ativos: em andamento e próximos eventos.
+            Concluídos: finalizados ou com término previsto já atingido; o gerenciamento permanece disponível.
+          </p>
 
           <div className={styles.filterBar}>
             <div className={styles.searchArea}>
@@ -251,10 +279,11 @@ export default function SecretariaEventosScreen() {
                 className={styles.filterSelect}
                 value={sortOrder}
                 onChange={(e) =>
-                  setSortOrder(e.target.value as "recent" | "oldest")
+                  setSortOrder(e.target.value as "agenda" | "recent" | "oldest")
                 }
                 aria-label="Ordenar por data"
               >
+                <option value="agenda">{activeTab === "active" ? "Em andamento e próximos primeiro" : "Mais recentes primeiro (padrão)"}</option>
                 <option value="recent">Mais atuais primeiro</option>
                 <option value="oldest">Mais antigos primeiro</option>
               </select>
@@ -305,6 +334,8 @@ export default function SecretariaEventosScreen() {
                 <h3>
                   {activeTab === "cancelled"
                     ? "Nenhum evento cancelado"
+                    : activeTab === "completed"
+                    ? "Nenhum evento concluído encontrado"
                     : "Nenhum evento encontrado"}
                 </h3>
                 <p>

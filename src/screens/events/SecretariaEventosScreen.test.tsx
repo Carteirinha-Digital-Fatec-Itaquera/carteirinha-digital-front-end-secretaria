@@ -69,6 +69,7 @@ describe('SecretariaEventosScreen', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.spyOn(Date, 'now').mockReturnValue(Date.parse('2026-10-01T12:00:00-03:00'));
   });
 
   it('renders active events by default and displays cancelled events only in cancelled tab', async () => {
@@ -110,7 +111,7 @@ describe('SecretariaEventosScreen', () => {
     expect(screen.queryByText('Workshop de Cloud')).not.toBeInTheDocument();
   });
 
-  it('orders events by most recent date by default and allows sorting by oldest first', async () => {
+  it('orders upcoming events by nearest date by default and allows newest first', async () => {
     vi.spyOn(eventService, 'getEvents').mockResolvedValue(fakeEvents);
 
     render(
@@ -125,18 +126,69 @@ describe('SecretariaEventosScreen', () => {
       expect(screen.getByText('Workshop Mais Atual de IA')).toBeInTheDocument();
     });
 
-    // Padrão: mais atuais primeiro -> "Workshop Mais Atual de IA" (15/10) antes de "Workshop de Cloud" (10/10)
+    // Padrão: próximo início primeiro, independentemente da ordem da API.
     const titles = screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent);
-    expect(titles[0]).toBe('Workshop Mais Atual de IA');
-    expect(titles[1]).toBe('Workshop de Cloud');
+    expect(titles[0]).toBe('Workshop de Cloud');
+    expect(titles[1]).toBe('Workshop Mais Atual de IA');
 
-    // Alterna para ordenação "Mais antigos primeiro"
+    // Alterna para ordenação "Mais atuais primeiro"
     const sortSelect = screen.getByRole('combobox', { name: /ordenar por data/i });
-    fireEvent.change(sortSelect, { target: { value: 'oldest' } });
+    fireEvent.change(sortSelect, { target: { value: 'recent' } });
 
     const updatedTitles = screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent);
-    expect(updatedTitles[0]).toBe('Workshop de Cloud');
-    expect(updatedTitles[1]).toBe('Workshop Mais Atual de IA');
+    expect(updatedTitles[0]).toBe('Workshop Mais Atual de IA');
+    expect(updatedTitles[1]).toBe('Workshop de Cloud');
+  });
+
+  it('separates past and explicitly completed events, keeping cancellations exclusive', async () => {
+    vi.spyOn(Date, 'now').mockReturnValue(Date.parse('2026-10-13T12:00:00-03:00'));
+    vi.spyOn(eventService, 'getEvents').mockResolvedValue([
+      ...fakeEvents,
+      { ...fakeEvents[2], id: 'completed', title: 'Finalizado antecipadamente', status: 'COMPLETED' },
+    ]);
+    render(<MemoryRouter><SecretariaEventosScreen /></MemoryRouter>);
+    await screen.findByText('Workshop Mais Atual de IA');
+    expect(screen.getByRole('tab', { name: /Eventos Ativos/i })).toHaveTextContent('1');
+    expect(screen.getByRole('tab', { name: /Eventos Concluídos/i })).toHaveTextContent('2');
+    expect(screen.getByRole('tab', { name: /Eventos Cancelados/i })).toHaveTextContent('1');
+    expect(screen.queryByText('Workshop de Cloud')).not.toBeInTheDocument();
+    // Filtro de checkpoint dos ativos não deve esconder o histórico.
+    fireEvent.change(screen.getByRole('combobox', { name: /Filtrar por status/i }), { target: { value: 'open' } });
+    fireEvent.click(screen.getByRole('tab', { name: /Eventos Concluídos/i }));
+    expect(screen.getByText('Workshop de Cloud')).toBeInTheDocument();
+    expect(screen.getByText('Finalizado antecipadamente')).toBeInTheDocument();
+    expect(screen.queryByText('Palestra Cancelada de IoT')).not.toBeInTheDocument();
+    expect(screen.getAllByRole('button', { name: 'Acessar Evento' })).toHaveLength(2);
+    fireEvent.change(screen.getByRole('textbox', { name: 'Buscar eventos' }), { target: { value: 'Maria' } });
+    expect(screen.queryByText('Finalizado antecipadamente')).not.toBeInTheDocument();
+    expect(screen.getByText('Workshop de Cloud')).toBeInTheDocument();
+  });
+
+  it('keeps an ongoing event before upcoming events until its end instant in Brasilia', async () => {
+    const clock = vi.spyOn(Date, 'now').mockReturnValue(Date.parse('2026-10-27T00:59:59Z'));
+    vi.spyOn(eventService, 'getEvents').mockResolvedValue([
+      { ...fakeEvents[2], title: 'Amanhã cedo', startsAt: '2026-10-27T08:00:00-03:00', endsAt: '2026-10-27T09:00:00-03:00' },
+      { ...fakeEvents[0], title: 'Atividade em andamento', startsAt: '2026-10-26T21:00:00-03:00', endsAt: '2026-10-26T22:00:00-03:00' },
+    ]);
+    render(<MemoryRouter><SecretariaEventosScreen /></MemoryRouter>);
+    await screen.findByText('Atividade em andamento');
+    expect(screen.getAllByRole('heading', { level: 2 }).map(h => h.textContent)).toEqual(['Atividade em andamento', 'Amanhã cedo']);
+    expect(screen.getByText(/Horário de Brasília/)).toBeInTheDocument();
+    clock.mockReturnValue(Date.parse('2026-10-27T01:00:00Z'));
+    fireEvent(window, new Event('focus'));
+    await waitFor(() => expect(screen.queryByText('Atividade em andamento')).not.toBeInTheDocument());
+    expect(screen.getByRole('tab', { name: /Eventos Concluídos/i })).toHaveTextContent('1');
+    fireEvent.click(screen.getByRole('tab', { name: /Eventos Concluídos/i }));
+    expect(screen.getByText('Atividade em andamento')).toBeInTheDocument();
+  });
+
+  it('shows an empty completed tab without losing the create action', async () => {
+    vi.spyOn(eventService, 'getEvents').mockResolvedValue(fakeEvents);
+    render(<MemoryRouter><SecretariaEventosScreen /></MemoryRouter>);
+    await screen.findByText('Workshop de Cloud');
+    fireEvent.click(screen.getByRole('tab', { name: /Eventos Concluídos/i }));
+    expect(screen.getByText('Nenhum evento concluído encontrado')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Novo Evento/i })).toBeInTheDocument();
   });
 
   it('navigates to /eventos/:id/editar when clicking edit button', async () => {
@@ -240,7 +292,7 @@ describe('SecretariaEventosScreen', () => {
     fireEvent.click(confirmDeleteBtn);
 
     await waitFor(() => {
-      expect(deleteSpy).toHaveBeenCalledWith('evt-3');
+      expect(deleteSpy).toHaveBeenCalledWith('evt-1');
     });
 
     // Mensagem de sucesso
