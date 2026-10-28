@@ -1,3 +1,4 @@
+import ReissueCertificateDialog from './ReissueCertificateDialog';
 import { EllipsisVertical } from 'lucide-react';
 import { ManualCheckoutDialog } from './ManualCheckoutDialog';
 import React, { useState, useEffect } from 'react';
@@ -36,6 +37,7 @@ export const ParticipantsPanel: React.FC<ParticipantsPanelProps> = ({
   eventStatus,
 }) => {
   const [participantsDetails, setParticipantsDetails] = useState<Map<string, Participant>>(new Map());
+  const [reissue, setReissue] = useState<{ id: string; version: number } | null>(null);
   const [auditList, setAuditList] = useState<AuditEntry[]>([]);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [bulkTargets, setBulkTargets] = useState<AttendanceView[] | null>(null);
@@ -381,6 +383,7 @@ export const ParticipantsPanel: React.FC<ParticipantsPanelProps> = ({
                             <div className={styles.rowMenuContent}>
                               {attendance.checkInAt && !attendance.checkOutAt && attendance.status === 'CHECKED_IN' && <button type="button" disabled={actionBusy || eventStatus === 'CANCELLED'} onClick={e => { const menu = e.currentTarget.closest('details'); if (menu) { menu.open = false; menu.querySelector('summary')?.focus(); } setManualCheckout(attendance); }}>Registrar saída manual</button>}
                               {attendance.checkOutAt && <span>Presença já confirmada</span>}
+                              {cert && !cert.revokedAt && attendance.studentRa && <button type="button" disabled={eventStatus === 'CANCELLED'} onClick={() => setReissue({ id: cert.id, version: cert.version ?? 1 })}>Corrigir e reemitir certificado</button>}
                               {detail && <button type="button" disabled={actionBusy || eventStatus === 'CANCELLED'} onClick={e => { const menu = e.currentTarget.closest('details'); if (menu) menu.open = false; handleOpenManualModal(attendance); }}>Outras ações de atendimento</button>}
                             </div>
                           </details>}
@@ -477,6 +480,7 @@ export const ParticipantsPanel: React.FC<ParticipantsPanelProps> = ({
       {manualCheckout && eventId && <ManualCheckoutDialog eventId={eventId} attendanceId={manualCheckout.id} name={manualCheckout.studentName}
         onClose={() => setManualCheckout(null)} onSaved={() => { setActionFeedback(`Presença confirmada manualmente para ${manualCheckout.studentName}.`); onRefresh(); }} />}
 
+      {reissue && <ReissueCertificateDialog certificateId={reissue.id} version={reissue.version} onClose={() => setReissue(null)} onSaved={onRefresh} />}
       {/* Histórico administrativo auditado */}
       {eventId && auditList.length > 0 && (
         <div className={styles.auditSection}>

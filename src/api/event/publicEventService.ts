@@ -72,6 +72,7 @@ export interface Participant {
     status: string;
   } | null;
   certificate: {
+    version?: number;
     id: string;
     verificationCode: string;
     revokedAt: string | null;

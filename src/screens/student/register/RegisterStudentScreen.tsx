@@ -80,6 +80,7 @@ export default function RegisterStudentScreen() {
   const navigate = useNavigate();
 
   const [ra, setRa] = useState("");
+  const [socialName, setSocialName] = useState("");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [cpf, setCpf] = useState("");
@@ -135,6 +136,7 @@ export default function RegisterStudentScreen() {
 
             <div className={styles.containerInputs}>
               <InputComp label="CPF" placeholder="000.000.000-00" icon={<FaIdCard />} value={cpf} onChangeText={(value) => setCpf(maskCPF(value))} />
+              <InputComp label="Nome social (opcional)" placeholder="Nome utilizado nas novas emissões" icon={<FaUser />} value={socialName} onChangeText={setSocialName} />
               <DatePickerComp
                 label="Data de nascimento"
                 value={birthDate}
@@ -187,7 +189,7 @@ export default function RegisterStudentScreen() {
                 setOnLoading(true);
 
                 const result = await create(new Student({
-                  ra, name, email, cpf, birthDate: formattedBirthDate, course, status, admission,
+                  ra, name, socialName, email, cpf, birthDate: formattedBirthDate, course, status, admission,
                 }));
 
                 if ('ok' in result) {

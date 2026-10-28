@@ -1,4 +1,5 @@
 export class Student {
+    socialName: string;
     id: string;
     ra: string;
     name: string;
@@ -16,6 +17,7 @@ export class Student {
     photoForAnalysis: string;
 
     constructor(props: {
+        socialName?: string;
         id?: string;
         ra?: string;
         name?: string;
@@ -32,6 +34,7 @@ export class Student {
         photoForAnalysis?: string;
         photoStatus?: string;
     }) {
+        this.socialName = props.socialName ?? "";
         this.id = props.id ?? "";
         this.ra = props.ra ?? "";
         this.name = props.name ?? "";

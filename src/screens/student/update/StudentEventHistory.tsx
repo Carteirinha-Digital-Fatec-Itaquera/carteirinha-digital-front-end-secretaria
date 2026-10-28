@@ -1,3 +1,4 @@
+import ReissueCertificateDialog from '../../events/components/ReissueCertificateDialog';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { management, openManagementPdf } from '../../../api/event/publicEventService';
@@ -6,11 +7,12 @@ import { formatEventDate, formatEventTime, formatWorkload } from '../../../utils
 type HistoryEntry = {
   id: string; checkInAt: string | null; checkOutAt: string | null; status: string;
   event: { id: string; title: string; startsAt: string; workloadMinutes: number; status: string };
-  certificate: { id: string; verificationCode: string; issuedAt: string; revokedAt: string | null;
+  certificate: { version?: number; id: string; verificationCode: string; issuedAt: string; revokedAt: string | null;
     artifact: { state: string; deliveryState: string } | null } | null;
 };
 
 export default function StudentEventHistory({ ra }: { ra: string }) {
+  const [reissue, setReissue] = useState<{ id: string; version: number } | null>(null);
   const [items, setItems] = useState<HistoryEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -42,6 +44,7 @@ export default function StudentEventHistory({ ra }: { ra: string }) {
         <p>{item.event.status === 'CANCELLED' ? 'Evento cancelado' : item.status === 'CONFIRMED' ? 'Presença confirmada' : 'Entrada registrada, saída pendente'}</p>
         <p>Entrada: {item.checkInAt ? `${formatEventDate(item.checkInAt)} às ${formatEventTime(item.checkInAt)}` : 'Não registrada'}<br />
           Saída: {item.checkOutAt ? `${formatEventDate(item.checkOutAt)} às ${formatEventTime(item.checkOutAt)}` : 'Não registrada'}</p>
+        {item.certificate && !item.certificate.revokedAt && item.event.status !== 'CANCELLED' && <button type="button" onClick={() => setReissue({ id: item.certificate!.id, version: item.certificate!.version ?? 1 })}>Corrigir e reemitir certificado</button>}
         {item.certificate ? <>
           <p>Certificado: {item.certificate.revokedAt ? 'Revogado' : item.certificate.artifact?.state === 'READY' ? 'Disponível' : 'Emitido, PDF em processamento'}<br />
             Emitido em {formatEventDate(item.certificate.issuedAt)} · Código: {item.certificate.verificationCode}</p>
@@ -50,6 +53,7 @@ export default function StudentEventHistory({ ra }: { ra: string }) {
         <p><Link to={`/eventos/${item.event.id}/gerenciar`}>Acessar evento</Link></p>
       </article>)}
     </>}
+    {reissue && <ReissueCertificateDialog certificateId={reissue.id} version={reissue.version} onClose={() => setReissue(null)} onSaved={() => { setLoading(true); setRefresh(n => n + 1); }} />}
     {error && <p role="alert">{error}</p>}
   </section>;
 }

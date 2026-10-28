@@ -1,0 +1,23 @@
+import { it, expect, vi } from 'vitest';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import ReissueCertificateDialog from './ReissueCertificateDialog';
+import { management, openManagementPdf } from '../../../api/event/publicEventService';
+vi.mock('../../../api/event/publicEventService', () => ({ management: vi.fn(), openManagementPdf: vi.fn() }));
+it('requires correction, reason and explicit confirmation and separates preview from issuance', async () => {
+  const saved = vi.fn();
+  vi.mocked(management).mockResolvedValue({ certificateId: 'next' });
+  vi.mocked(openManagementPdf).mockResolvedValue(undefined);
+  render(<ReissueCertificateDialog certificateId="cert" version={2} onClose={vi.fn()} onSaved={saved} />);
+  const submit = screen.getByRole('button', { name: 'Revogar anterior e reemitir' });
+  expect(submit).toBeDisabled();
+  fireEvent.change(screen.getByLabelText('Nome correto no certificado'), { target: { value: 'Pessoa Corrigida Teste' } });
+  fireEvent.change(screen.getByLabelText('Justificativa'), { target: { value: 'Atendimento solicitado e conferido.' } });
+  fireEvent.click(screen.getByRole('button', { name: 'Conferir prévia sem validade' }));
+  await waitFor(() => expect(openManagementPdf).toHaveBeenCalled());
+  expect(management).not.toHaveBeenCalled();
+  await waitFor(() => expect(screen.getByLabelText(/Conferi a pessoa/)).toBeEnabled());
+  fireEvent.click(screen.getByLabelText(/Conferi a pessoa/));
+  fireEvent.click(submit);
+  await waitFor(() => expect(saved).toHaveBeenCalledTimes(1));
+  expect(management).toHaveBeenCalledWith('certificates/cert/reissue', expect.objectContaining({ name: 'Pessoa Corrigida Teste', expectedVersion: 2, confirmed: true }));
+});
