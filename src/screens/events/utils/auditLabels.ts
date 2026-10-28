@@ -32,6 +32,7 @@ const AUDIT_ACTION_MAP: Record<string, string> = {
   EVENT_DELETED_WITHOUT_HISTORY: 'Evento excluído sem histórico',
 
   // Certificados e Modelos
+  CERTIFICATE_REISSUED: 'Certificado substituído por versão corrigida',
   CERTIFICATE_RETRY: 'Reemissão de certificado reprocessada',
   SERIES_SAVED: 'Configuração da edição do evento salva',
   TEMPLATE_VERSION_CREATED: 'Novo modelo de certificado configurado',

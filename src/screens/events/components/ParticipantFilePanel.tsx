@@ -3,6 +3,7 @@ import { apiRequest } from '../../../api/config/apiRequest';
 import { management } from '../../../api/event/publicEventService';
 import type { EventView } from '../../../domains/Event';
 import { formatEventDate, formatEventTime } from '../../../utils/eventPresentation';
+import { participantFileTemplate } from './participantFileTemplates';
 type Row = { row: number; name: string; status: string; ra?: string; accountId?: string; officialName?: string; message?: string };
 const labels: Record<string, string> = { READY: 'Localizado e elegível', REVIEW: 'Revisão manual necessária', AMBIGUOUS: 'Mais de um aluno com este nome', NOT_FOUND: 'Nome exato não encontrado', INELIGIBLE: 'Cadastro inativo ou e-mail inválido', DUPLICATE: 'Duplicado neste arquivo', RUNNING: 'Processando', DONE: 'Certificado emitido ou já existente; consulte o envio', ERROR: 'Falha: pode tentar novamente' };
 export default function ParticipantFilePanel({ event, onUpdated }: { event: EventView; onUpdated: () => void }) {
@@ -40,12 +41,20 @@ export default function ParticipantFilePanel({ event, onUpdated }: { event: Even
     } finally { lock.current = false; setBusy(false); }
   }
   const pending = rows.filter(row => ['READY', 'ERROR'].includes(row.status)).length;
+  function downloadTemplate(format: 'json' | 'csv') {
+    const url = URL.createObjectURL(new Blob([participantFileTemplate(event, format)], { type: format === 'json' ? 'application/json;charset=utf-8' : 'text/csv;charset=utf-8' }));
+    const anchor = document.createElement('a'); anchor.href = url; anchor.download = `modelo-participantes.${format}`; anchor.click();
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
   if (!opened) return <button type="button" onClick={() => setOpened(true)}>Importar JSON ou CSV de participantes</button>;
   return <section aria-labelledby="file-participants-title">
     <h3 id="file-participants-title">Importar participantes por JSON ou CSV</h3>
     <p>Evento: <strong>{event.title}</strong> · {formatEventDate(event.startsAt)} às {formatEventTime(event.startsAt)}.</p>
     <p>JSON: lista de nomes ou objeto com participantes. CSV: coluna nome_transcrito, nome ou name. Até 2 MB e 1.000 linhas. A análise não registra presenças nem envia e-mails.</p>
     <fieldset disabled={busy}>
+      <button type="button" onClick={() => downloadTemplate('json')}>Baixar modelo JSON deste evento</button>
+      <button type="button" onClick={() => downloadTemplate('csv')}>Baixar modelo CSV</button>
+      <p>Substitua os nomes fictícios e mantenha as chaves ou o cabeçalho nome_transcrito. Salve em UTF-8. Não altere os dados do evento no JSON.</p>
       <label>Arquivo de participantes<input type="file" accept=".json,.csv" onChange={e => { setFile(e.target.files?.[0] || null); setRows([]); setConfirmed(false); setError(''); }} /></label>
       <button type="button" disabled={!file} onClick={() => void analyze()}>Analisar nomes</button>
     </fieldset>

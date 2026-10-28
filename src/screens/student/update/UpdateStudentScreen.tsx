@@ -79,6 +79,7 @@ export default function UpdateStudentScreen() {
 
   const [student, setStudent] = useState<Student | undefined>(undefined);
   const [ra, setRa] = useState("");
+  const [socialName, setSocialName] = useState("");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [cpf, setCpf] = useState("");
@@ -139,6 +140,7 @@ export default function UpdateStudentScreen() {
     if (student) {
       setRa(student.ra ?? "");
       setName(student.name ?? "");
+      setSocialName(student.socialName ?? "");
       setEmail(student.email ?? "");
       setCpf(student.cpf ?? "");
       setCourse(student.course ?? "");
@@ -209,6 +211,7 @@ export default function UpdateStudentScreen() {
 
             <div className={styles.containerInputs}>
               <InputComp label="Nome" placeholder="Ex: João Silva dos Santos" icon={<FaUser />} value={name} onChangeText={setName} />
+              <InputComp label="Nome social (opcional)" placeholder="Nome utilizado nas novas emissões" icon={<FaUser />} value={socialName} onChangeText={setSocialName} />
               <DatePickerComp
                 label="Data de Nascimento"
                 value={birthDate}
@@ -276,6 +279,7 @@ export default function UpdateStudentScreen() {
                   const studentData = new Student({
                     ra: paramRa ?? "",
                     name,
+                    socialName,
                     email,
                     cpf,
                     course,
