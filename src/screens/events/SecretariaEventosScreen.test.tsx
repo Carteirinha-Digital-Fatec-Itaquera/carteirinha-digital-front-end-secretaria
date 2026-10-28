@@ -191,6 +191,22 @@ describe('SecretariaEventosScreen', () => {
     expect(screen.getByRole('button', { name: /Novo Evento/i })).toBeInTheDocument();
   });
 
+  it('restores a cancelled event after justification and switches back to its appropriate tab', async () => {
+    const restored = { ...fakeEvents[1], status: 'SCHEDULED' as const, cancelledAt: null, cancelReason: null };
+    vi.spyOn(eventService, 'getEvents').mockResolvedValueOnce(fakeEvents).mockResolvedValue(fakeEvents.map(item => item.id === restored.id ? restored : item));
+    const restore = vi.spyOn(eventService, 'restoreEvent').mockResolvedValue(restored);
+    render(<MemoryRouter><SecretariaEventosScreen /></MemoryRouter>);
+    await screen.findByText('Workshop de Cloud');
+    fireEvent.click(screen.getByRole('tab', { name: /Eventos Cancelados/i }));
+    fireEvent.click(screen.getByRole('button', { name: 'Restaurar evento' }));
+    expect(screen.getByRole('button', { name: 'Confirmar restauração' })).toBeDisabled();
+    expect(screen.getByText(/Certificados revogados continuarão revogados/)).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText(/Justificativa da restauração/), { target: { value: 'Cancelamento feito por engano' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Confirmar restauração' }));
+    await waitFor(() => expect(restore).toHaveBeenCalledWith(restored.id, 'Cancelamento feito por engano'));
+    await waitFor(() => expect(screen.getByRole('tab', { name: /Eventos Ativos/i })).toHaveAttribute('aria-selected', 'true'));
+    expect(await screen.findByText('Palestra Cancelada de IoT')).toBeInTheDocument();
+  });
   it('navigates to /eventos/:id/editar when clicking edit button', async () => {
     vi.spyOn(eventService, 'getEvents').mockResolvedValue(fakeEvents);
 

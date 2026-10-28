@@ -28,6 +28,8 @@ const AUDIT_ACTION_MAP: Record<string, string> = {
   // Ciclo de vida do evento
   EVENT_CREATED: 'Evento criado',
   EVENT_UPDATED: 'Evento atualizado',
+  EVENT_CANCELLATION_REVOKED: 'Cancelamento do evento revogado',
+  EVENT_CANCELLATION_CAPTURED: 'Histórico do cancelamento preservado',
   EVENT_CANCELLED: 'Evento cancelado',
   EVENT_DELETED_WITHOUT_HISTORY: 'Evento excluído sem histórico',
 

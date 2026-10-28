@@ -33,7 +33,7 @@ describe('CancelEventDialog', () => {
     expect(screen.getByText('Cancelar Evento')).toBeDefined();
     expect(screen.getByText('Palestra de IA')).toBeDefined();
     expect(
-      screen.getByText(/quaisquer certificados já emitidos para os participantes serão/i)
+      screen.getByText(/certificados emitidos serão revogados/i)
     ).toBeDefined();
 
     const confirmBtn = screen.getByRole('button', { name: 'Confirmar Cancelamento' });
