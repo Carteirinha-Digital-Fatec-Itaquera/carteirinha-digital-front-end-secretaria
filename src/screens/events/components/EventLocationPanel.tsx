@@ -1,8 +1,10 @@
+import LocationActivationModal from './LocationActivationModal';
 import { useRef, useState } from 'react';
 import type { EventView } from '../../../domains/Event';
 import { apiRequest } from '../../../api/config/apiRequest';
 import styles from './ManualCertificatePanel.module.css';
 export default function EventLocationPanel({ event, onSaved }: { event: EventView; onSaved: () => void }) {
+  const [confirmActivation, setConfirmActivation] = useState(false);
   const [enabled, setEnabled] = useState(event.locationEnabled !== false && Boolean(event.geoPolicy));
   const [reason, setReason] = useState('');
   const [latitude, setLatitude] = useState(String(event.geoPolicy?.latitude ?? ''));
@@ -25,7 +27,7 @@ export default function EventLocationPanel({ event, onSaved }: { event: EventVie
     <h2 id="event-location-heading">Verificação de geolocalização</h2>
     <p>Aplica-se a alunos e visitantes. Desligar dispensa o GPS e reduz a verificação de presença física; identidade, QR e confirmação continuam obrigatórios. A alteração fica auditada.</p>
     <fieldset disabled={busy || event.status === 'CANCELLED'} className={styles.form}>
-      <label className={styles.confirm}><input type="checkbox" checked={enabled} onChange={e => setEnabled(e.target.checked)} />Exigir geolocalização neste evento</label>
+      <label className={styles.confirm}><input type="checkbox" checked={enabled} onChange={e => e.target.checked ? setConfirmActivation(true) : setEnabled(false)} />Exigir geolocalização neste evento</label>
       {enabled && <div className={styles.grid}>
         <label>Latitude<input type="number" step="any" min="-90" max="90" value={latitude} onChange={e => setLatitude(e.target.value)} /></label>
         <label>Longitude<input type="number" step="any" min="-180" max="180" value={longitude} onChange={e => setLongitude(e.target.value)} /></label>
@@ -35,6 +37,7 @@ export default function EventLocationPanel({ event, onSaved }: { event: EventVie
       <label>Justificativa da alteração<textarea maxLength={1000} value={reason} onChange={e => setReason(e.target.value)} /></label>
       <button type="button" disabled={reason.trim().length < 3 || (enabled && (!latitude || !longitude))} onClick={() => void save()}>Salvar verificação de localização</button>
     </fieldset>
+    <LocationActivationModal visible={confirmActivation} onCancel={() => setConfirmActivation(false)} onConfirm={() => { setEnabled(true); setConfirmActivation(false); }} />
     {message && <p role="status">{message}</p>}
   </section>;
 }
