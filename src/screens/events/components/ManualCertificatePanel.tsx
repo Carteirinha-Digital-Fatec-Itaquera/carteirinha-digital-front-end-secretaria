@@ -2,6 +2,7 @@ import { useRef, useState, type FormEvent } from 'react';
 import { management, openManagementPdf, type Participant } from '../../../api/event/publicEventService';
 import type { EventView } from '../../../domains/Event';
 import styles from './ManualCertificatePanel.module.css';
+import StudentLookup from './StudentLookup';
 
 type Result = {
   certificateId: string; verificationCode: string; recipientName: string; email: string;
@@ -31,9 +32,10 @@ export function ManualCertificatePanel({ event, onUpdated }: { event: EventView;
     const data = new FormData(e.currentTarget);
     await run(async () => {
       setResult(null);
+      if (identityType === 'STUDENT' && !data.get('expectedAccountId')) throw new Error('Busque e selecione o aluno antes de confirmar.');
       const body = {
         identityType,
-        ...(identityType === 'STUDENT' ? { ra: String(data.get('ra')).trim() } : {
+        ...(identityType === 'STUDENT' ? { ra: String(data.get('ra')).trim(), expectedAccountId: String(data.get('expectedAccountId') || '') || undefined } : {
           name: String(data.get('name')).trim(), email: String(data.get('email')).trim(),
           cpf: String(data.get('cpf')).trim(), course: String(data.get('course') || '').trim() || undefined,
         }),
@@ -61,7 +63,7 @@ export function ManualCertificatePanel({ event, onUpdated }: { event: EventView;
         <form onSubmit={e => void submit(e)} className={styles.form}>
           <fieldset disabled={busy}><legend>Identificação do participante</legend>
             <label>Tipo de identificação<select value={identityType} onChange={e => { setIdentityType(e.target.value); setResult(null); }}><option value="STUDENT">Aluno cadastrado</option><option value="EXTERNAL">Pessoa sem conta na carteirinha</option></select></label>
-            {identityType === 'STUDENT' ? <><label>RA<input name="ra" required maxLength={40} /></label><p>Nome, curso e e-mail serão os do cadastro do aluno. O certificado também aparecerá na área do aluno.</p></> : <div className={styles.grid}>
+            {identityType === 'STUDENT' ? <StudentLookup /> : <div className={styles.grid}>
               <label>Nome completo<input name="name" required minLength={3} maxLength={160} autoComplete="name" /></label>
               <label>E-mail para envio<input name="email" type="email" required maxLength={254} autoComplete="email" /></label>
               <label>CPF<input name="cpf" required inputMode="numeric" maxLength={14} pattern="[0-9]{11}|[0-9]{3}\.[0-9]{3}\.[0-9]{3}-[0-9]{2}" /></label>

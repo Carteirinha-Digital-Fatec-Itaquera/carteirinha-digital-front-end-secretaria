@@ -1,0 +1,20 @@
+import { it, expect, vi } from 'vitest';
+import { render, screen, fireEvent } from '@testing-library/react';
+import StudentLookup from './StudentLookup';
+import { management } from '../../../api/event/publicEventService';
+vi.mock('../../../api/event/publicEventService', () => ({ management: vi.fn() }));
+it('requires explicit selection and clears it when the search changes', async () => {
+  vi.mocked(management).mockResolvedValue({ total: 1, items: [{ ra: '001', accountId: 'account', name: 'Álvaro Teste', course: 'DSM', status: 'Ativo', email: 'a***@test' }] });
+  render(<StudentLookup />);
+  expect(screen.getByRole('button')).toBeDisabled();
+  const input = screen.getByLabelText('Buscar aluno por nome ou RA');
+  fireEvent.change(input, { target: { value: 'Alvaro' } });
+  fireEvent.click(screen.getByRole('button'));
+  const candidate = await screen.findByRole('radio');
+  expect(screen.getByLabelText('RA selecionado')).toHaveValue('');
+  fireEvent.click(candidate);
+  expect(screen.getByLabelText('RA selecionado')).toHaveValue('001');
+  fireEvent.change(input, { target: { value: 'Outro' } });
+  expect(screen.getByLabelText('RA selecionado')).toHaveValue('');
+  expect(screen.queryByRole('radio')).not.toBeInTheDocument();
+});
