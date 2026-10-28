@@ -28,6 +28,7 @@ export interface CertificatePolicies {
 }
 
 export interface EventView {
+  attendanceMode?: "FINAL_ONLY" | "TWO_PHASE";
   id: Uuid;
   title: string;
   description: string | null;

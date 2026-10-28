@@ -3,6 +3,7 @@ import { QRCodeSVG } from "qrcode.react";
 import { PIP_INITIAL_DIMENSIONS } from "../pictureInPictureSizing";
 
 type Props = {
+  finalOnly?: boolean;
   eventTitle: string;
   checkpointType: "check-in" | "check-out";
   qrValue: string | null;
@@ -16,7 +17,7 @@ const frame: CSSProperties = {
   overflow: "hidden", background: "#fff", color: "#111", fontFamily: "system-ui, sans-serif",
 };
 // O PiP recebe estilos próprios no HTML, sem depender do CSS do aplicativo.
-export function PictureInPictureQr({ eventTitle, checkpointType, qrValue, qrLoading, qrError, isFloating = false }: Props) {
+export function PictureInPictureQr({ finalOnly = false, eventTitle, checkpointType, qrValue, qrLoading, qrError, isFloating = false }: Props) {
   const area = useRef<HTMLDivElement>(null);
   const [side, setSide] = useState(160);
   useEffect(() => {
@@ -46,7 +47,7 @@ export function PictureInPictureQr({ eventTitle, checkpointType, qrValue, qrLoad
         : <span role={qrError ? "alert" : "status"} style={{ fontSize: 11, textAlign: "center", color: "#111", padding: 4, overflowWrap: "anywhere" }}>{qrError || (qrLoading ? "Carregando QR Code..." : "Aguardando QR Code...")}</span>}
     </div>
     <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: 20, margin: 0, padding: 0, border: 0, fontSize: 12, lineHeight: "20px", fontWeight: 700, letterSpacing: "0.03em", color: "#111", background: "#fff", whiteSpace: "nowrap" }}>
-      {checkpointType === "check-in" ? "CHECK-IN" : "CHECK-OUT"}
+      {finalOnly ? "PRESENÇA" : checkpointType === "check-in" ? "CHECK-IN" : "CHECK-OUT"}
     </div>
   </div>;
 }

@@ -367,12 +367,13 @@ export default function SecretariaGerenciarEventoScreen() {
   const checkInStatus = computeCheckpointStatus(checkInCp);
   const checkOutStatus = computeCheckpointStatus(checkOutCp);
 
+  const finalOnly = event?.attendanceMode === "FINAL_ONLY";
   const canReopenCheckIn =
     !isCancelled && checkInStatus === "finished" && checkOutStatus !== "open";
 
   const canReopenCheckOut =
     !isCancelled && checkOutStatus === "finished" &&
-    Boolean(checkOutCp?.openedAt) && checkInStatus !== "open";
+    Boolean(checkOutCp?.openedAt) && (finalOnly || checkInStatus !== "open");
 
   const qrValue = qrData?.qrUrl && qrData.checkpoint === activeCheckpoint && qrData.eventId === id
     ? validatedAttendanceQrUrl(qrData.qrUrl, GLOBAL_VAR.STUDENT_APP_URL)
@@ -672,10 +673,9 @@ export default function SecretariaGerenciarEventoScreen() {
                 <Users size={22} />
               </div>
               <div>
-                <span>Total com Check-in</span>
+                <span>{finalOnly ? "Participantes registrados" : "Total com Check-in"}</span>
                 <strong>
-                  {participants.summary?.checkedInCount ??
-                    participants.items.length}
+                  {finalOnly ? participants.items.length : participants.summary?.checkedInCount ?? participants.items.length}
                 </strong>
               </div>
             </div>
@@ -685,7 +685,7 @@ export default function SecretariaGerenciarEventoScreen() {
                 <CheckCircle2 size={22} />
               </div>
               <div>
-                <span>Presenças Confirmadas (Check-out)</span>
+                <span>{finalOnly ? "Presenças confirmadas" : "Presenças Confirmadas (Check-out)"}</span>
                 <strong>
                   {participants.summary?.confirmedCount ??
                     participants.items.filter((i) => i.status === "CONFIRMED")
@@ -717,7 +717,7 @@ export default function SecretariaGerenciarEventoScreen() {
 
             <div className={styles.checkpointsGrid}>
               {/* Check-in */}
-              <div
+              {!finalOnly && <div
                 className={`${styles.checkpointCard} ${
                   checkInStatus === "open" ? styles.checkpointActive : ""
                 }`}
@@ -778,13 +778,13 @@ export default function SecretariaGerenciarEventoScreen() {
                     </button>
                   )}
 
-                  {isCancelled && checkInStatus === "finished" && (
+                  {isCancelled && (finalOnly || checkInStatus === "finished") && (
                     <div className={styles.blockedMessage}>
                       Evento cancelado. Check-in não pode ser reaberto.
                     </div>
                   )}
 
-                  {!isCancelled && checkInStatus === "finished" && (
+                  {!isCancelled && (finalOnly || checkInStatus === "finished") && (
                     <div className={styles.finishedContainer}>
                       <div className={styles.finishedMessage}>
                         <CheckCircle2 size={18} />
@@ -811,6 +811,7 @@ export default function SecretariaGerenciarEventoScreen() {
                 </div>
               </div>
 
+              }
               {/* Check-out */}
               <div
                 className={`${styles.checkpointCard} ${
@@ -819,8 +820,8 @@ export default function SecretariaGerenciarEventoScreen() {
               >
                 <div className={styles.checkpointHeader}>
                   <div>
-                    <span className={styles.checkpointLabel}>CHECK-OUT</span>
-                    <h3>Registro de Saída</h3>
+                    <span className={styles.checkpointLabel}>{finalOnly ? "PRESENÇA FINAL" : "CHECK-OUT"}</span>
+                    <h3>{finalOnly ? "Confirmação de presença ao final" : "Registro de Saída"}</h3>
                     <CheckpointWindow
                       closesAt={checkOutCp?.closesAt}
                       openedAt={checkOutCp?.openedAt}
@@ -839,8 +840,7 @@ export default function SecretariaGerenciarEventoScreen() {
                 </div>
 
                 <p className={styles.checkpointDescription}>
-                  Controle das saídas dos alunos ao final do evento. Apenas
-                  alunos com check-in e check-out recebem presença confirmada.
+                  {finalOnly ? "Uma única leitura ao final confirma a presença e permite emitir o certificado, sem leitura na entrada." : "Controle das saídas dos alunos ao final do evento. Apenas alunos com check-in e check-out recebem presença confirmada."}
                 </p>
 
                 <div className={styles.checkpointActions}>
@@ -852,7 +852,7 @@ export default function SecretariaGerenciarEventoScreen() {
 
                   {!isCancelled &&
                     checkOutStatus === "closed" &&
-                    checkInStatus === "finished" && (
+                    (finalOnly || checkInStatus === "finished") && (
                       <button
                         className={styles.openButton}
                         onClick={() => handleOpenCheckpoint("check-out")}
@@ -860,13 +860,13 @@ export default function SecretariaGerenciarEventoScreen() {
                         type="button"
                       >
                         <DoorOpen size={18} />
-                        Abrir Check-out
+                        {finalOnly ? "Abrir confirmação de presença" : "Abrir Check-out"}
                       </button>
                     )}
 
                   {!isCancelled &&
                     checkOutStatus === "closed" &&
-                    checkInStatus !== "finished" && (
+                    !finalOnly && checkInStatus !== "finished" && (
                       <div className={styles.blockedMessage}>
                         Encerre o Check-in para abrir o Check-out.
                       </div>
@@ -880,7 +880,7 @@ export default function SecretariaGerenciarEventoScreen() {
                       type="button"
                     >
                       <DoorClosed size={18} />
-                      Encerrar Check-out
+                      {finalOnly ? "Encerrar confirmação de presença" : "Encerrar Check-out"}
                     </button>
                   )}
 
@@ -888,7 +888,7 @@ export default function SecretariaGerenciarEventoScreen() {
                     <div className={styles.finishedContainer}>
                       <div className={styles.finishedMessage}>
                         <CheckCircle2 size={18} />
-                        Check-out encerrado
+                        {finalOnly ? "Confirmação encerrada" : "Check-out encerrado"}
                       </div>
                       {canReopenCheckOut ? (
                         <button
@@ -899,7 +899,7 @@ export default function SecretariaGerenciarEventoScreen() {
                           title="Reabrir Check-out sem limite de horário"
                         >
                           <RotateCcw size={18} />
-                          Reabrir Check-out
+                          {finalOnly ? "Reabrir confirmação de presença" : "Reabrir Check-out"}
                         </button>
                       ) : (
                         <p className={styles.reopenNotice}>
@@ -921,7 +921,7 @@ export default function SecretariaGerenciarEventoScreen() {
                   <span className={styles.projectionEyebrow}>PROJEÇÃO</span>
                   <h2>
                     QR Code de{" "}
-                    {activeCheckpoint === "check-in" ? "Check-in" : "Check-out"}
+                    {finalOnly ? "Confirmação de presença" : activeCheckpoint === "check-in" ? "Check-in" : "Check-out"}
                   </h2>
                   <p>
                     {activeCheckpoint === "check-in"
@@ -1003,7 +1003,7 @@ export default function SecretariaGerenciarEventoScreen() {
 
                   <div className={styles.qrInstruction}>
                     <strong>
-                      {activeCheckpoint === "check-in"
+                      {finalOnly ? "Escaneie para confirmar sua presença" : activeCheckpoint === "check-in"
                         ? "Escaneie para registrar sua entrada"
                         : "Escaneie para registrar sua saída"}
                     </strong>
@@ -1171,6 +1171,7 @@ export default function SecretariaGerenciarEventoScreen() {
             createPortal(
               <PictureInPictureQr
                 eventTitle={event.title}
+                finalOnly={finalOnly}
                 checkpointType={activeCheckpoint}
                 qrValue={qrValue}
 
@@ -1184,6 +1185,7 @@ export default function SecretariaGerenciarEventoScreen() {
           {pip.isFloating && (
             <PictureInPictureQr
               eventTitle={event.title}
+              finalOnly={finalOnly}
               checkpointType={activeCheckpoint}
               qrValue={qrValue}
 

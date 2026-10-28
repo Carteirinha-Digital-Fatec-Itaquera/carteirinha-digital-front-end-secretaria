@@ -419,15 +419,15 @@ export default function SecretariaEventosScreen() {
                       </div>
 
                       <div className={styles.checkpoints}>
-                        <div className={styles.checkpoint}>
+                        {event.attendanceMode !== "FINAL_ONLY" && <div className={styles.checkpoint}>
                           <span>Check-in</span>
                           <span className={`${styles.status} ${getStatusClass(checkInState)}`}>
                             {statusLabel[checkInState]}
                           </span>
-                        </div>
+                        </div>}
 
                         <div className={styles.checkpoint}>
-                          <span>Check-out</span>
+                          <span>{event.attendanceMode === "FINAL_ONLY" ? "Presença final" : "Check-out"}</span>
                           <span className={`${styles.status} ${getStatusClass(checkOutState)}`}>
                             {statusLabel[checkOutState]}
                           </span>
