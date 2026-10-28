@@ -16,7 +16,7 @@ import {
 
 import MenuLateral from "../../components/menuLateral/MenuLateral";
 import MessageModal from "../../components/messageModal/MessageModal";
-import { getEvents, cancelEvent, deleteEvent } from "../../api/event/eventService";
+import { getEvents, cancelEvent, deleteEvent, restoreEvent } from "../../api/event/eventService";
 import type { EventView } from "../../domains/Event";
 import type { CheckpointType, CheckpointView } from "../../domains/Checkpoint";
 import { formatEventDate, formatEventTime, formatWorkload } from "../../utils/eventPresentation";
@@ -63,6 +63,7 @@ export default function SecretariaEventosScreen() {
   const [now, setNow] = useState(Date.now);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [restoringEvent, setRestoringEvent] = useState<EventView | null>(null);
   const [cancellingEvent, setCancellingEvent] = useState<EventView | null>(null);
   const [deletingEvent, setDeletingEvent] = useState<EventView | null>(null);
   const [actionSuccess, setActionSuccess] = useState<string | null>(null);
@@ -458,6 +459,7 @@ export default function SecretariaEventosScreen() {
                           </>
                         )}
 
+                        {event.status === "CANCELLED" && <button type="button" className={styles.editBtn} onClick={() => setRestoringEvent(event)}>Restaurar evento</button>}
                         <button
                           className={styles.deleteActionBtn}
                           onClick={() => setDeletingEvent(event)}
@@ -495,6 +497,14 @@ export default function SecretariaEventosScreen() {
         onDismiss={() => setActionSuccess(null)}
       />
 
+      <CancelEventDialog mode="restore" isOpen={!!restoringEvent} eventTitle={restoringEvent?.title || ""}
+        onClose={() => setRestoringEvent(null)} onConfirm={async reason => {
+          if (!restoringEvent) return;
+          const restored = await restoreEvent(restoringEvent.id, reason);
+          setActiveTab(eventTab(restored, Date.now()));
+          setRestoringEvent(null); setActionSuccess('Evento restaurado. Checkpoints fechados e certificados revogados preservados.');
+          await loadEvents();
+        }} />
       <CancelEventDialog
         isOpen={!!cancellingEvent}
         eventTitle={cancellingEvent?.title || ""}

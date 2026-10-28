@@ -3,6 +3,7 @@ import { FaExclamationTriangle, FaTimes } from "react-icons/fa";
 import styles from "./styleCancelEventDialog.module.css";
 
 export interface CancelEventDialogProps {
+  mode?: "cancel" | "restore";
   isOpen: boolean;
   eventTitle: string;
   onClose: () => void;
@@ -11,6 +12,7 @@ export interface CancelEventDialogProps {
 }
 
 export function CancelEventDialog({
+  mode = "cancel",
   isOpen,
   eventTitle,
   onClose,
@@ -106,7 +108,7 @@ export function CancelEventDialog({
           <div className={styles.titleArea}>
             <FaExclamationTriangle className={styles.warningIcon} aria-hidden="true" />
             <h2 id="cancel-dialog-title" className={styles.title}>
-              Cancelar Evento
+              {mode === "restore" ? "Restaurar evento cancelado" : "Cancelar Evento"}
             </h2>
           </div>
           <button
@@ -127,15 +129,12 @@ export function CancelEventDialog({
             </p>
 
             <div id="cancel-dialog-description" className={styles.alertBox}>
-              <strong>Atenção: Ação Definitiva</strong>
-              Ao cancelar este evento, todos os checkpoints serão fechados
-              imediatamente e quaisquer certificados já emitidos para os
-              participantes serão <u>revogados de forma irreversível</u>.
+              {mode === "restore" ? <>O evento voltará à lista correspondente à sua data e situação. Os checkpoints permanecerão fechados e os códigos antigos não poderão ser utilizados. Certificados revogados continuarão revogados; não haverá emissão ou envio automático.</> : <>Ao cancelar, os checkpoints serão fechados e os certificados emitidos serão revogados. O evento poderá ser restaurado posteriormente com justificativa; isso não revalida os certificados automaticamente.</>}
             </div>
 
             <div className={styles.formGroup}>
               <label htmlFor="cancel-reason-textarea" className={styles.label}>
-                Justificativa do cancelamento
+                {mode === "restore" ? "Justificativa da restauração" : "Justificativa do cancelamento"}
                 <span className={styles.required}>*</span>
               </label>
               <textarea
@@ -147,7 +146,7 @@ export function CancelEventDialog({
                   setReason(e.target.value);
                   if (localError) setLocalError(null);
                 }}
-                placeholder="Informe o motivo formal do cancelamento (mínimo 3 caracteres)..."
+                placeholder={mode === "restore" ? "Informe o motivo da restauração (mínimo 3 caracteres)..." : "Informe o motivo formal do cancelamento (mínimo 3 caracteres)..."}
                 rows={3}
                 maxLength={1000}
                 disabled={loading}
@@ -172,14 +171,14 @@ export function CancelEventDialog({
               onClick={onClose}
               disabled={loading}
             >
-              Manter Evento
+              {mode === "restore" ? "Manter cancelado" : "Manter Evento"}
             </button>
             <button
               type="submit"
               className={styles.confirmBtn}
               disabled={loading || !isValid}
             >
-              {loading ? "Cancelando..." : "Confirmar Cancelamento"}
+              {loading ? (mode === "restore" ? "Restaurando..." : "Cancelando...") : (mode === "restore" ? "Confirmar restauração" : "Confirmar Cancelamento")}
             </button>
           </div>
         </form>

@@ -70,3 +70,7 @@ export async function deleteEvent(
     }
   );
 }
+
+export function restoreEvent(id: string, reason: string): Promise<EventView> {
+  return apiRequest<EventView>(`/events/${encodeURIComponent(id)}/restore`, { method: 'POST', body: JSON.stringify({ reason }) });
+}
