@@ -27,6 +27,8 @@ const AUDIT_ACTION_MAP: Record<string, string> = {
 
   // Ciclo de vida do evento
   EVENT_CREATED: 'Evento criado',
+  EVENT_LOCATION_ENABLED: 'Verificação por geolocalização habilitada',
+  EVENT_LOCATION_DISABLED: 'Verificação por geolocalização desabilitada',
   EVENT_UPDATED: 'Evento atualizado',
   EVENT_CANCELLATION_REVOKED: 'Cancelamento do evento revogado',
   EVENT_CANCELLATION_CAPTURED: 'Histórico do cancelamento preservado',
