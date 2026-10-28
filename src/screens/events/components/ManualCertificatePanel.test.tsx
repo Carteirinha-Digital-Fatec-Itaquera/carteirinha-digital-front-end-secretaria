@@ -3,6 +3,7 @@ import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { ManualCertificatePanel } from './ManualCertificatePanel';
 import * as api from '../../../api/event/publicEventService';
 import type { EventView } from '../../../domains/Event';
+vi.mock('./StudentLookup', () => ({ default: () => <><label>RA<input name="ra" /></label><input name="expectedAccountId" type="hidden" value="00000000-0000-4000-8000-000000000001" /></> }));
 
 const event: EventView = { id: 'event-id', title: 'Atividade', description: null, speaker: 'Docente', location: 'Sala', startsAt: '2026-10-26T10:00:00Z', endsAt: '2026-10-26T11:00:00Z', workloadMinutes: 60, status: 'COMPLETED', cancelReason: null, cancelledAt: null, cancelledById: null, certificateEnabled: true, checkpoints: [], createdAt: '', updatedAt: '' };
 const response = { certificateId: 'certificate-id', verificationCode: 'FATEC-EVT-TEST', recipientName: 'Pessoa teste', email: 'person@example.test', alreadyIssued: false, deliveryState: 'PENDING', artifactState: 'PENDING_RENDER', message: 'Certificado e envio por e-mail enfileirados.' };
@@ -25,7 +26,7 @@ describe('ManualCertificatePanel', () => {
     fireEvent.change(screen.getByLabelText('RA'), { target: { value: '12345' } }); confirm();
     fireEvent.click(screen.getByRole('button', { name: /Confirmar participação e enfileirar envio/ }));
     await screen.findByText(response.message);
-    expect(request).toHaveBeenCalledWith('events/event-id/manual-certificates', { identityType: 'STUDENT', ra: '12345', reason: 'Participação conferida após falha de rede.', participationConfirmed: true });
+    expect(request).toHaveBeenCalledWith('events/event-id/manual-certificates', { identityType: 'STUDENT', ra: '12345', expectedAccountId: '00000000-0000-4000-8000-000000000001', reason: 'Participação conferida após falha de rede.', participationConfirmed: true });
     expect(screen.getByRole('status')).toHaveTextContent('Envio na fila');
     expect(updated).toHaveBeenCalledTimes(1);
   });
