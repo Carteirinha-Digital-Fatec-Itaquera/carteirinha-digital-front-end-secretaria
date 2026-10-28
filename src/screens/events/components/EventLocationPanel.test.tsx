@@ -1,0 +1,18 @@
+import { it, expect, vi } from 'vitest';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import EventLocationPanel from './EventLocationPanel';
+import { apiRequest } from '../../../api/config/apiRequest';
+import type { EventView } from '../../../domains/Event';
+vi.mock('../../../api/config/apiRequest', () => ({ apiRequest: vi.fn() }));
+it('requires a reason and explicitly disables GPS without clearing the configured area', async () => {
+  vi.mocked(apiRequest).mockResolvedValue({});
+  const saved = vi.fn();
+  render(<EventLocationPanel event={{ id: 'event', status: 'IN_PROGRESS', locationEnabled: true, geoPolicy: { latitude: -23, longitude: -46, radius: 150, maxAccuracy: 50 } } as EventView} onSaved={saved} />);
+  const save = screen.getByRole('button', { name: 'Salvar verificação de localização' });
+  expect(save).toBeDisabled();
+  fireEvent.click(screen.getByRole('checkbox'));
+  fireEvent.change(screen.getByLabelText('Justificativa da alteração'), { target: { value: 'Problema de infraestrutura no local' } });
+  fireEvent.click(save);
+  await waitFor(() => expect(saved).toHaveBeenCalled());
+  expect(apiRequest).toHaveBeenCalledWith('/events/event/location-verification', expect.objectContaining({ method: 'POST', body: JSON.stringify({ enabled: false, reason: 'Problema de infraestrutura no local' }) }));
+});

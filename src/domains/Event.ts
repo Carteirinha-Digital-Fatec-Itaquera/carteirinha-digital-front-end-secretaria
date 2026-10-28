@@ -28,6 +28,7 @@ export interface CertificatePolicies {
 }
 
 export interface EventView {
+  locationEnabled?: boolean;
   attendanceMode?: "FINAL_ONLY" | "TWO_PHASE";
   id: Uuid;
   title: string;
@@ -55,6 +56,7 @@ export interface EventView {
 }
 
 export interface CreateEventRequest {
+  locationEnabled?: boolean;
   title: string;
   description?: string;
   speaker: string;

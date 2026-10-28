@@ -56,6 +56,7 @@ export function EventForm({
   );
 
   // Visitantes e contexto
+  const [locationEnabled, setLocationEnabled] = useState(initialValue?.locationEnabled ?? true);
   const [visitorsAllowed, setVisitorsAllowed] = useState(
     initialValue?.visitorsAllowed ?? false
   );
@@ -704,6 +705,7 @@ export function EventForm({
         workloadMinutes,
         certificateEnabled,
         visitorsAllowed,
+        locationEnabled,
         organizerCourse: organizerCourse.trim() || undefined,
         promoter: promoter.trim() || undefined,
         geoPolicy: hasGeo
@@ -872,6 +874,7 @@ export function EventForm({
           </div>
         </div>
 
+        <label><input type="checkbox" checked={locationEnabled} onChange={e => setLocationEnabled(e.target.checked)} />Verificar geolocalização quando houver área configurada</label>
         {/* Seção: Localização e Presença Física (GPS via CEP) */}
         <div className={styles.sectionCard}>
           <div className={styles.sectionHeader}>
