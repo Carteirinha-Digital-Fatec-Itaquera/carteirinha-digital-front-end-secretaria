@@ -3,6 +3,7 @@ import { management, openManagementPdf, type Participant } from '../../../api/ev
 import type { EventView } from '../../../domains/Event';
 import styles from './ManualCertificatePanel.module.css';
 import StudentLookup from './StudentLookup';
+import ParticipantFilePanel from './ParticipantFilePanel';
 
 type Result = {
   certificateId: string; verificationCode: string; recipientName: string; email: string;
@@ -60,6 +61,7 @@ export function ManualCertificatePanel({ event, onUpdated }: { event: EventView;
     {open && <div id="manual-certificate-form">
       {blocked ? <p role="alert">Disponível apenas para eventos iniciados, não cancelados e com certificados habilitados.</p> : <>
         <p>O modelo, a carga horária e as assinaturas serão os configurados neste evento. A confirmação administrativa fica auditada e não simula uma leitura de QR ou GPS. Horários existentes são preservados; horários faltantes recebem o momento desta confirmação administrativa.</p>
+        <ParticipantFilePanel key={event.id} event={event} onUpdated={onUpdated} />
         <form onSubmit={e => void submit(e)} className={styles.form}>
           <fieldset disabled={busy}><legend>Identificação do participante</legend>
             <label>Tipo de identificação<select value={identityType} onChange={e => { setIdentityType(e.target.value); setResult(null); }}><option value="STUDENT">Aluno cadastrado</option><option value="EXTERNAL">Pessoa sem conta na carteirinha</option></select></label>

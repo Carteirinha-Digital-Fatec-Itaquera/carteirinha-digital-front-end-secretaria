@@ -1,0 +1,24 @@
+import { it, expect, vi } from 'vitest';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import ParticipantFilePanel from './ParticipantFilePanel';
+import { apiRequest } from '../../../api/config/apiRequest';
+import { management } from '../../../api/event/publicEventService';
+import type { EventView } from '../../../domains/Event';
+vi.mock('../../../api/config/apiRequest', () => ({ apiRequest: vi.fn() }));
+vi.mock('../../../api/event/publicEventService', () => ({ management: vi.fn() }));
+it('analyzes before approval and emits only eligible rows', async () => {
+  vi.mocked(apiRequest).mockResolvedValue({ items: [{ row: 1, name: 'Aluno Teste', status: 'READY', ra: '001', accountId: 'account' }, { row: 2, name: 'Nome ambíguo', status: 'AMBIGUOUS' }] });
+  vi.mocked(management).mockResolvedValue({ message: 'Participação confirmada' });
+  render(<ParticipantFilePanel event={{ id: 'evt', title: 'Evento teste', startsAt: '2026-10-26T18:00:00Z' } as EventView} onUpdated={vi.fn()} />);
+  fireEvent.click(screen.getByRole('button', { name: /Importar JSON/ }));
+  fireEvent.change(screen.getByLabelText('Arquivo de participantes'), { target: { files: [new File(['[]'], 'test.json')] } });
+  fireEvent.click(screen.getByRole('button', { name: 'Analisar nomes' }));
+  await screen.findByText('Aluno Teste');
+  expect(management).not.toHaveBeenCalled();
+  expect(screen.getByRole('button', { name: /Confirmar e emitir/ })).toBeDisabled();
+  fireEvent.change(screen.getByLabelText('Justificativa do lote'), { target: { value: 'Participação conferida presencialmente' } });
+  fireEvent.click(screen.getByRole('checkbox'));
+  fireEvent.click(screen.getByRole('button', { name: /Confirmar e emitir/ }));
+  await waitFor(() => expect(management).toHaveBeenCalledTimes(1));
+  expect(management).toHaveBeenCalledWith('events/evt/manual-certificates', expect.objectContaining({ ra: '001', expectedAccountId: 'account', participationConfirmed: true }));
+});
