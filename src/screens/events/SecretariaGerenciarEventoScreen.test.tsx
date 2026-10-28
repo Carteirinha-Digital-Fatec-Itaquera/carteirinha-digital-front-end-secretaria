@@ -73,6 +73,14 @@ describe('SecretariaGerenciarEventoScreen - QR Code & Projeção Telão', () => 
     vi.useRealTimers();
   });
 
+  it('exibe apenas a confirmação final sem exigir abertura de entrada', async () => {
+    vi.mocked(eventService.getEvent).mockResolvedValue({ ...fakeEvent, attendanceMode: 'FINAL_ONLY', checkpoints: fakeEvent.checkpoints.map(cp => ({ ...cp, isOpen: false, openedAt: null, closedAt: null })) });
+    render(<MemoryRouter initialEntries={['/eventos/evt-test-100/gerenciar']}><Routes><Route path="/eventos/:id/gerenciar" element={<SecretariaGerenciarEventoScreen />} /></Routes></MemoryRouter>);
+    expect(await screen.findByRole('button', { name: 'Abrir confirmação de presença' })).toBeEnabled();
+    expect(screen.queryByRole('button', { name: 'Abrir Check-in' })).not.toBeInTheDocument();
+    expect(screen.queryByText('Registro de Entrada')).not.toBeInTheDocument();
+  });
+
   it('exibe QR Code preferencialmente com qrUrl curto e botão Modo Telão', async () => {
     const validRef = 'shortRef123456'.padEnd(22, '0');
     const getQrSpy = vi.spyOn(checkpointService, 'getCheckpointQr').mockResolvedValue({
