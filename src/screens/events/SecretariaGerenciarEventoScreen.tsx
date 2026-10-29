@@ -1,3 +1,4 @@
+import OfflineEventDraft from './components/OfflineEventDraft';
 import EventLocationPanel from './components/EventLocationPanel';
 import { ManualCertificatePanel } from './components/ManualCertificatePanel';
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -154,7 +155,7 @@ export default function SecretariaGerenciarEventoScreen() {
     try {
       setLoadingEvent(true);
       setEventError(null);
-      const data = await getEvent(id);
+      const data = await getEvent(id, {signal: AbortSignal.timeout(15000)});
       setEvent(data);
 
       // Sincroniza checkpoint ativo se algum estiver aberto
@@ -434,6 +435,7 @@ export default function SecretariaGerenciarEventoScreen() {
                 Tentar novamente
               </button>
             </div>
+            {id && <OfflineEventDraft eventId={id} />}
           </div>
         </div>
       </div>

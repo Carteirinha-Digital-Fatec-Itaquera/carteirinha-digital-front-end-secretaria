@@ -1,3 +1,4 @@
+import { LoadingComp } from '../../../components/loading/LoadingComp';
 import { useRef, useState, type FormEvent } from 'react';
 import { management, openManagementPdf, type Participant } from '../../../api/event/publicEventService';
 import type { EventView } from '../../../domains/Event';
@@ -16,6 +17,8 @@ const deliveryLabel: Record<string, string> = {
 };
 export function ManualCertificatePanel({ event, onUpdated }: { event: EventView; onUpdated: () => void }) {
   const [open, setOpen] = useState(false);
+  const [mode, setMode] = useState<'notes'|'file'|'individual'>('notes');
+  const attempt = useRef<{body:string;requestId:string}|null>(null);
   const [identityType, setIdentityType] = useState('STUDENT');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -42,8 +45,10 @@ export function ManualCertificatePanel({ event, onUpdated }: { event: EventView;
         }),
         reason: String(data.get('reason')).trim(), participationConfirmed: data.get('confirmed') === 'on',
       };
-      const response = await management<Result>(`events/${event.id}/manual-certificates`, body);
-      setResult(response); onUpdated();
+      const serialized=JSON.stringify(body);
+      if(attempt.current?.body!==serialized)attempt.current={body:serialized,requestId:crypto.randomUUID()};
+      const response = await management<Result>(`events/${event.id}/manual-certificates`, {...body,requestId:attempt.current.requestId});
+      attempt.current=null; setResult(response); onUpdated();
     });
   }
   async function refreshStatus() {
@@ -54,14 +59,18 @@ export function ManualCertificatePanel({ event, onUpdated }: { event: EventView;
     setResult({ ...result, deliveryState: certificate.artifact.deliveryState, artifactState: certificate.artifact.state });
   }
   return <section className={styles.panel} aria-labelledby="manual-certificate-title">
-    <div className={styles.header}><div><h2 id="manual-certificate-title">Envio de certificado</h2>
+    <div className={styles.header}><div><h2 id="manual-certificate-title">Regularizar participantes</h2>
       <p>Regularize a participação de quem não conseguiu registrar presença pelo aplicativo.</p></div>
-      <button type="button" onClick={() => setOpen(value => !value)} aria-expanded={open} aria-controls="manual-certificate-form">{open ? 'Fechar formulário' : 'Emitir e enviar certificado'}</button>
+      <button type="button" disabled={busy} onClick={() => setOpen(value => !value)} aria-expanded={open} aria-controls="manual-certificate-form">{open ? 'Recolher regularização' : 'Regularizar participantes'}</button>
     </div>
     {open && <div id="manual-certificate-form">
-      {blocked ? <p role="alert">Disponível apenas para eventos iniciados, não cancelados e com certificados habilitados.</p> : <>
-        <p>O modelo, a carga horária e as assinaturas serão os configurados neste evento. A confirmação administrativa fica auditada e não simula uma leitura de QR ou GPS. Horários existentes são preservados; horários faltantes recebem o momento desta confirmação administrativa.</p>
-        <ParticipantFilePanel key={event.id} event={event} onUpdated={onUpdated} />
+      {blocked ? <><p role="alert">A emissão está disponível apenas para eventos iniciados, não cancelados e com certificados habilitados. Você pode preparar e exportar a lista abaixo.</p><ParticipantFilePanel key={event.id} event={event} onUpdated={onUpdated}/></> : <>
+
+        <details><summary>Como funciona a regularização?</summary><p>Confira a participação antes de registrar. O sistema usa o certificado deste evento e envia um link por e-mail, sem anexar o PDF.</p></details>
+        <div className="regularization-actions" role="group" aria-label="Forma de preparar participantes">{([['notes','Anotar nomes'],['file','Importar JSON/CSV'],['individual','Adicionar uma pessoa']] as const).map(([value,label])=><button type="button" key={value} aria-pressed={mode===value} disabled={busy} onClick={()=>setMode(value)}>{label}</button>)}</div>
+        <div hidden={mode==='individual'}><ParticipantFilePanel key={event.id} event={event} onUpdated={onUpdated} mode={mode==='file'?'file':'notes'}/></div>
+        <div hidden={mode!=='individual'}>
+        {busy&&<div role="status" aria-live="polite"><LoadingComp/>Aguardando confirmação do servidor. Não é necessário enviar novamente.</div>}
         <form onSubmit={e => void submit(e)} className={styles.form}>
           <fieldset disabled={busy}><legend>Identificação do participante</legend>
             <label>Tipo de identificação<select value={identityType} onChange={e => { setIdentityType(e.target.value); setResult(null); }}><option value="STUDENT">Aluno cadastrado</option><option value="EXTERNAL">Pessoa sem conta na carteirinha</option></select></label>
@@ -78,13 +87,14 @@ export function ManualCertificatePanel({ event, onUpdated }: { event: EventView;
           </fieldset>
         </form>
         {result && <div role="status" className={styles.result}>
-          <strong>{result.message}</strong><p>{result.recipientName} — {result.email}</p><p>Código: {result.verificationCode}</p>
+          <strong>{result.message}</strong>{result.recipientName&&<p>{result.recipientName}{result.email&&` — ${result.email}`}</p>}<p>Código: {result.verificationCode}</p>
           <p>{deliveryLabel[result.deliveryState] || 'Consultando envio'}. {result.artifactState !== 'READY' && 'PDF em processamento.'}</p>
           <div className={styles.actions}><button type="button" disabled={busy} onClick={() => void run(refreshStatus)}>Atualizar situação</button>
             {result.artifactState === 'READY' && <button type="button" disabled={busy} onClick={() => void run(async () => { await openManagementPdf(`certificates/${result.certificateId}/pdf`); })}>Baixar certificado</button>}
             {(!['AMBIGUOUS', 'DISPATCHING'].includes(result.deliveryState) && (result.deliveryState === 'FAILED' || result.artifactState === 'RENDER_FAILED')) && <button type="button" disabled={busy} onClick={() => void run(async () => { await management(`certificates/${result.certificateId}/retry`, {}); await refreshStatus(); })}>Tentar envio novamente</button>}
           </div>
         </div>}
+        </div>
       </>}
       {error && <p role="alert" className={styles.error}>{error}</p>}
     </div>}

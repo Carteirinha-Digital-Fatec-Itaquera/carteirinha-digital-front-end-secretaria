@@ -18,3 +18,5 @@
 .error { color: #a11717; }
 .panel :focus-visible { outline: 3px solid #007e99; outline-offset: 3px; }
 @media (max-width: 600px) { .panel { padding: 16px; } .grid { grid-template-columns: 1fr; } .panel button { width: 100%; } }
+
+.panel [hidden] { display: none; }

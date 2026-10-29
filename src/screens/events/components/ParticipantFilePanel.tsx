@@ -1,75 +1,836 @@
-import { useRef, useState } from 'react';
-import { apiRequest } from '../../../api/config/apiRequest';
-import { management } from '../../../api/event/publicEventService';
-import type { EventView } from '../../../domains/Event';
-import { formatEventDate, formatEventTime } from '../../../utils/eventPresentation';
-import { participantFileTemplate } from './participantFileTemplates';
-type Row = { row: number; name: string; status: string; ra?: string; accountId?: string; officialName?: string; message?: string };
-const labels: Record<string, string> = { READY: 'Localizado e elegível', REVIEW: 'Revisão manual necessária', AMBIGUOUS: 'Mais de um aluno com este nome', NOT_FOUND: 'Nome exato não encontrado', INELIGIBLE: 'Cadastro inativo ou e-mail inválido', DUPLICATE: 'Duplicado neste arquivo', RUNNING: 'Processando', DONE: 'Certificado emitido ou já existente; consulte o envio', ERROR: 'Falha: pode tentar novamente' };
-export default function ParticipantFilePanel({ event, onUpdated }: { event: EventView; onUpdated: () => void }) {
-  const [opened, setOpened] = useState(false);
-  const [file, setFile] = useState<File | null>(null);
-  const [rows, setRows] = useState<Row[]>([]);
-  const [reason, setReason] = useState('');
-  const [confirmed, setConfirmed] = useState(false);
-  const [error, setError] = useState('');
-  const [busy, setBusy] = useState(false);
-  const lock = useRef(false);
-  async function analyze() {
-    if (!file || lock.current) return;
-    lock.current = true; setBusy(true); setError(''); setRows([]); setConfirmed(false);
+import { useEffect, useRef, useState } from "react";
+import { openManagementPdf } from "../../../api/event/publicEventService";
+import { apiRequest } from "../../../api/config/apiRequest";
+import type { EventView } from "../../../domains/Event";
+import {
+  formatEventDate,
+  formatEventTime,
+} from "../../../utils/eventPresentation";
+import { participantFileTemplate } from "./participantFileTemplates";
+import { useParticipantDraft } from "./useParticipantDraft";
+import { exportDraft, type DraftRow } from "./participantDraftStore";
+import { readParticipantDraftFile } from "./participantDraftFile";
+import { useManualCertificateBatch } from "./useManualCertificateBatch";
+import CertificateBatchProgress from "./CertificateBatchProgress";
+import { pdfLabels, deliveryLabels } from "./certificateProcessingLabels";
+import StudentLookup, { type Candidate } from "./StudentLookup";
+import MessageModal from "../../../components/messageModal/MessageModal";
+import { LoadingComp } from "../../../components/loading/LoadingComp";
+import "./regularization.css";
+const labels: Record<string, string> = {
+  DRAFT: "Aguardando conferência",
+  READY: "Localizado e elegível",
+  REVIEW: "Revisão necessária",
+  AMBIGUOUS: "Mais de um cadastro",
+  NOT_FOUND: "Nome não encontrado",
+  INELIGIBLE: "Inativo ou e-mail inválido",
+  DUPLICATE: "Cadastro repetido",
+  IN_FLIGHT: "Aguardando resposta do servidor",
+  OUTCOME_UNKNOWN: "Resultado ainda não confirmado",
+  DONE: "Participação registrada",
+  ERROR: "Falha ao registrar",
+  BLOCKED: "Requer atendimento administrativo",
+};
+type Analyzed = {
+  row: number;
+  status: string;
+  ra?: string;
+  accountId?: string;
+  officialName?: string;
+};
+const normalize = (name: string) =>
+  name
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .toUpperCase()
+    .replace(/\s+/g, " ");
+function download(text: string, name: string, type: string) {
+  const url = URL.createObjectURL(new Blob([text], { type }));
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = name;
+  anchor.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+export default function ParticipantFilePanel({
+  event,
+  onUpdated,
+  mode = "notes",
+}: {
+  event: EventView;
+  onUpdated: () => void;
+  mode?: "notes" | "file";
+}) {
+  const store = useParticipantDraft(event);
+  const { draft, change, error: storageError, saving } = store;
+  const batch = useManualCertificateBatch(
+    event.id,
+    store.current,
+    change,
+    store.tabId,
+    onUpdated,
+  );
+  const [clock, setClock] = useState(Date.now());
+  const [notes, setNotes] = useState(""),
+    [error, setError] = useState(""),
+    [notice, setNotice] = useState(""),
+    [busy, setBusy] = useState(false),
+    [confirmed, setConfirmed] = useState(false),
+    [connected, setConnected] = useState(navigator.onLine),
+    [filter, setFilter] = useState("all"),
+    [page, setPage] = useState(0),
+    [review, setReview] = useState<string | null>(null),
+    [candidate, setCandidate] = useState<Candidate | null>(null),
+    [clear, setClear] = useState(false);
+  useEffect(() => {
+    const timer = setInterval(() => setClock(Date.now()), 5000);
+    return () => clearInterval(timer);
+  }, []);
+  useEffect(() => {
+    if (!notes.trim()) return;
+    const warn = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = "";
+    };
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [notes]);
+  const { pause, refresh } = batch;
+  const hasDone = !!draft?.rows.some((row) => row.status === "DONE");
+  const alive = useRef(true),
+    analyzing = useRef(false),
+    controller = useRef<AbortController | null>(null);
+  useEffect(() => {
+    alive.current = true;
+    const online = () => {
+        setConnected(true);
+        setNotice(
+          "Conexão de rede detectada. Confira os cadastros antes de emitir.",
+        );
+      },
+      offline = () => {
+        setConnected(false);
+        pause();
+      };
+    window.addEventListener("online", online);
+    window.addEventListener("offline", offline);
+    return () => {
+      alive.current = false;
+      controller.current?.abort();
+      window.removeEventListener("online", online);
+      window.removeEventListener("offline", offline);
+    };
+  }, [pause]);
+  const run = async (action: () => Promise<unknown>) => {
+    setError("");
     try {
-      const body = new FormData(); body.append('file', file);
-      const result = await apiRequest<{ items: Row[] }>(`/event-management/events/${event.id}/participant-file`, { method: 'POST', body });
-      setRows(result.items);
-    } catch (failure) { setError(failure instanceof Error ? failure.message : 'Falha ao analisar arquivo.'); }
-    finally { lock.current = false; setBusy(false); }
-  }
-  async function issue() {
-    if (lock.current || !confirmed || reason.trim().length < 10) return;
-    lock.current = true; setBusy(true); setError('');
-    try {
-      for (const row of rows.filter(item => ['READY', 'ERROR'].includes(item.status))) {
-        const update = (status: string, message?: string) => setRows(previous => previous.map(item => item.row === row.row ? { ...item, status, message } : item));
-        update('RUNNING');
-        try {
-          const result = await management<{ message: string }>(`events/${event.id}/manual-certificates`, { identityType: 'STUDENT', ra: row.ra, expectedAccountId: row.accountId, participationConfirmed: true, reason: `${reason.trim()} [arquivo: linha ${row.row}]`.slice(0, 1000) });
-          update('DONE', result.message);
-        } catch (failure) { update('ERROR', failure instanceof Error ? failure.message : 'Falha de conexão.'); }
+      await action();
+    } catch (e) {
+      if (alive.current)
+        setError(e instanceof Error ? e.message : "Não foi possível concluir.");
+    }
+  };
+  useEffect(() => {
+    if (!hasDone) return;
+    const abort = new AbortController();
+    const start = Date.now();
+    let timer: ReturnType<typeof setTimeout>;
+    let delay = 5000;
+    const tick = async () => {
+      if (abort.signal.aborted) return;
+      if (Date.now() - start > 120000) {
+        setNotice(
+          "O servidor continua processando. Use Atualizar situação para consultar novamente.",
+        );
+        return;
       }
-      onUpdated();
-    } finally { lock.current = false; setBusy(false); }
-  }
-  const pending = rows.filter(row => ['READY', 'ERROR'].includes(row.status)).length;
-  function downloadTemplate(format: 'json' | 'csv') {
-    const url = URL.createObjectURL(new Blob([participantFileTemplate(event, format)], { type: format === 'json' ? 'application/json;charset=utf-8' : 'text/csv;charset=utf-8' }));
-    const anchor = document.createElement('a'); anchor.href = url; anchor.download = `modelo-participantes.${format}`; anchor.click();
-    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
-  }
-  if (!opened) return <button type="button" onClick={() => setOpened(true)}>Importar JSON ou CSV de participantes</button>;
-  return <section aria-labelledby="file-participants-title">
-    <h3 id="file-participants-title">Importar participantes por JSON ou CSV</h3>
-    <p>Evento: <strong>{event.title}</strong> · {formatEventDate(event.startsAt)} às {formatEventTime(event.startsAt)}.</p>
-    <p>JSON: lista de nomes ou objeto com participantes. CSV: coluna nome_transcrito, nome ou name. Até 2 MB e 1.000 linhas. A análise não registra presenças nem envia e-mails.</p>
-    <fieldset disabled={busy}>
-      <button type="button" onClick={() => downloadTemplate('json')}>Baixar modelo JSON deste evento</button>
-      <button type="button" onClick={() => downloadTemplate('csv')}>Baixar modelo CSV</button>
-      <p>Substitua os nomes fictícios e mantenha as chaves ou o cabeçalho nome_transcrito. Salve em UTF-8. Não altere os dados do evento no JSON.</p>
-      <label>Arquivo de participantes<input type="file" accept=".json,.csv" onChange={e => { setFile(e.target.files?.[0] || null); setRows([]); setConfirmed(false); setError(''); }} /></label>
-      <button type="button" disabled={!file} onClick={() => void analyze()}>Analisar nomes</button>
-    </fieldset>
-    {rows.length > 0 && <>
-      <p role="status">{rows.length} linhas analisadas. {pending} prontas ou com tentativa pendente. Revise a lista antes de confirmar.</p>
-      <div style={{ maxHeight: 360, overflow: 'auto' }}><ol>{rows.map(row => <li key={row.row}><strong>{row.name}</strong> — {labels[row.status] || row.status}{row.officialName && ` · Cadastro: ${row.officialName} · RA ${row.ra}`} {row.message && <p>{row.message}</p>}</li>)}</ol></div>
-      <p>Nomes ambíguos ou pendentes não serão emitidos. Use a busca individual para revisá-los. Duplicatas são ignoradas; documentos existentes são reutilizados.</p>
-      <fieldset disabled={busy}>
-        <label>Justificativa do lote<textarea minLength={10} maxLength={900} value={reason} onChange={e => setReason(e.target.value)} /></label>
-        <label><input type="checkbox" checked={confirmed} onChange={e => setConfirmed(e.target.checked)} />Conferi os alunos e confirmo que participaram deste evento, nesta data e horário.</label>
-        <button type="button" disabled={!confirmed || reason.trim().length < 10 || pending === 0} onClick={() => void issue()}>Confirmar e emitir {pending} certificado(s)</button>
+      if (document.visibilityState !== "hidden" && !batch.busy) {
+        try {
+          await refresh(
+            AbortSignal.any([abort.signal, AbortSignal.timeout(20000)]),
+          );
+          delay = 5000;
+        } catch {
+          delay = Math.min(delay * 2, 30000);
+        }
+      }
+      if (!abort.signal.aborted) timer = setTimeout(() => void tick(), delay);
+    };
+    timer = setTimeout(() => void tick(), delay);
+    return () => {
+      abort.abort();
+      clearTimeout(timer);
+    };
+  }, [event.id, hasDone, batch.busy, refresh]);
+  if (!draft)
+    return <p role="status">Preparando lista local… {storageError}</p>;
+  const otherLease =
+    !!draft.lease &&
+    draft.lease.owner !== store.tabId &&
+    draft.lease.until > clock;
+  const locked = busy || batch.busy || saving || otherLease;
+  const eventBlocked=['CANCELLED','SCHEDULED'].includes(event.status)||event.certificateEnabled===false;
+  const editable = (row: DraftRow) => !row.operationId;
+  const patch = (rowId: string, update: Partial<DraftRow>) =>
+    change((old) => ({
+      ...old,
+      rows: old.rows.map((row) =>
+        row.rowId === rowId ? { ...row, ...update } : row,
+      ),
+    }));
+  const add = async () => {
+    const names = notes
+      .split(/\r?\n/)
+      .map((name) => name.trim())
+      .filter(Boolean);
+    if (
+      !names.length ||
+      names.some((name) => name.length < 3 || name.length > 160)
+    )
+      throw new Error(
+        "Informe nomes completos, um por linha, com 3 a 160 caracteres.",
+      );
+    if (draft.rows.length + names.length > 1000)
+      throw new Error("Limite de 1.000 nomes por lista.");
+    await change((old) => ({
+      ...old,
+      rows: [
+        ...old.rows,
+        ...names.map((rawName) => ({
+          rowId: crypto.randomUUID(),
+          rawName,
+          status: "DRAFT",
+        })),
+      ],
+    }));
+    setNotes("");
+    setConfirmed(false);
+  };
+  const analyze = async () => {
+    if (analyzing.current) return;
+    analyzing.current = true;
+    setBusy(true);
+    setConfirmed(false);
+    setError("");
+    controller.current = new AbortController();
+    try {
+      const latest = store.current()!;
+      const pending = latest.rows.filter((row) => !row.operationId);
+      if (!pending.length) return;
+      const payload = exportDraft({ ...latest, rows: pending }, "json");
+      const body = new FormData();
+      body.append(
+        "file",
+        new File([payload], "participantes.json", { type: "application/json" }),
+      );
+      const response = await apiRequest<{ items: Analyzed[] }>(
+        `/event-management/events/${event.id}/participant-file`,
+        {
+          method: "POST",
+          body,
+          signal: AbortSignal.any([
+            controller.current.signal,
+            AbortSignal.timeout(30000),
+          ]),
+        },
+      );
+      if (!alive.current) return;
+      await change((old) => ({
+        ...old,
+        rows: old.rows.map((row) => {
+          const index = pending.findIndex((item) => item.rowId === row.rowId);
+          if (index < 0) return row;
+          const found = response.items[index];
+          if (!found) throw new Error("Resposta de análise incompleta.");
+          return {
+            ...row,
+            status: row.review ? "REVIEW" : found.status,
+            ra: found.ra,
+            accountId: found.accountId,
+            officialName: found.officialName,
+            selected: false,
+            error: undefined,
+          };
+        }),
+      }));
+      setConnected(true);
+      setNotice(
+        "Cadastros conferidos. Revise os nomes e selecione quem participou.",
+      );
+    } catch (e) {
+      if (alive.current)
+        setError(
+          e instanceof Error
+            ? e.message
+            : "Falha ao conferir. A lista local foi preservada.",
+        );
+    } finally {
+      analyzing.current = false;
+      if (alive.current) setBusy(false);
+    }
+  };
+  const importFile = async (file: File) => {
+    setBusy(true);
+    try {
+      const imported = await readParticipantDraftFile(file, event);
+      if (draft.rows.length + imported.length > 1000)
+        throw new Error("Limite de 1.000 nomes.");
+      await change((old) => ({
+        ...old,
+        rows: [
+          ...old.rows,
+          ...imported.map((row) => ({
+            ...row,
+            rowId: crypto.randomUUID(),
+            status: "DRAFT",
+          })),
+        ],
+      }));
+      setConfirmed(false);
+      setNotice("Arquivo salvo como rascunho. Ainda não houve emissão.");
+    } finally {
+      setBusy(false);
+    }
+  };
+  const reviewed = (selected: Candidate) => {
+    if (!review) return;
+    void run(async () => {
+      if (!["ativo", "em curso"].includes(selected.status.trim().toLowerCase()))
+        throw new Error("Aluno inativo. Confira o cadastro antes de emitir.");
+      await patch(review, {
+        accountId: selected.accountId,
+        ra: selected.ra,
+        officialName: selected.name,
+        status: "READY",
+        selected: false,
+        review: false,
+      });
+      setReview(null);
+      setCandidate(null);
+      setConfirmed(false);
+    });
+  };
+  const counts = new Map<string, number>();
+  for (const row of draft.rows)
+    counts.set(
+      normalize(row.rawName),
+      (counts.get(normalize(row.rawName)) ?? 0) + 1,
+    );
+  const repeated = draft.rows.some(
+    (row) => (counts.get(normalize(row.rawName)) ?? 0) > 1,
+  );
+  const selected = draft.rows.filter(
+    (row) =>
+      row.selected &&
+      ["READY", "ERROR", "IN_FLIGHT", "OUTCOME_UNKNOWN"].includes(row.status),
+  );
+  const duplicateAccounts =
+    new Set(selected.map((row) => row.accountId)).size !== selected.length;
+  const filtered = draft.rows.filter(
+    (row) =>
+      filter === "all" ||
+      (filter === "review"
+        ? !["READY", "DONE"].includes(row.status)
+        : row.status === filter),
+  );
+  const shown = filtered.slice(page * 25, page * 25 + 25);
+  return (
+    <div className="regularization-workspace">
+      <div className="regularization-event">
+        <strong>{event.title}</strong>
+        <span>
+          {formatEventDate(event.startsAt)} às {formatEventTime(event.startsAt)}{" "}
+          · Brasília
+        </span>
+        <span role="status">
+          {connected
+            ? "Rede disponível; a API será conferida ao consultar."
+            : "Sem conexão. Continue anotando nomes."}
+        </span>
+      </div>
+      <ol className="regularization-steps" aria-label="Etapas da regularização">
+        <li>1. Preparar lista</li>
+        <li>2. Conferir cadastros</li>
+        <li>3. Confirmar e acompanhar</li>
+      </ol>
+      <p role="status">
+        {notes.trim()
+          ? "Texto ainda não adicionado. Use Adicionar à lista para salvar estes nomes."
+          : otherLease
+            ? "Outra aba está processando esta lista. Aguarde e recarregue a versão salva."
+            : saving
+              ? "Salvando neste aparelho…"
+              : storageError
+                ? "Lista ainda não salva. Exporte uma cópia."
+                : draft.updatedAt
+                  ? `Salvo neste aparelho às ${new Date(draft.updatedAt).toLocaleTimeString("pt-BR")}`
+                  : "Preparando armazenamento…"}
+      </p>
+      {(storageError || error || batch.error) && (
+        <div role="alert" className="regularization-error">
+          {storageError || error || batch.error}
+          {storageError && (
+            <button
+              type="button"
+              disabled={locked}
+              onClick={() => void run(store.reload)}
+            >
+              Recarregar versão salva
+            </button>
+          )}
+        </div>
+      )}
+      {notice && <p role="status">{notice}</p>}
+      <fieldset disabled={locked}>
+        <legend>
+          {mode === "notes"
+            ? "Anotar participantes sem internet"
+            : "Importar lista de participantes"}
+        </legend>
+        {mode === "notes" ? (
+          <>
+            <label htmlFor="participant-notes">
+              Nomes completos, um por linha
+            </label>
+            <textarea
+              id="participant-notes"
+              rows={4}
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="Digite um nome ou cole vários nomes"
+              onKeyDown={(e) => {
+                if (
+                  e.key === "Enter" &&
+                  !e.shiftKey &&
+                  notes.trim() &&
+                  !notes.includes("\n")
+                ) {
+                  e.preventDefault();
+                  void run(add);
+                }
+              }}
+            />
+            <button
+              type="button"
+              disabled={!notes.trim()}
+              onClick={() => void run(add)}
+            >
+              Adicionar à lista
+            </button>
+            <p>
+              Enter adiciona um nome. Shift + Enter cria outra linha. Nenhuma
+              consulta ao banco acontece ao anotar.
+            </p>
+          </>
+        ) : (
+          <>
+            <div className="regularization-actions">
+              {(["json", "csv"] as const).map((format) => (
+                <button
+                  type="button"
+                  key={format}
+                  onClick={() =>
+                    download(
+                      participantFileTemplate(event, format),
+                      `modelo-${event.id}.${format}`,
+                      format === "json" ? "application/json" : "text/csv",
+                    )
+                  }
+                >
+                  Baixar modelo {format.toUpperCase()}
+                </button>
+              ))}
+            </div>
+            <label>
+              Arquivo de participantes
+              <input
+                type="file"
+                accept=".json,.csv"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) void run(() => importFile(file));
+                  e.target.value = "";
+                }}
+              />
+            </label>
+            <p>
+              JSON ou CSV UTF-8, até 2 MB e 1.000 nomes. Confirme o evento
+              acima: CSV não inclui o destino.
+            </p>
+          </>
+        )}
       </fieldset>
-    </>}
-    {busy && <p role="status">Processando. Mantenha esta página aberta até concluir.</p>}
-    {error && <p role="alert">{error}</p>}
-    <p>Após a confirmação, o PDF e o e-mail com link são processados pela rotina existente. Aceite do provedor não comprova recebimento na caixa postal.</p>
-  </section>;
+      <div className="regularization-actions">
+        <button
+          type="button"
+          disabled={busy || batch.busy || saving}
+          onClick={() => void run(store.reload)}
+        >
+          Recarregar lista salva
+        </button>
+        <button
+          type="button"
+          disabled={locked || eventBlocked || !draft.rows.length || !!storageError}
+          className="regularization-primary"
+          onClick={() => void analyze()}
+        >
+          Conferir cadastros
+        </button>
+        {(["json", "csv"] as const).map((format) => (
+          <button
+            key={format}
+            type="button"
+            disabled={!draft.rows.length}
+            onClick={() =>
+              download(
+                exportDraft(draft, format),
+                `participantes-${event.id}-${new Intl.DateTimeFormat('en-CA',{timeZone:'America/Sao_Paulo'}).format(new Date(event.startsAt))}.${format}`,
+                format === "json" ? "application/json" : "text/csv",
+              )
+            }
+          >
+            Exportar cópia {format.toUpperCase()}
+          </button>
+        ))}
+        <button
+          type="button"
+          disabled={
+            locked ||
+            !draft.rows.length ||
+            draft.rows.some((row) =>
+              ["IN_FLIGHT", "OUTCOME_UNKNOWN"].includes(row.status),
+            )
+          }
+          onClick={() => setClear(true)}
+        >
+          Limpar lista local
+        </button>
+      </div>
+      <button
+        type="button"
+        onClick={() =>
+          void run(async () => {
+            const persisted = await navigator.storage?.persist?.();
+            setNotice(
+              persisted
+                ? "Armazenamento persistente concedido. Mantenha uma cópia exportada."
+                : "O navegador não concedeu persistência. Exporte uma cópia para evitar perda de dados.",
+            );
+          })
+        }
+      >
+        Solicitar armazenamento persistente
+      </button>
+      {draft.updatedAt &&
+        Date.now() - Date.parse(draft.updatedAt) > 7 * 86400000 && (
+          <p>
+            Este rascunho tem mais de sete dias. Confira o prazo do evento e
+            exporte uma cópia antes de limpar.
+          </p>
+        )}
+      <p>
+        As cópias exportadas contêm nomes. Guarde em local confiável. Abra este
+        evento com internet antes da atividade; o navegador pode remover dados
+        locais.
+      </p>
+      {busy && (
+        <div role="status">
+          <LoadingComp />
+          Conferindo cadastros ou preparando arquivo. Nenhum certificado está
+          sendo emitido.
+        </div>
+      )}
+      {repeated && (
+        <p role="status">
+          Há nomes repetidos. Confira se são homônimos antes de remover ou
+          selecionar.
+        </p>
+      )}
+      <h3>Lista de participantes · {draft.rows.length}</h3>
+      <label>
+        Filtrar lista
+        <select
+          value={filter}
+          onChange={(e) => {
+            setFilter(e.target.value);
+            setPage(0);
+          }}
+        >
+          <option value="all">Todos</option>
+          <option value="READY">Localizados</option>
+          <option value="review">Precisam de revisão</option>
+          <option value="NOT_FOUND">Não encontrados</option>
+          <option value="DONE">Registrados</option>
+        </select>
+      </label>
+      {!draft.rows.length && (
+        <p>Nenhum nome anotado. Comece acima; a busca será feita depois.</p>
+      )}
+      <ul className="regularization-rows">
+        {shown.map((row) => (
+          <li key={row.rowId}>
+            <div>
+              <strong>{row.rawName}</strong>
+              <p>{labels[row.status] ?? row.status}</p>
+              {row.officialName && (
+                <p>
+                  Cadastro: {row.officialName} · RA {row.ra}
+                </p>
+              )}
+              {row.error && <p className="regularization-error">{row.error}</p>}
+              {row.status === "DONE" && (
+                <p>
+                  {pdfLabels[row.artifactState ?? ""] ?? "Consultando PDF"} ·{" "}
+                  {deliveryLabels[row.deliveryState ?? ""] ??
+                    "Consultando envio"}
+                </p>
+              )}
+            </div>
+            <div className="regularization-actions">
+              {row.status === "DONE" &&
+                row.artifactState === "READY" &&
+                row.certificateId && (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      void run(() =>
+                        openManagementPdf(
+                          `certificates/${row.certificateId}/pdf`,
+                        ),
+                      )
+                    }
+                  >
+                    Baixar certificado
+                  </button>
+                )}
+              {["READY", "ERROR", "OUTCOME_UNKNOWN", "IN_FLIGHT"].includes(
+                row.status,
+              ) && (
+                <label className="regularization-check">
+                  <input
+                    type="checkbox"
+                    disabled={locked}
+                    checked={!!row.selected}
+                    onChange={(e) => {
+                      setConfirmed(false);
+                      void run(() =>
+                        patch(row.rowId, { selected: e.target.checked }),
+                      );
+                    }}
+                  />
+                  Selecionar
+                </label>
+              )}
+              {row.status === "ERROR" && row.operationId && <button type="button" disabled={locked} onClick={()=>void run(async()=>{
+                setBusy(true);try{
+                  const result=await apiRequest<{items:{known:boolean}[]}>(`/event-management/events/${event.id}/manual-certificate-operations/status`,{method:'POST',body:JSON.stringify({operationIds:[row.operationId]}),signal:AbortSignal.timeout(20000)});
+                  if(result.items[0]?.known===true){await batch.refresh();return;}if(result.items[0]?.known!==false)throw new Error('Não foi possível confirmar o resultado. Preserve a chave e tente consultar novamente.');
+                  await patch(row.rowId,{status:'DRAFT',operationId:undefined,payload:undefined,accountId:undefined,ra:undefined,officialName:undefined,selected:false,error:undefined});setConfirmed(false);
+                }finally{setBusy(false)}
+              })}>Rever cadastro após falha</button>}
+              {editable(row) && (
+                <>
+                  <button
+                    type="button"
+                    disabled={locked}
+                    onClick={() => {
+                      setReview(row.rowId);
+                      setCandidate(null);
+                    }}
+                  >
+                    Conferir cadastro
+                  </button>
+                  <details>
+                    <summary>Corrigir nome anotado</summary>
+                    <label>
+                      Nome anotado
+                      <input
+                        defaultValue={row.rawName}
+                        maxLength={160}
+                        onBlur={(e) => {
+                          const rawName = e.target.value.trim();
+                          if (rawName === row.rawName) return;
+                          if (rawName.length < 3) {
+                            setError(
+                              "Nome deve ter pelo menos três caracteres.",
+                            );
+                            return;
+                          }
+                          setConfirmed(false);
+                          void run(() =>
+                            patch(row.rowId, {
+                              rawName,
+                              status: "DRAFT",
+                              accountId: undefined,
+                              ra: undefined,
+                              officialName: undefined,
+                              selected: false,
+                            }),
+                          );
+                        }}
+                      />
+                    </label>
+                  </details>
+                  <button
+                    type="button"
+                    disabled={locked}
+                    onClick={() => {
+                      setConfirmed(false);
+                      void run(() =>
+                        change((old) => ({
+                          ...old,
+                          rows: old.rows.filter(
+                            (item) => item.rowId !== row.rowId,
+                          ),
+                        })),
+                      );
+                    }}
+                  >
+                    Remover da lista
+                  </button>
+                </>
+              )}
+            </div>
+          </li>
+        ))}
+      </ul>
+      {filtered.length > 25 && (
+        <div className="regularization-actions">
+          <button
+            type="button"
+            disabled={!page}
+            onClick={() => setPage(page - 1)}
+          >
+            Página anterior
+          </button>
+          <span>
+            Página {page + 1} de {Math.ceil(filtered.length / 25)}
+          </span>
+          <button
+            type="button"
+            disabled={(page + 1) * 25 >= filtered.length}
+            onClick={() => setPage(page + 1)}
+          >
+            Próxima página
+          </button>
+        </div>
+      )}
+      {review && (
+        <section
+          className="regularization-review"
+          aria-label="Conferência de cadastro"
+        >
+          <h3>
+            Conferir {draft.rows.find((row) => row.rowId === review)?.rawName}
+          </h3>
+          <StudentLookup
+            key={review}
+            initialQuery={
+              draft.rows.find((row) => row.rowId === review)?.rawName
+            }
+            onSelect={setCandidate}
+          />
+          <div className="regularization-actions">
+            <button
+              type="button"
+              disabled={!candidate || locked}
+              onClick={() => candidate && reviewed(candidate)}
+            >
+              Usar este cadastro
+            </button>
+            <button type="button" onClick={() => setReview(null)}>
+              Fechar conferência
+            </button>
+          </div>
+        </section>
+      )}
+      <fieldset disabled={busy || batch.busy || otherLease || !!storageError}>
+        <legend>Confirmar participações</legend>
+        <p>
+          Destino: {event.title} · {formatEventDate(event.startsAt)} às{" "}
+          {formatEventTime(event.startsAt)}. {selected.length} selecionado(s).
+        </p>
+        <label>
+          Justificativa do lote
+          <textarea
+            maxLength={900}
+            minLength={10}
+            value={draft.reason}
+            onChange={(e) => {
+              setConfirmed(false);
+              const reason = e.target.value;
+              void run(() => change((old) => ({ ...old, reason })));
+            }}
+          />
+        </label>
+        <label className="regularization-check">
+          <input
+            type="checkbox"
+            checked={confirmed}
+            onChange={(e) => setConfirmed(e.target.checked)}
+          />
+          Conferi os cadastros e confirmo que participaram deste evento, nesta
+          data e horário.
+        </label>
+        {duplicateAccounts && (
+          <p role="alert">
+            O mesmo cadastro foi selecionado mais de uma vez. Desmarque a
+            duplicata.
+          </p>
+        )}
+        <button
+          type="button"
+          disabled={
+            saving ||
+            eventBlocked ||
+            !confirmed ||
+            draft.reason.trim().length < 10 ||
+            !selected.length ||
+            duplicateAccounts
+          }
+          onClick={() => {
+            setConfirmed(false);
+            void batch.run(true);
+          }}
+        >
+          Registrar participações e emitir {selected.length} certificado(s)
+        </button>
+      </fieldset>
+      {(batch.message || draft.rows.some((row) => row.operationId)) && (
+        <>
+          <CertificateBatchProgress
+            rows={draft.rows}
+            busy={batch.busy}
+            message={batch.message}
+            onPause={batch.pause}
+          />
+          <button
+            type="button"
+            disabled={locked}
+            onClick={() => void run(() => batch.refresh())}
+          >
+            Atualizar situação
+          </button>
+          <p>
+            Para retomar, selecione as pendências e confirme novamente. A chave
+            salva consulta o resultado antes de repetir a operação.
+          </p>
+        </>
+      )}
+      <MessageModal
+        visible={clear}
+        title="Limpar lista local?"
+        message="Confirme que exportou uma cópia. Isso remove apenas o rascunho deste aparelho; participações e certificados existentes são preservados."
+        tone="warning"
+        confirmText="Limpar lista"
+        cancelText="Voltar"
+        onCancel={() => setClear(false)}
+        onConfirm={() => {
+          setClear(false);
+          void run(() => change((old) => ({ ...old, rows: [], reason: "" })));
+        }}
+      />
+    </div>
+  );
 }
