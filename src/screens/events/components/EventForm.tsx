@@ -1,3 +1,4 @@
+import LocationActivationModal from './LocationActivationModal';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   FaBook,
@@ -56,7 +57,8 @@ export function EventForm({
   );
 
   // Visitantes e contexto
-  const [locationEnabled, setLocationEnabled] = useState(initialValue?.locationEnabled ?? true);
+  const [confirmLocationActivation, setConfirmLocationActivation] = useState(false);
+  const [locationEnabled, setLocationEnabled] = useState(initialValue?.locationEnabled ?? Boolean(initialValue?.geoPolicy));
   const [visitorsAllowed, setVisitorsAllowed] = useState(
     initialValue?.visitorsAllowed ?? false
   );
@@ -874,7 +876,8 @@ export function EventForm({
           </div>
         </div>
 
-        <label><input type="checkbox" checked={locationEnabled} onChange={e => setLocationEnabled(e.target.checked)} />Verificar geolocalização quando houver área configurada</label>
+        <label><input type="checkbox" checked={locationEnabled} onChange={e => e.target.checked ? setConfirmLocationActivation(true) : setLocationEnabled(false)} />Verificar geolocalização quando houver área configurada</label>
+        <LocationActivationModal visible={confirmLocationActivation} onCancel={() => setConfirmLocationActivation(false)} onConfirm={() => { setLocationEnabled(true); setConfirmLocationActivation(false); }} />
         {/* Seção: Localização e Presença Física (GPS via CEP) */}
         <div className={styles.sectionCard}>
           <div className={styles.sectionHeader}>

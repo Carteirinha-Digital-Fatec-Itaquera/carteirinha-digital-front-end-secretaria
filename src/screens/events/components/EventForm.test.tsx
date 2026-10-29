@@ -11,6 +11,12 @@ describe('EventForm component', () => {
     expect(screen.getByText('Término do Evento')).toBeDefined();
     expect(screen.getByText('Cálculo automático')).toBeDefined();
     expect(screen.getByRole('button', { name: 'Registrar' })).toBeDefined();
+    const gps = screen.getByLabelText('Verificar geolocalização quando houver área configurada');
+    expect(gps).not.toBeChecked();
+    fireEvent.click(gps);
+    expect(gps).not.toBeChecked();
+    fireEvent.click(screen.getByRole('button', { name: 'Manter desligada' }));
+    expect(gps).not.toBeChecked();
   });
 
   it('automatically calculates end time when start date, start time and workload are entered', async () => {

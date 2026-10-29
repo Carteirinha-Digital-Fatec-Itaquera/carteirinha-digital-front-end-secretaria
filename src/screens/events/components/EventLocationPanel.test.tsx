@@ -4,6 +4,18 @@ import EventLocationPanel from './EventLocationPanel';
 import { apiRequest } from '../../../api/config/apiRequest';
 import type { EventView } from '../../../domains/Event';
 vi.mock('../../../api/config/apiRequest', () => ({ apiRequest: vi.fn() }));
+it('keeps GPS disabled until activation is explicitly confirmed', () => {
+  render(<EventLocationPanel event={{ id: 'event', status: 'SCHEDULED', locationEnabled: false } as EventView} onSaved={vi.fn()} />);
+  const checkbox = screen.getByRole('checkbox');
+  expect(checkbox).not.toBeChecked();
+  fireEvent.click(checkbox);
+  expect(checkbox).not.toBeChecked();
+  fireEvent.click(screen.getByRole('button', { name: 'Manter desligada' }));
+  expect(checkbox).not.toBeChecked();
+  fireEvent.click(checkbox);
+  fireEvent.click(screen.getByRole('button', { name: 'Sim, ativar geolocalização' }));
+  expect(checkbox).toBeChecked();
+});
 it('requires a reason and explicitly disables GPS without clearing the configured area', async () => {
   vi.mocked(apiRequest).mockResolvedValue({});
   const saved = vi.fn();
