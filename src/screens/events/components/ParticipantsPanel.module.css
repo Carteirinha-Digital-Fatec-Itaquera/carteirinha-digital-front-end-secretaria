@@ -358,3 +358,14 @@
 .bulkConfirm { display: flex; align-items: flex-start; gap: 10px; line-height: 1.5; margin: 12px 0; }
 .bulkConfirm input { width: 20px; height: 20px; flex-shrink: 0; }
 .table input[type="checkbox"] { width: 24px; height: 24px; cursor: pointer; }
+
+.pagination { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; border-top: 1px solid #e3ebee; padding-top: 16px; }
+.pagination p, .selectionHint { margin: 0; color: #607580; font-size: 12px; line-height: 1.6; }
+.pagination nav { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.pagination nav > span { display: inline-flex; align-items: center; gap: 6px; }
+.pagination button { display: inline-flex; align-items: center; justify-content: center; min-width: 40px; min-height: 44px; padding: 8px; border: 1px solid #d4e0e4; border-radius: 8px; background: #fff; color: #005c6d; font: inherit; font-size: 13px; cursor: pointer; }
+.pagination button[aria-current="page"] { color: #fff; background: #005c6d; border-color: #005c6d; }
+.pagination button:hover:not(:disabled):not([aria-current="page"]) { background: #edf5f6; }
+.pagination button:disabled { opacity: .45; cursor: not-allowed; }
+.pageGap { color: #607580; }
+@media(max-width:600px) { .pagination { flex-direction: column; align-items: flex-start; }.pagination nav { gap: 4px; }.pagination nav > span { gap: 4px; } }

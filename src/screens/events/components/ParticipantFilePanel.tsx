@@ -14,9 +14,12 @@ import { useManualCertificateBatch } from "./useManualCertificateBatch";
 import CertificateBatchProgress from "./CertificateBatchProgress";
 import { pdfLabels, deliveryLabels } from "./certificateProcessingLabels";
 import StudentLookup, { type Candidate } from "./StudentLookup";
+import RegularizationDialog from "./RegularizationDialog";
+import { ClipboardList, Users, CheckCircle2, Settings2, CalendarDays, Wifi, WifiOff, ChevronDown } from 'lucide-react';
 import MessageModal from "../../../components/messageModal/MessageModal";
 import { LoadingComp } from "../../../components/loading/LoadingComp";
 import "./regularization.css";
+const selectableStatuses = new Set(['READY', 'ERROR', 'OUTCOME_UNKNOWN', 'IN_FLIGHT']);
 const labels: Record<string, string> = {
   DRAFT: "Aguardando conferência",
   READY: "Localizado e elegível",
@@ -71,6 +74,7 @@ export default function ParticipantFilePanel({
     store.tabId,
     onUpdated,
   );
+  const [expanded, setExpanded] = useState<{ rowId: string; panel: 'details' | 'actions' } | null>(null);
   const [clock, setClock] = useState(Date.now());
   const [notes, setNotes] = useState(""),
     [error, setError] = useState(""),
@@ -326,7 +330,7 @@ export default function ParticipantFilePanel({
   const selected = draft.rows.filter(
     (row) =>
       row.selected &&
-      ["READY", "ERROR", "IN_FLIGHT", "OUTCOME_UNKNOWN"].includes(row.status),
+      selectableStatuses.has(row.status),
   );
   const duplicateAccounts =
     new Set(selected.map((row) => row.accountId)).size !== selected.length;
@@ -337,28 +341,38 @@ export default function ParticipantFilePanel({
         ? !["READY", "DONE"].includes(row.status)
         : row.status === filter)),
   );
+  const selectableFiltered = filtered.filter(row => selectableStatuses.has(row.status));
+  const allFilteredSelected = selectableFiltered.length > 0 && selectableFiltered.every(row => row.selected);
+  const someFilteredSelected = selectableFiltered.some(row => row.selected);
+  const toggleFiltered = () => {
+    if (locked) return;
+    const ids = new Set(selectableFiltered.map(row => row.rowId));
+    setConfirmed(false);
+    void run(() => change(old => ({ ...old, rows: old.rows.map(row => ids.has(row.rowId) && selectableStatuses.has(row.status) ? { ...row, selected: !allFilteredSelected } : row) })));
+  };
   const currentPage = Math.min(page, Math.max(0, Math.ceil(filtered.length / 25) - 1));
   const shown = filtered.slice(currentPage * 25, currentPage * 25 + 25);
   return (
     <div className="regularization-workspace">
       <div className="regularization-event">
-        <strong>{event.title}</strong>
+        <CalendarDays size={20} aria-hidden="true" /><div><span className="regularization-eyebrow">Evento de destino</span><strong>{event.title}</strong>
         <span>
           {formatEventDate(event.startsAt)} às {formatEventTime(event.startsAt)}{" "}
           · Brasília
-        </span>
-        <span role="status">
+        </span></div>
+        <span role="status" className={`regularization-network ${!connected ? 'regularization-network--offline' : ''}`}>
+          {connected ? <Wifi size={15} aria-hidden="true" /> : <WifiOff size={15} aria-hidden="true" />}
           {connected
             ? "Rede disponível; a API será conferida ao consultar."
             : "Sem conexão. Continue anotando nomes."}
         </span>
       </div>
       <ol className="regularization-steps" aria-label="Etapas da regularização">
-        <li>1. Preparar lista</li>
-        <li>2. Conferir cadastros</li>
-        <li>3. Confirmar e acompanhar</li>
+        <li><span>1</span><div><strong>Preparar lista</strong><small>Anote ou importe os nomes</small></div></li>
+        <li><span>2</span><div><strong>Conferir cadastros</strong><small>Revise e selecione os alunos</small></div></li>
+        <li><span>3</span><div><strong>Confirmar e acompanhar</strong><small>Registre a participação e o envio</small></div></li>
       </ol>
-      <p role="status">
+      <p role="status" className="regularization-save-status">
         {notes.trim()
           ? "Texto ainda não adicionado. Use Adicionar à lista para salvar estes nomes."
           : otherLease
@@ -386,7 +400,7 @@ export default function ParticipantFilePanel({
         </div>
       )}
       {notice && <p role="status">{notice}</p>}
-      <fieldset disabled={locked}>
+      <fieldset disabled={locked} className="regularization-prepare">
         <legend>
           {mode === "notes"
             ? "Anotar participantes sem internet"
@@ -417,6 +431,7 @@ export default function ParticipantFilePanel({
             />
             <button
               type="button"
+              className="regularization-primary"
               disabled={!notes.trim()}
               onClick={() => void run(add)}
             >
@@ -465,21 +480,16 @@ export default function ParticipantFilePanel({
           </>
         )}
       </fieldset>
-      <div className="regularization-actions">
+      <div className="regularization-toolbar">
+        <button type="button" disabled={locked || eventBlocked || !draft.rows.length || !!storageError}
+          className="regularization-primary" onClick={() => void analyze()}><Users size={18} aria-hidden="true" />Conferir cadastros</button>
+        <details className="regularization-utilities"><summary><Settings2 size={17} aria-hidden="true" />Opções da lista e cópias</summary><div className="regularization-utility-content"><div className="regularization-actions">
         <button
           type="button"
           disabled={busy || batch.busy || saving}
           onClick={() => void run(store.reload)}
         >
           Recarregar lista salva
-        </button>
-        <button
-          type="button"
-          disabled={locked || eventBlocked || !draft.rows.length || !!storageError}
-          className="regularization-primary"
-          onClick={() => void analyze()}
-        >
-          Conferir cadastros
         </button>
         {(["json", "csv"] as const).map((format) => (
           <button
@@ -507,6 +517,7 @@ export default function ParticipantFilePanel({
             )
           }
           onClick={() => setClear(true)}
+          className="regularization-danger"
         >
           Limpar lista local
         </button>
@@ -538,6 +549,7 @@ export default function ParticipantFilePanel({
         evento com internet antes da atividade; o navegador pode remover dados
         locais.
       </p>
+      </div></details></div>
       {busy && (
         <div role="status">
           <LoadingComp />
@@ -551,7 +563,14 @@ export default function ParticipantFilePanel({
           selecionar.
         </p>
       )}
-      <h3>Lista de participantes · {draft.rows.length}</h3>
+      <section className="regularization-list-section" aria-label="Lista para regularização">
+      <div className="regularization-section-heading"><span className="regularization-section-icon"><ClipboardList size={21} aria-hidden="true" /></span><div><h3>Lista de participantes · {draft.rows.length}</h3><p>Confira as situações e selecione os cadastros que deseja regularizar.</p></div></div>
+      {!!draft.rows.length && <div className="regularization-metrics">
+        <div><strong>{draft.rows.filter(row => row.status === 'READY').length}</strong><span>Localizados</span></div>
+        <div><strong>{draft.rows.filter(row => !['READY', 'DONE'].includes(row.status)).length}</strong><span>Para conferir</span></div>
+        <div><strong>{selected.length}</strong><span>Selecionados</span></div>
+        <div><strong>{draft.rows.filter(row => row.status === 'DONE').length}</strong><span>Registrados</span></div>
+      </div>}
       <div className="participant-list-tools">
       <label>
         Buscar por nome
@@ -574,18 +593,24 @@ export default function ParticipantFilePanel({
         </select>
       </label>
       </div>
+      {!!draft.rows.length && <div className="participant-selection-toolbar">
+        <label className="regularization-check">
+          <input type="checkbox" checked={allFilteredSelected} disabled={locked || !selectableFiltered.length}
+            ref={node => { if (node) node.indeterminate = someFilteredSelected && !allFilteredSelected; }} onChange={toggleFiltered} />
+          Selecionar todos os disponíveis no filtro
+        </label>
+        <span>{selectableFiltered.length} disponível(is) · inclui todas as páginas do filtro</span>
+      </div>}
       <p role="status" className="participant-list-count">{filtered.length} de {draft.rows.length} participante(s) · {selected.length} selecionado(s) na lista completa</p>
       {!!draft.rows.length && !filtered.length && <p className="participant-list-empty">Nenhum participante corresponde à busca e ao filtro. Ajuste os critérios para continuar.</p>}
       {!draft.rows.length && (
-        <p>Nenhum nome anotado. Comece acima; a busca será feita depois.</p>
+        <div className="participant-list-empty"><Users size={30} aria-hidden="true" /><strong>Sua lista começa aqui</strong><p>Nenhum nome anotado. Comece acima; a busca será feita depois.</p></div>
       )}
       <ul className="regularization-rows">
         {shown.map((row) => (
           <li key={row.rowId}>
             <div className="participant-row-primary">
-              {["READY", "ERROR", "OUTCOME_UNKNOWN", "IN_FLIGHT"].includes(
-                row.status,
-              ) && (
+              {selectableStatuses.has(row.status) && (
                 <label className="regularization-check">
                   <input
                     type="checkbox"
@@ -598,7 +623,7 @@ export default function ParticipantFilePanel({
                       );
                     }}
                   />
-                  Selecionar
+                  <span className="participant-visually-hidden">Selecionar {row.rawName}</span>
                 </label>
               )}
             <div className="participant-row-identity">
@@ -608,10 +633,23 @@ export default function ParticipantFilePanel({
               <span className={`participant-row-status participant-row-status--${row.status.toLowerCase()}`}>{labels[row.status] ?? row.status}</span>
             </div>
             </div>
-            <div className="participant-row-secondary">
-            <details className="participant-row-details">
-              <summary>Detalhes<span className="participant-visually-hidden"> de {row.rawName}</span></summary>
-              <div className="participant-row-detail-content">
+            <div className="participant-row-secondary" onKeyDown={e => { if (e.key === 'Escape' && expanded?.rowId === row.rowId) { setExpanded(null); document.getElementById(`row-${expanded.panel}-${row.rowId}`)?.focus(); } }}>
+              <button type="button" className="participant-row-details" id={`row-details-${row.rowId}`}
+                aria-expanded={expanded?.rowId === row.rowId && expanded.panel === 'details'} aria-controls={`row-panel-${row.rowId}`}
+                onClick={() => setExpanded(current => current?.rowId === row.rowId && current.panel === 'details' ? null : { rowId: row.rowId, panel: 'details' })}>
+                Detalhes<span className="participant-visually-hidden"> de {row.rawName}</span><ChevronDown size={15} aria-hidden="true" />
+              </button>
+              {(editable(row) || (row.status === 'ERROR' && !!row.operationId) || (row.status === 'DONE' && row.artifactState === 'READY' && !!row.certificateId)) &&
+                <button type="button" className="participant-row-menu" id={`row-actions-${row.rowId}`}
+                  aria-expanded={expanded?.rowId === row.rowId && expanded.panel === 'actions'} aria-controls={`row-panel-${row.rowId}`}
+                  onClick={() => setExpanded(current => current?.rowId === row.rowId && current.panel === 'actions' ? null : { rowId: row.rowId, panel: 'actions' })}>
+                  Ações<span className="participant-visually-hidden"> de {row.rawName}</span><ChevronDown size={15} aria-hidden="true" />
+                </button>}
+            </div>
+            {expanded?.rowId === row.rowId && <div className="participant-row-expansion" id={`row-panel-${row.rowId}`} role="region"
+              aria-labelledby={`row-${expanded.panel}-${row.rowId}`}
+              onKeyDown={e => { if (e.key === 'Escape') { e.stopPropagation(); setExpanded(null); document.getElementById(`row-${expanded.panel}-${row.rowId}`)?.focus(); } }}>
+            {expanded.panel === 'details' ? <div className="participant-row-detail-content">
               {!row.officialName && !row.error && row.status !== "DONE" && <p>Cadastro ainda não vinculado. Use as ações para conferir ou corrigir este nome.</p> }
               {row.officialName && (
                 <p>
@@ -626,13 +664,7 @@ export default function ParticipantFilePanel({
                     "Consultando envio"}
                 </p>
               )}
-            </div>
-              </details>
-            {(editable(row) || (row.status === "ERROR" && !!row.operationId) ||
-              (row.status === "DONE" && row.artifactState === "READY" && !!row.certificateId)) && (
-            <details className="participant-row-menu" onKeyDown={(e) => { if (e.key === "Escape") { e.currentTarget.open = false; e.currentTarget.querySelector("summary")?.focus(); } }}>
-              <summary>Ações<span className="participant-visually-hidden"> de {row.rawName}</span></summary>
-            <div className="regularization-actions">
+            </div> : <div className="regularization-actions">
               {row.status === "DONE" &&
                 row.artifactState === "READY" &&
                 row.certificateId && (
@@ -664,6 +696,7 @@ export default function ParticipantFilePanel({
                     onClick={() => {
                       setReview(row.rowId);
                       setCandidate(null);
+                      setError('');
                     }}
                   >
                     Conferir cadastro
@@ -703,6 +736,7 @@ export default function ParticipantFilePanel({
                   <button
                     type="button"
                     disabled={locked}
+                    className="regularization-danger"
                     onClick={() => {
                       setConfirmed(false);
                       void run(() =>
@@ -719,10 +753,8 @@ export default function ParticipantFilePanel({
                   </button>
                 </>
               )}
-            </div>
-            </details>
-            )}
-            </div>
+            </div>}
+            </div>}
           </li>
         ))}
       </ul>
@@ -748,24 +780,21 @@ export default function ParticipantFilePanel({
         </div>
       )}
       {review && (
-        <section
-          className="regularization-review"
-          aria-label="Conferência de cadastro"
-        >
-          <h3>
-            Conferir {draft.rows.find((row) => row.rowId === review)?.rawName}
-          </h3>
+        <RegularizationDialog title="Conferência de cadastro" description={`Confira o cadastro de ${draft.rows.find((row) => row.rowId === review)?.rawName}. Selecione a conta que corresponde à pessoa da lista.`} onClose={() => setReview(null)}>
+          {error && <p role="alert" className="regularization-error">{error}</p>}
           <StudentLookup
+            inline
             key={review}
             initialQuery={
               draft.rows.find((row) => row.rowId === review)?.rawName
             }
             onSelect={setCandidate}
           />
-          <div className="regularization-actions">
+          <div className="regularization-dialog-footer">
             <button
               type="button"
               disabled={!candidate || locked}
+              className="regularization-primary"
               onClick={() => candidate && reviewed(candidate)}
             >
               Usar este cadastro
@@ -774,9 +803,10 @@ export default function ParticipantFilePanel({
               Fechar conferência
             </button>
           </div>
-        </section>
+        </RegularizationDialog>
       )}
-      <fieldset disabled={busy || batch.busy || otherLease || !!storageError}>
+      </section>
+      {!!draft.rows.length && <fieldset className="regularization-confirmation" disabled={busy || batch.busy || otherLease || !!storageError}>
         <legend>Confirmar participações</legend>
         <p>
           Destino: {event.title} · {formatEventDate(event.startsAt)} às{" "}
@@ -812,6 +842,7 @@ export default function ParticipantFilePanel({
         )}
         <button
           type="button"
+          className="regularization-primary"
           disabled={
             saving ||
             eventBlocked ||
@@ -825,9 +856,9 @@ export default function ParticipantFilePanel({
             void batch.run(true);
           }}
         >
-          Registrar participações e emitir {selected.length} certificado(s)
+          <CheckCircle2 size={18} aria-hidden="true" />Registrar participações e emitir {selected.length} certificado(s)
         </button>
-      </fieldset>
+      </fieldset>}
       {(batch.message || draft.rows.some((row) => row.operationId)) && (
         <>
           <CertificateBatchProgress
