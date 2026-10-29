@@ -1,3 +1,4 @@
+import SupportScreen from './screens/support/SupportScreen';
 import { useEffect } from 'react';
 import { checkSession, watchSessionLifecycle } from './api/auth/session';
 import { BrowserRouter, Routes, Route, Navigate, useLocation, useParams } from "react-router-dom";
@@ -48,6 +49,8 @@ export default function App() {
         <Route path="/code/:email" element={<SecurityCodeScreen />} />
         <Route path="/password/:email/:code" element={<NewPasswordScreen />} />
         <Route element={<RequireSecretarySession />}>
+        <Route path="/suporte" element={<SupportScreen />} />
+        <Route path="/suporte/:id" element={<SupportScreen />} />
         <Route path="/students" element={<ListStudentScreen />} />
         <Route path="/register" element={<RegisterStudentScreen />} />
         <Route path="/update/:ra" element={<UpdateStudentScreen />} />
