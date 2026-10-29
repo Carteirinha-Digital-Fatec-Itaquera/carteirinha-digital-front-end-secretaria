@@ -1,0 +1,68 @@
+.attendance-print-paper { display:none; }
+.attendance-print-root dialog { max-width:850px; }
+.attendance-print-controls { color:#253e49; margin-bottom:24px; }
+.attendance-print-controls h2 { margin:0 0 12px; }
+.attendance-print-controls p { line-height:1.5; }
+.attendance-print-controls [role=note] { border-left:3px solid #795210; background:#fff8e8; padding:12px; }
+.attendance-print-controls button { min-height:44px; padding:10px 16px; margin:0 12px 12px 0; border:1px solid #005c6d; border-radius:8px; color:#005c6d; background:#fff; font:inherit; cursor:pointer; }
+.attendance-print-controls button:first-child { background:#005c6d; color:#fff; }
+.attendance-print-controls button:disabled { opacity:.5; cursor:wait; }
+.attendance-print-hint { font-size:.875rem; }
+.attendance-poster { width:100%; min-height:900px; border:3px solid #ba1a1a; outline:1px solid #d9d9d9; outline-offset:-8px; padding:28px; display:grid; gap:20px; grid-template-rows:auto auto auto 1fr auto; background:#fff; color:#202124; font-family:Arial,Helvetica,sans-serif; overflow-wrap:anywhere; }
+.attendance-poster * { box-sizing:border-box; }
+.attendance-poster-header { display:flex; align-items:center; justify-content:space-between; gap:16px; border-bottom:1px solid #d9d9d9; padding-bottom:16px; }
+.attendance-poster-header img { width:125px; height:58px; object-fit:contain; }
+.attendance-poster-header img:last-child { width:85px; }
+.attendance-poster-header div { text-align:center; font-size:11px; font-weight:700; }
+.attendance-poster-header span { display:block; color:#5f6368; font-size:10px; font-weight:400; margin-top:6px; }
+.attendance-poster-title { text-align:center; }
+.attendance-poster-title p { color:#ba1a1a; font-size:12px; font-weight:700; letter-spacing:1.4px; margin:0 0 10px; }
+.attendance-poster-title h1 { color:#202124; font-size:26px; line-height:1.2; margin:0; }
+.attendance-poster-details { display:grid; grid-template-columns:1fr 1fr; gap:14px 24px; margin:0; padding:16px; background:#f7f7f7; border:1px solid #d9d9d9; }
+.attendance-poster-details dt { color:#5f6368; font-size:11px; margin-bottom:4px; }
+.attendance-poster-details dd { margin:0; font-size:14px; font-weight:600; line-height:1.35; }
+.attendance-poster-location { grid-column:1/-1; }
+.attendance-poster-code { text-align:center; align-self:center; }
+.attendance-poster-code h2 { color:#ba1a1a; font-size:21px; margin:0 0 12px; }
+.attendance-poster-code svg { display:block; width:min(100%,340px); height:auto; margin:0 auto 12px; background:white; }
+.attendance-poster-code p { font-size:13px; line-height:1.35; margin:5px 0; }
+.attendance-poster-footer { text-align:center; border-top:1px solid #d9d9d9; padding-top:12px; }
+.attendance-poster-footer p { font-size:10px; margin:5px 0; line-height:1.4; }
+.attendance-poster-footer a { font-size:9px; color:#202124; text-decoration:none; overflow-wrap:anywhere; }
+.attendance-poster-footer small { font-size:9px; color:#5f6368; }
+@media(max-width:600px) { .attendance-poster { padding:16px; min-height:0; gap:16px; } .attendance-poster-header { gap:8px; flex-wrap:wrap; } .attendance-poster-header div { order:3; width:100%; } .attendance-poster-title h1 { font-size:21px; } .attendance-poster-details { grid-template-columns:1fr; gap:10px; padding:12px; } }
+@media print {
+  body:has(.attendance-print-root) { margin:0!important; padding:0!important; min-height:0!important; background:#fff!important; }
+  body:has(.attendance-print-root) > :not(.attendance-print-root) { display:none!important; }
+  .attendance-print-root,.attendance-print-root dialog,.attendance-print-root dialog > div { position:static!important; display:block!important; width:auto!important; max-width:none!important; height:auto!important; min-height:0!important; max-height:none!important; overflow:visible!important; border:0!important; border-radius:0!important; margin:0!important; padding:0!important; box-shadow:none!important; background:#fff!important; }
+  .attendance-print-root dialog::backdrop { display:none!important; }
+  .attendance-print-controls { display:none!important; }
+  .attendance-poster { width:186mm; height:272mm; min-height:0; padding:8mm; gap:4mm; border:.7mm solid #ba1a1a; outline-offset:-2mm; break-inside:avoid; print-color-adjust:exact; -webkit-print-color-adjust:exact; }
+  .attendance-poster-header { gap:4mm; padding-bottom:4mm; flex-wrap:nowrap; }
+  .attendance-poster-header img { width:34mm; height:17mm; }
+  .attendance-poster-header img:last-child { width:24mm; }
+  .attendance-poster-header div { order:initial; width:auto; font-size:8pt; }
+  .attendance-poster-header span { font-size:7pt; }
+  .attendance-poster-title h1 { font-size:18pt; line-height:1.16; }
+  .attendance-poster-title p { font-size:8pt; margin-bottom:3mm; }
+  .attendance-poster-details { grid-template-columns:1fr 1fr; gap:3mm 6mm; padding:4mm; }
+  .attendance-poster-details dt { font-size:8pt; }
+  .attendance-poster-details dd { font-size:10pt; }
+  .attendance-poster-code h2 { font-size:16pt; margin-bottom:2mm; }
+  .attendance-poster-code svg { width:90mm; height:90mm; margin-bottom:2mm; }
+  .attendance-poster-code p { font-size:9pt; }
+  .attendance-poster-footer { padding-top:3mm; }
+  .attendance-poster-footer p { font-size:7pt; }
+  .attendance-poster-footer a,.attendance-poster-footer small { font-size:6.5pt; }
+}
+
+@media print {
+  .attendance-print-root dialog { display:none!important; }
+  .attendance-print-root .attendance-print-paper { display:block!important; }
+  .attendance-poster[data-compact="true"] { padding:7mm; gap:2mm; }
+  .attendance-poster[data-compact="true"] .attendance-poster-title h1 { font-size:14pt; }
+  .attendance-poster[data-compact="true"] .attendance-poster-details { padding:3mm; gap:2mm 5mm; }
+  .attendance-poster[data-compact="true"] .attendance-poster-details dd { font-size:9pt; }
+  .attendance-poster[data-compact="true"] .attendance-poster-code svg { width:80mm; height:80mm; }
+  .attendance-poster[data-compact="true"] .attendance-poster-code p { font-size:8pt; }
+}
