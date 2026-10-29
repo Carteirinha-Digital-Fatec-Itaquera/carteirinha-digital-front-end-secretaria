@@ -24,6 +24,7 @@ export interface CheckpointMutationResponse {
 }
 
 export interface AttendanceQrResponse {
+  permanent?: boolean;
   qrToken: string;
   qrUrl?: string;
   serverTime?: IsoDateTime;

@@ -57,6 +57,7 @@ describe('SecretariaGerenciarEventoScreen - QR Code & Projeção Telão', () => 
     vi.useFakeTimers({ shouldAdvanceTime: true });
 
     vi.spyOn(eventService, 'getEvent').mockResolvedValue(fakeEvent);
+    vi.spyOn(checkpointService, 'getPermanentAttendanceQr').mockResolvedValue({ qrToken: '', qrUrl: 'https://carteirinha-digital-front-end-aluno.vercel.app/p/ev_abcdefghijklmnopqrstuv', permanent: true, expiresAt: null, expiresInSeconds: null, checkpointVersion: 0 });
     vi.spyOn(useEventParticipantsHook, 'useEventParticipants').mockReturnValue({
       items: [],
       summary: null,
@@ -250,7 +251,7 @@ describe('SecretariaGerenciarEventoScreen - QR Code & Projeção Telão', () => 
     fireEvent(document, new Event('visibilitychange'));
     expect(getQrSpy).toHaveBeenCalledTimes(1);
     const refreshSpy = vi.spyOn(checkpointService, 'refreshCheckpointQr').mockResolvedValue({ qrToken: 'manual', qrUrl: `https://carteirinha-digital-front-end-aluno.vercel.app/p/${'manualRef'.padEnd(22, '0')}`, serverTime: new Date().toISOString(), expiresInSeconds: 900, expiresAt: new Date(Date.now() + 900000).toISOString(), checkpointVersion: 2 });
-    fireEvent.click(screen.getByRole('button', { name: /Renovar agora/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Atualizar QR/i }));
     await waitFor(() => expect(refreshSpy).toHaveBeenCalledTimes(1));
     expect(getQrSpy).toHaveBeenCalledTimes(1);
   });
@@ -670,6 +671,15 @@ describe('SecretariaGerenciarEventoScreen - QR Code & Projeção Telão', () => 
 
     expect(screen.getByRole('button', { name: /Reabrir Check-out/i })).toBeEnabled();
   });
+  it('loads the permanent poster before opening the final attendance checkpoint', async () => {
+    vi.mocked(eventService.getEvent).mockResolvedValue({ ...fakeEvent, attendanceMode: 'FINAL_ONLY', checkpoints: [{ ...fakeEvent.checkpoints[0], type: 'CHECK_OUT', isOpen: false, openedAt: null, closedAt: null }] });
+    render(<MemoryRouter initialEntries={['/eventos/evt-test-100/gerenciar']}><Routes><Route path="/eventos/:id/gerenciar" element={<SecretariaGerenciarEventoScreen />} /></Routes></MemoryRouter>);
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Imprimir cartaz de presença' })).toBeEnabled());
+    expect(screen.getByRole('button', { name: 'Modo Telão' })).toBeDisabled();
+    expect(screen.getByText('REGISTRO FECHADO')).toBeInTheDocument();
+    expect(checkpointService.getPermanentAttendanceQr).toHaveBeenCalledWith('evt-test-100', expect.objectContaining({ signal: expect.any(AbortSignal) }));
+  });
+
 });
 
 

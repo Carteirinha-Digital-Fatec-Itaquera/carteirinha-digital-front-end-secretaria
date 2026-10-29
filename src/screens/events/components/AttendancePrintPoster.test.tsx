@@ -33,4 +33,10 @@ describe('Cartaz institucional de presença',()=>{
   const {rerender}=render(<AttendancePrintPoster {...props} event={{...event,attendanceMode:'TWO_PHASE'}} checkpoint="check-in"/>);fireEvent.click(screen.getByRole('button',{name:'Imprimir cartaz de presença'}));expect(screen.getByRole('heading',{name:'Registre sua entrada'})).toBeInTheDocument();
   rerender(<AttendancePrintPoster {...props} qrUrl={null}/>);expect(screen.queryByRole('dialog')).toBeNull();expect(window.print).not.toHaveBeenCalled();
  });
+ it('allows a permanent event poster before checkpoint opening and explains reuse', async () => {
+  render(<AttendancePrintPoster {...props} permanent version={0} qrUrl={url.replace('/p/', '/p/ev_')} />);
+  fireEvent.click(screen.getByRole('button', { name: 'Imprimir cartaz de presença' }));
+  expect(screen.getByRole('note')).toHaveTextContent('fixo por evento');
+ });
+
 });
