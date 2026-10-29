@@ -37,4 +37,24 @@ describe('Atendimento de suporte', () => {
     await screen.findByRole('alert');
     expect(screen.getByLabelText('Resposta ao aluno')).toHaveValue('Resposta importante para preservar.');
   });
+  it('requires a reason and confirmation before cancelling an assigned request', async () => {
+    setup(); await screen.findByText('SUP-TESTE — Conferir cadastro');
+    const cancel=screen.getByRole('button',{name:'Cancelar solicitação'});
+    expect(cancel).toBeDisabled();
+    fireEvent.change(screen.getByLabelText('Motivo para cancelar ou excluir'),{target:{value:'Solicitação duplicada conferida.'}});
+    fireEvent.click(cancel);
+    expect(screen.getByRole('dialog',{name:'Cancelar solicitação?'})).toBeInTheDocument();
+    expect(apiRequest).not.toHaveBeenCalledWith('/support/admin/tickets/ticket/cancel',expect.anything());
+    fireEvent.click(screen.getByRole('button',{name:'Confirmar cancelamento'}));
+    await waitFor(()=>expect(apiRequest).toHaveBeenCalledWith('/support/admin/tickets/ticket/cancel',expect.objectContaining({body:expect.stringContaining('"confirmed":true')})));
+  });
+  it('does not delete when the operator dismisses confirmation', async () => {
+    setup(); await screen.findByText('SUP-TESTE — Conferir cadastro');
+    fireEvent.change(screen.getByLabelText('Motivo para cancelar ou excluir'),{target:{value:'Registro duplicado.'}});
+    fireEvent.click(screen.getByRole('button',{name:'Excluir solicitação'}));
+    expect(screen.getByRole('dialog',{name:'Excluir solicitação?'})).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button',{name:'Voltar'}));
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(apiRequest).not.toHaveBeenCalledWith('/support/admin/tickets/ticket/delete',expect.anything());
+  });
 });
