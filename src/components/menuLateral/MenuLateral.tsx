@@ -1,7 +1,8 @@
+import { apiRequest } from '../../api/config/apiRequest';
 import { logoutSession } from '../../api/auth/session';
 import { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { CloudArrowUpIcon, FilePlusIcon, SignOutIcon, UserCircleIcon, UserListIcon, SidebarSimpleIcon, CalendarIcon, CameraIcon, InfoIcon } from '@phosphor-icons/react';
+import { CloudArrowUpIcon, FilePlusIcon, SignOutIcon, UserCircleIcon, UserListIcon, SidebarSimpleIcon, CalendarIcon, CameraIcon, ChatCircleIcon, InfoIcon } from '@phosphor-icons/react';
 import MessageModal from '../messageModal/MessageModal';
 import styles from './style.module.css';
 import { getPendingPhotos } from '../../api/student/getPendingPhotos';
@@ -29,6 +30,21 @@ export default function MenuLateral({ pendingPhotoCount }: { pendingPhotoCount?:
    window.addEventListener('focus', refresh);
    return () => { active = false; window.removeEventListener('focus', refresh); };
  }, [location.pathname, pendingPhotoCount]);
+ const [supportCount, setSupportCount] = useState<number | null>(null);
+ useEffect(() => {
+   const controller = new AbortController();
+   let request = 0;
+   const refresh = async () => {
+     if (document.visibilityState === 'hidden') return;
+     const current = ++request;
+     try { const value = await apiRequest<{pending:number}>('/support/admin/summary', {signal:controller.signal}); if (!controller.signal.aborted && request === current) setSupportCount(value.pending); }
+     catch { if (!controller.signal.aborted && request === current) setSupportCount(null); }
+   };
+   void refresh();
+   const timer = window.setInterval(() => void refresh(), 60000);
+   window.addEventListener('focus', refresh); window.addEventListener('support:updated', refresh); document.addEventListener('visibilitychange', refresh);
+   return () => { controller.abort(); window.clearInterval(timer); window.removeEventListener('focus', refresh); window.removeEventListener('support:updated', refresh); document.removeEventListener('visibilitychange', refresh); };
+ }, []);
  const photoCount = pendingPhotoCount === undefined ? fetchedCount : pendingPhotoCount;
  const [collapsed, setCollapsed] = useState(() => window.innerWidth < 1200);
  const [mobile, setMobile] = useState(() => window.innerWidth < 768);
@@ -56,6 +72,7 @@ export default function MenuLateral({ pendingPhotoCount }: { pendingPhotoCount?:
    {path:'/register',label:'Registrar aluno',Icon:FilePlusIcon},
    {path:'/upload-alunos',label:'Importar alunos',Icon:CloudArrowUpIcon},
    {path:'/perfil',label:'Perfil',Icon:UserCircleIcon},
+   {path:'/suporte',label:'Suporte',Icon:ChatCircleIcon},
    {path:'/fotos',label:'Fotos pendentes',Icon:CameraIcon},
    {path:'/eventos',label:'Eventos',Icon:CalendarIcon},
    {path:'/creditos',label:'Sobre',Icon:InfoIcon},
@@ -69,11 +86,11 @@ export default function MenuLateral({ pendingPhotoCount }: { pendingPhotoCount?:
    {!narrow && <p className={styles.eyebrow}>Secretaria acadêmica</p>}
    <nav aria-label="Navegação principal" className={styles.navigation}>
     {items.map(({path,label,Icon}) => {
-      const active = location.pathname === path ||
+      const active = location.pathname === path || (path === '/suporte' && location.pathname.startsWith('/suporte/')) ||
         (path === '/students' && location.pathname.startsWith('/update')) ||
         (path === '/eventos' && (location.pathname.startsWith('/eventos') || location.pathname === '/criar-evento')) ||
         (path === '/creditos' && (location.pathname === '/creditos' || location.pathname.startsWith('/creditos/')));
-      const count = path === '/fotos' ? photoCount : null;
+      const count = path === '/fotos' ? photoCount : path === '/suporte' ? supportCount : null;
       const accessibleLabel = count && count > 0 ? `${label}: ${count} aguardando análise` : label;
       return <button key={path} type="button" title={accessibleLabel} aria-label={accessibleLabel} aria-current={active ? 'page' : undefined} className={styles.itemMenu + (active ? ' ' + styles.selected : '')} onKeyDown={event => { if (event.key === 'Enter') { event.preventDefault(); handleMenuClick(path); } }} onClick={() => handleMenuClick(path)}><Icon size={24} aria-hidden="true" />{!narrow && <span>{label}</span>}{count != null && count > 0 && <span className={styles.pendingBadge} aria-hidden="true">{count}</span>}</button>;
     })}

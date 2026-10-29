@@ -1,7 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import MenuLateral from './MenuLateral';
+vi.mock('../../api/config/apiRequest', () => ({ apiRequest: vi.fn().mockResolvedValue({ pending: 0 }) }));
 
 describe('Menu responsivo da Secretaria', () => {
   beforeEach(() => {
@@ -12,9 +13,9 @@ describe('Menu responsivo da Secretaria', () => {
   });
   afterEach(() => { cleanup(); Reflect.deleteProperty(HTMLDialogElement.prototype, 'showModal'); Reflect.deleteProperty(HTMLDialogElement.prototype, 'close'); vi.unstubAllGlobals(); localStorage.clear(); });
   const setup = () => render(<MemoryRouter initialEntries={['/students']}><MenuLateral pendingPhotoCount={null} /><Routes><Route path="/students" element={<h1>Alunos</h1>} /><Route path="/register" element={<h1>Cadastro</h1>} /><Route path="/login" element={<h1>Login</h1>} /></Routes></MemoryRouter>);
-  it('fecha o painel ao navegar sem remover a sessão', () => {
+  it('fecha o painel ao navegar sem remover a sessão', async () => {
     localStorage.setItem('token', 'existing-session');
-    setup();
+    await act(async () => { setup(); });
     fireEvent.click(screen.getByRole('button', { name: 'Abrir menu' }));
     expect(screen.getByRole('dialog')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Registrar aluno' }));
@@ -22,17 +23,17 @@ describe('Menu responsivo da Secretaria', () => {
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     expect(localStorage.getItem('token')).toBe('existing-session');
   });
-  it('fecha por Escape e mantém o botão de abertura disponível', () => {
-    setup();
+  it('fecha por Escape e mantém o botão de abertura disponível', async () => {
+    await act(async () => { setup(); });
     const trigger = screen.getByRole('button', { name: 'Abrir menu' });
     fireEvent.click(trigger);
     fireEvent(screen.getByRole('dialog'), new Event('cancel', { cancelable: true }));
     expect(trigger).toHaveAttribute('aria-expanded', 'false');
     expect(trigger).toHaveFocus();
   });
-  it('confirma o logout antes de encerrar a sessão', () => {
+  it('confirma o logout antes de encerrar a sessão', async () => {
     localStorage.setItem('token', 'existing-session');
-    setup();
+    await act(async () => { setup(); });
 
     fireEvent.click(screen.getByRole('button', { name: 'Abrir menu' }));
     fireEvent.click(screen.getByRole('button', { name: 'Deslogar' }));
