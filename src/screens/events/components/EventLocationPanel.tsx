@@ -1,3 +1,4 @@
+import SettingSwitch from '../../../components/settingSwitch/SettingSwitch';
 import LocationActivationModal from './LocationActivationModal';
 import { useRef, useState } from 'react';
 import type { EventView } from '../../../domains/Event';
@@ -27,7 +28,7 @@ export default function EventLocationPanel({ event, onSaved }: { event: EventVie
     <h2 id="event-location-heading">Verificação de geolocalização</h2>
     <p>Aplica-se a alunos e visitantes. Desligar dispensa o GPS e reduz a verificação de presença física; identidade, QR e confirmação continuam obrigatórios. A alteração fica auditada.</p>
     <fieldset disabled={busy || event.status === 'CANCELLED'} className={styles.form}>
-      <label className={styles.confirm}><input type="checkbox" checked={enabled} onChange={e => e.target.checked ? setConfirmActivation(true) : setEnabled(false)} />Exigir geolocalização neste evento</label>
+      <SettingSwitch label="Exigir geolocalização neste evento" checked={enabled} onChange={next => next ? setConfirmActivation(true) : setEnabled(false)} />
       {enabled && <div className={styles.grid}>
         <label>Latitude<input type="number" step="any" min="-90" max="90" value={latitude} onChange={e => setLatitude(e.target.value)} /></label>
         <label>Longitude<input type="number" step="any" min="-180" max="180" value={longitude} onChange={e => setLongitude(e.target.value)} /></label>

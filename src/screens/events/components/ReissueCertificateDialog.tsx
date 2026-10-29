@@ -1,3 +1,4 @@
+import SettingSwitch from '../../../components/settingSwitch/SettingSwitch';
 import { useEffect, useRef, useState } from 'react';
 import { management, openManagementPdf } from '../../../api/event/publicEventService';
 import styles from './ManualCertificatePanel.module.css';
@@ -44,7 +45,7 @@ export default function ReissueCertificateDialog({ certificateId, version, onClo
       <label>Curso corrigido (opcional)<input value={course} maxLength={120} onChange={e => setCourse(e.target.value)} /></label>
       <label>Justificativa<textarea rows={3} value={reason} maxLength={1000} onChange={e => setReason(e.target.value)} /></label>
       <p>Descreva o atendimento sem repetir o nome anterior.</p>
-      {kind === 'SOCIAL_NAME' && <label className={styles.confirm}><input type="checkbox" checked={save} onChange={e => setSave(e.target.checked)} />Salvar este nome social no cadastro para futuras emissões</label>}
+      {kind === 'SOCIAL_NAME' && <SettingSwitch label="Salvar este nome social no cadastro para futuras emissões" checked={save} onChange={setSave} />}
       <button type="button" disabled={!valid} onClick={() => void run(true)}>Conferir prévia sem validade</button>
       <label className={styles.confirm}><input type="checkbox" checked={confirmed} onChange={e => setConfirmed(e.target.checked)} />Conferi a pessoa e autorizo revogar a versão anterior e emitir a corrigida</label>
       <button type="button" style={{ background: '#b71923', borderColor: '#b71923' }} disabled={!valid || !confirmed} onClick={() => void run(false)}>Revogar anterior e reemitir</button>

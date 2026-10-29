@@ -1,3 +1,4 @@
+import SettingSwitch from '../../../components/settingSwitch/SettingSwitch';
 import LocationActivationModal from './LocationActivationModal';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import {
@@ -860,23 +861,14 @@ export function EventForm({
         {/* Seção: Comunidade e Visitantes */}
         <div className={styles.sectionCard}>
           <div className={styles.sectionHeader}>
-            <label className={styles.checkboxLabel}>
-              <input
-                type="checkbox"
-                name="visitorsAllowed"
-                className={styles.checkboxInput}
-                checked={visitorsAllowed}
-                onChange={(e) => setVisitorsAllowed(e.target.checked)}
-              />
-              Permitir visitantes
-            </label>
+            <SettingSwitch label="Permitir visitantes" name="visitorsAllowed" checked={visitorsAllowed} onChange={setVisitorsAllowed} />
             <p className={styles.sectionDescription}>
               Permite a participação de pessoas da comunidade externa sem necessidade de criar conta institucional prévia.
             </p>
           </div>
         </div>
 
-        <label><input type="checkbox" checked={locationEnabled} onChange={e => e.target.checked ? setConfirmLocationActivation(true) : setLocationEnabled(false)} />Verificar geolocalização quando houver área configurada</label>
+        <SettingSwitch label="Verificar geolocalização quando houver área configurada" checked={locationEnabled} onChange={enabled => enabled ? setConfirmLocationActivation(true) : setLocationEnabled(false)} />
         <LocationActivationModal visible={confirmLocationActivation} onCancel={() => setConfirmLocationActivation(false)} onConfirm={() => { setLocationEnabled(true); setConfirmLocationActivation(false); }} />
         {/* Seção: Localização e Presença Física (GPS via CEP) */}
         <div className={styles.sectionCard}>
@@ -1115,15 +1107,7 @@ export function EventForm({
 
         {/* Seção: Certificados */}
         <div className={styles.sectionCard}>
-          <label className={styles.checkboxLabel}>
-            <input
-              type="checkbox"
-              className={styles.checkboxInput}
-              checked={certificateEnabled}
-              onChange={(e) => setCertificateEnabled(e.target.checked)}
-            />
-            Habilitar emissão de certificados após check-out confirmado
-          </label>
+          <SettingSwitch label="Habilitar emissão de certificados após check-out confirmado" checked={certificateEnabled} onChange={setCertificateEnabled} />
 
           {certificateEnabled && (
             <>

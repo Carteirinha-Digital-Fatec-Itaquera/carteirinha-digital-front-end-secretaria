@@ -1,0 +1,16 @@
+.setting.setting { display:flex; flex-direction:row; align-items:center; gap:14px; min-height:44px; margin:12px 0; padding:4px 0; color:var(--app-color-text,#202f38); cursor:pointer; text-align:left; font:inherit; }
+.setting .control { position:relative; display:inline-flex; align-items:center; justify-content:center; flex:0 0 64px; width:64px; min-height:44px; }
+.setting .input { position:absolute; inset:0; width:64px; height:44px; min-height:44px; margin:0; padding:0; opacity:0; cursor:inherit; z-index:1; }
+.setting .track { display:block; width:64px; height:34px; border:1px solid transparent; border-radius:999px; background:var(--app-color-input-border,#7c9099); transition:background-color 180ms ease-out; }
+.setting .thumb { display:block; width:34px; height:26px; margin:3px; border-radius:999px; background:var(--app-color-surface,#fff); box-shadow:0 1px 3px #15364130; transform:translateX(0); transition:transform 180ms cubic-bezier(.2,.8,.2,1); }
+.setting .input:checked + .track { background:var(--app-color-primary,#005c6d); }
+.setting .input:checked + .track .thumb { transform:translateX(22px); }
+.setting .input:focus-visible + .track { outline:3px solid var(--app-color-primary,#005c6d); outline-offset:4px; }
+.setting .input:disabled { cursor:not-allowed; }
+.setting .input:disabled + .track { opacity:.5; }
+.setting .copy { display:grid; gap:3px; min-width:0; }
+.setting .title { font-weight:600; overflow-wrap:anywhere; }
+.setting .description,.setting .state { color:var(--app-color-muted,#52636b); font-size:.875rem; line-height:1.5; font-weight:400; }
+.setting .state { font-size:.8125rem; }
+@media (prefers-reduced-motion:reduce) { .setting .track,.setting .thumb { transition:none; } }
+@media (forced-colors:active) { .setting .track { background:Canvas; border-color:ButtonText; } .setting .thumb { background:ButtonText; box-shadow:none; } .setting .input:checked + .track { background:Highlight; } .setting .input:checked + .track .thumb { background:HighlightText; } .setting .input:focus-visible + .track { outline-color:Highlight; } }

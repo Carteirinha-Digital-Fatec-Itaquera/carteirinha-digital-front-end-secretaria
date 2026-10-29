@@ -41,6 +41,18 @@ describe('EventForm component', () => {
     });
   });
 
+  it('renders feature switches with their existing defaults and toggles dependent certificate fields',()=>{
+    render(<EventForm submitLabel="Registrar" onSubmit={vi.fn()}/>);
+    expect(screen.getAllByRole('switch')).toHaveLength(3);
+    const visitors=screen.getByRole('switch',{name:'Permitir visitantes'});
+    const certificates=screen.getByRole('switch',{name:'Habilitar emissão de certificados após check-out confirmado'});
+    expect(visitors).not.toBeChecked();expect(certificates).toBeChecked();
+    fireEvent.click(visitors);expect(visitors).toBeChecked();
+    expect(screen.getByLabelText('Curso organizador')).toBeInTheDocument();
+    fireEvent.click(certificates);expect(screen.queryByLabelText('Curso organizador')).toBeNull();
+    fireEvent.click(certificates);expect(screen.getByLabelText('Curso organizador')).toBeInTheDocument();
+  });
+
   it('switches to manual mode when user manually changes end date or time', async () => {
     render(<EventForm submitLabel="Registrar" onSubmit={vi.fn()} />);
 
