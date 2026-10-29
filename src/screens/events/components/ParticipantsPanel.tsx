@@ -1,4 +1,5 @@
 import ReusableParticipantExport from './ReusableParticipantExport';
+import ParticipantPagination from './ParticipantPagination';
 import ReissueCertificateDialog from './ReissueCertificateDialog';
 import { EllipsisVertical } from 'lucide-react';
 import { ManualCheckoutDialog } from './ManualCheckoutDialog';
@@ -41,6 +42,9 @@ export const ParticipantsPanel: React.FC<ParticipantsPanelProps> = ({
   const [reissue, setReissue] = useState<{ id: string; version: number } | null>(null);
   const [auditList, setAuditList] = useState<AuditEntry[]>([]);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [pagination, setPagination] = useState({ eventId, page: 0 });
+  const page = Math.min(pagination.eventId === eventId ? pagination.page : 0, Math.max(0, Math.ceil(items.length / 25) - 1));
+  const visibleItems = items.slice(page * 25, page * 25 + 25);
   const [bulkTargets, setBulkTargets] = useState<AttendanceView[] | null>(null);
   const pendingRows = items.filter(row => row.checkInAt && !row.checkOutAt && row.status === 'CHECKED_IN');
   const selectedRows = pendingRows.filter(row => selectedIds.includes(row.id));
@@ -355,7 +359,7 @@ export const ParticipantsPanel: React.FC<ParticipantsPanelProps> = ({
           Nenhum participante registrado até o momento.
         </div>
       ) : (
-        <div className={styles.tableWrapper}>
+        <><div className={styles.tableWrapper}>
           <table className={styles.table}>
             <thead>
               <tr>
@@ -370,7 +374,7 @@ export const ParticipantsPanel: React.FC<ParticipantsPanelProps> = ({
               </tr>
             </thead>
             <tbody>
-              {items.map((attendance) => {
+              {visibleItems.map((attendance) => {
                 const detail = participantsDetails.get(attendance.id);
                 const cert = detail?.certificate;
 
@@ -475,6 +479,9 @@ export const ParticipantsPanel: React.FC<ParticipantsPanelProps> = ({
             </tbody>
           </table>
         </div>
+        <ParticipantPagination total={items.length} page={page} onChange={next => setPagination({ eventId, page: next })} />
+        {eventId && items.length > 25 && <p className={styles.selectionHint}>A seleção de saídas pendentes inclui todas as páginas. {selectedRows.length} participante(s) selecionado(s).</p>}
+        </>
       )}
 
       {bulkTargets && eventId && <ManualCheckoutDialog eventId={eventId} attendances={bulkTargets.map(row => ({ id: row.id, name: row.studentName }))}

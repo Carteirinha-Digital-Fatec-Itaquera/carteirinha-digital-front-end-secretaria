@@ -15,10 +15,11 @@ import CertificateBatchProgress from "./CertificateBatchProgress";
 import { pdfLabels, deliveryLabels } from "./certificateProcessingLabels";
 import StudentLookup, { type Candidate } from "./StudentLookup";
 import RegularizationDialog from "./RegularizationDialog";
-import { ClipboardList, Users, CheckCircle2, Settings2, CalendarDays, Wifi, WifiOff } from 'lucide-react';
+import { ClipboardList, Users, CheckCircle2, Settings2, CalendarDays, Wifi, WifiOff, ChevronDown } from 'lucide-react';
 import MessageModal from "../../../components/messageModal/MessageModal";
 import { LoadingComp } from "../../../components/loading/LoadingComp";
 import "./regularization.css";
+const selectableStatuses = new Set(['READY', 'ERROR', 'OUTCOME_UNKNOWN', 'IN_FLIGHT']);
 const labels: Record<string, string> = {
   DRAFT: "Aguardando conferência",
   READY: "Localizado e elegível",
@@ -73,6 +74,7 @@ export default function ParticipantFilePanel({
     store.tabId,
     onUpdated,
   );
+  const [expanded, setExpanded] = useState<{ rowId: string; panel: 'details' | 'actions' } | null>(null);
   const [clock, setClock] = useState(Date.now());
   const [notes, setNotes] = useState(""),
     [error, setError] = useState(""),
@@ -328,7 +330,7 @@ export default function ParticipantFilePanel({
   const selected = draft.rows.filter(
     (row) =>
       row.selected &&
-      ["READY", "ERROR", "IN_FLIGHT", "OUTCOME_UNKNOWN"].includes(row.status),
+      selectableStatuses.has(row.status),
   );
   const duplicateAccounts =
     new Set(selected.map((row) => row.accountId)).size !== selected.length;
@@ -339,6 +341,15 @@ export default function ParticipantFilePanel({
         ? !["READY", "DONE"].includes(row.status)
         : row.status === filter)),
   );
+  const selectableFiltered = filtered.filter(row => selectableStatuses.has(row.status));
+  const allFilteredSelected = selectableFiltered.length > 0 && selectableFiltered.every(row => row.selected);
+  const someFilteredSelected = selectableFiltered.some(row => row.selected);
+  const toggleFiltered = () => {
+    if (locked) return;
+    const ids = new Set(selectableFiltered.map(row => row.rowId));
+    setConfirmed(false);
+    void run(() => change(old => ({ ...old, rows: old.rows.map(row => ids.has(row.rowId) && selectableStatuses.has(row.status) ? { ...row, selected: !allFilteredSelected } : row) })));
+  };
   const currentPage = Math.min(page, Math.max(0, Math.ceil(filtered.length / 25) - 1));
   const shown = filtered.slice(currentPage * 25, currentPage * 25 + 25);
   return (
@@ -582,6 +593,14 @@ export default function ParticipantFilePanel({
         </select>
       </label>
       </div>
+      {!!draft.rows.length && <div className="participant-selection-toolbar">
+        <label className="regularization-check">
+          <input type="checkbox" checked={allFilteredSelected} disabled={locked || !selectableFiltered.length}
+            ref={node => { if (node) node.indeterminate = someFilteredSelected && !allFilteredSelected; }} onChange={toggleFiltered} />
+          Selecionar todos os disponíveis no filtro
+        </label>
+        <span>{selectableFiltered.length} disponível(is) · inclui todas as páginas do filtro</span>
+      </div>}
       <p role="status" className="participant-list-count">{filtered.length} de {draft.rows.length} participante(s) · {selected.length} selecionado(s) na lista completa</p>
       {!!draft.rows.length && !filtered.length && <p className="participant-list-empty">Nenhum participante corresponde à busca e ao filtro. Ajuste os critérios para continuar.</p>}
       {!draft.rows.length && (
@@ -591,9 +610,7 @@ export default function ParticipantFilePanel({
         {shown.map((row) => (
           <li key={row.rowId}>
             <div className="participant-row-primary">
-              {["READY", "ERROR", "OUTCOME_UNKNOWN", "IN_FLIGHT"].includes(
-                row.status,
-              ) && (
+              {selectableStatuses.has(row.status) && (
                 <label className="regularization-check">
                   <input
                     type="checkbox"
@@ -616,10 +633,23 @@ export default function ParticipantFilePanel({
               <span className={`participant-row-status participant-row-status--${row.status.toLowerCase()}`}>{labels[row.status] ?? row.status}</span>
             </div>
             </div>
-            <div className="participant-row-secondary">
-            <details className="participant-row-details">
-              <summary>Detalhes<span className="participant-visually-hidden"> de {row.rawName}</span></summary>
-              <div className="participant-row-detail-content">
+            <div className="participant-row-secondary" onKeyDown={e => { if (e.key === 'Escape' && expanded?.rowId === row.rowId) { setExpanded(null); document.getElementById(`row-${expanded.panel}-${row.rowId}`)?.focus(); } }}>
+              <button type="button" className="participant-row-details" id={`row-details-${row.rowId}`}
+                aria-expanded={expanded?.rowId === row.rowId && expanded.panel === 'details'} aria-controls={`row-panel-${row.rowId}`}
+                onClick={() => setExpanded(current => current?.rowId === row.rowId && current.panel === 'details' ? null : { rowId: row.rowId, panel: 'details' })}>
+                Detalhes<span className="participant-visually-hidden"> de {row.rawName}</span><ChevronDown size={15} aria-hidden="true" />
+              </button>
+              {(editable(row) || (row.status === 'ERROR' && !!row.operationId) || (row.status === 'DONE' && row.artifactState === 'READY' && !!row.certificateId)) &&
+                <button type="button" className="participant-row-menu" id={`row-actions-${row.rowId}`}
+                  aria-expanded={expanded?.rowId === row.rowId && expanded.panel === 'actions'} aria-controls={`row-panel-${row.rowId}`}
+                  onClick={() => setExpanded(current => current?.rowId === row.rowId && current.panel === 'actions' ? null : { rowId: row.rowId, panel: 'actions' })}>
+                  Ações<span className="participant-visually-hidden"> de {row.rawName}</span><ChevronDown size={15} aria-hidden="true" />
+                </button>}
+            </div>
+            {expanded?.rowId === row.rowId && <div className="participant-row-expansion" id={`row-panel-${row.rowId}`} role="region"
+              aria-labelledby={`row-${expanded.panel}-${row.rowId}`}
+              onKeyDown={e => { if (e.key === 'Escape') { e.stopPropagation(); setExpanded(null); document.getElementById(`row-${expanded.panel}-${row.rowId}`)?.focus(); } }}>
+            {expanded.panel === 'details' ? <div className="participant-row-detail-content">
               {!row.officialName && !row.error && row.status !== "DONE" && <p>Cadastro ainda não vinculado. Use as ações para conferir ou corrigir este nome.</p> }
               {row.officialName && (
                 <p>
@@ -634,13 +664,7 @@ export default function ParticipantFilePanel({
                     "Consultando envio"}
                 </p>
               )}
-            </div>
-              </details>
-            {(editable(row) || (row.status === "ERROR" && !!row.operationId) ||
-              (row.status === "DONE" && row.artifactState === "READY" && !!row.certificateId)) && (
-            <details className="participant-row-menu" onKeyDown={(e) => { if (e.key === "Escape") { e.currentTarget.open = false; e.currentTarget.querySelector("summary")?.focus(); } }}>
-              <summary>Ações<span className="participant-visually-hidden"> de {row.rawName}</span></summary>
-            <div className="regularization-actions">
+            </div> : <div className="regularization-actions">
               {row.status === "DONE" &&
                 row.artifactState === "READY" &&
                 row.certificateId && (
@@ -729,10 +753,8 @@ export default function ParticipantFilePanel({
                   </button>
                 </>
               )}
-            </div>
-            </details>
-            )}
-            </div>
+            </div>}
+            </div>}
           </li>
         ))}
       </ul>

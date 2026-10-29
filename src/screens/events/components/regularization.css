@@ -66,14 +66,7 @@
 .participant-row-status--ambiguous, .participant-row-status--review, .participant-row-status--not_found { color: #8c641e; background: #fff8e8; }
 .regularization-workspace .participant-row-primary .regularization-check { margin: 0; min-width: 28px; min-height: 44px; align-items: center; }
 .participant-row-secondary { display: flex; align-items: flex-start; gap: 8px; justify-content: flex-end; }
-.participant-row-secondary details { min-width: 0; }
 .regularization-workspace summary { min-height: 44px; cursor: pointer; padding: 10px 0; box-sizing: border-box; }
-.regularization-workspace .participant-row-secondary summary { padding: 10px 12px; color: #005c6d; border: 1px solid #dce7ea; border-radius: 8px; font-size: 12px; background: #fff; }
-.participant-row-secondary summary:hover { background: #edf5f6; }
-.regularization-rows > li:has(.participant-row-secondary details[open]) { grid-template-columns: minmax(0,1fr); background: #f8fafb; padding: 16px; border-radius: 10px; }
-.participant-row-secondary:has(details[open]) { flex-wrap: wrap; justify-content: flex-start; width: 100%; }
-.participant-row-secondary details[open] { width: 100%; }
-.participant-row-secondary .regularization-actions { gap: 12px; margin: 12px 0 0; }
 .participant-row-detail-content { font-size: 13px; padding: 4px 12px; }
 .participant-row-detail-content p { margin: 8px 0; }
 .regularization-workspace .regularization-confirmation { background: #f5f9fa; margin-top: 24px; }
@@ -92,3 +85,15 @@
 @media(max-width:700px) { .regularization-event { flex-wrap: wrap; }.regularization-network { max-width: none; flex-basis: 100%; }.regularization-steps { grid-template-columns: 1fr; gap: 12px; }.regularization-steps small { display: none; }.regularization-workspace .regularization-save-status { text-align: left; }.regularization-list-section { padding: 18px 12px; }.regularization-metrics { grid-template-columns: repeat(2,minmax(0,1fr)); }.regularization-metrics > div { border-bottom: 1px solid #e1eaed; }.participant-list-tools { grid-template-columns: minmax(0,1fr); gap: 0; }.regularization-rows > li { grid-template-columns: minmax(0,1fr); }.participant-row-secondary { justify-content: flex-start; }.regularization-toolbar > button { width: 100%; }.regularization-utilities { flex-basis: 100%; }.regularization-utilities > summary { justify-content: flex-start; }.regularization-workspace fieldset { padding: 16px 12px; }.regularization-confirmation > button { width: 100%; }.regularization-dialog-footer button { flex: 1; } }
 .regularization-workspace .regularization-danger { color: #a11717; border-color: #eacac6; background: #fff; }
 .regularization-workspace .regularization-danger:hover:not(:disabled) { background: #fff3f1; border-color: #dba59e; }
+
+.participant-selection-toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 20px; padding: 12px 16px; margin-top: 12px; background: #f3f8f9; border: 1px solid #dce7ea; border-radius: 8px; }
+.regularization-workspace .participant-selection-toolbar label { margin: 0; align-items: center; font-size: 13px; font-weight: 600; }
+.participant-selection-toolbar > span { font-size: 12px; color: #607580; }
+.regularization-workspace .participant-row-secondary button { padding: 8px 12px; font-size: 12px; min-height: 40px; }
+.participant-row-secondary button[aria-expanded="true"] { background: #edf5f6; border-color: #8eb3be; }
+.participant-row-secondary button[aria-expanded="true"] svg { transform: rotate(180deg); }
+.participant-row-expansion { grid-column: 1 / -1; padding: 16px; border: 1px solid #dce7ea; border-radius: 10px; background: #f7fafb; }
+.participant-row-expansion .regularization-actions { margin: 0; align-items: flex-start; }
+.participant-row-expansion .regularization-actions > details { flex: 1 1 220px; }
+.participant-row-expansion .regularization-actions > details > summary { padding: 8px 12px; border: 1px solid #cfdee3; border-radius: 8px; background: #fff; color: #005c6d; font-size: 13px; }
+@media(max-width:700px) { .participant-row-expansion { padding: 12px; }.participant-row-expansion .regularization-actions > button { width: 100%; } }

@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { ParticipantsPanel } from './ParticipantsPanel';
 import type { AttendanceView } from '../../../domains/Attendance';
@@ -175,4 +175,41 @@ describe('ParticipantsPanel Component', () => {
     expect(screen.getByText(/Motivo: "Aluno sem bateria no celular"/i)).toBeInTheDocument();
     expect(screen.getByText(/Check-in \(Entrada\) encerrado/i)).toBeInTheDocument();
   });
+  it('paginates 119 participants, supports direct navigation and clamps the page when records shrink', () => {
+    const items=Array.from({length:119},(_,i)=>({...fakeCheckedIn,id:`attendance-${i}`,studentName:`Participante ${i+1}`}));
+    const props={items,loading:false,refreshing:false,stale:false,error:null,lastUpdatedAt:null,onRefresh:vi.fn()};
+    const {rerender}=render(<ParticipantsPanel {...props}/>);
+    expect(screen.getAllByRole('row')).toHaveLength(26);
+    expect(screen.getByText('Participante 1')).toBeInTheDocument();
+    expect(screen.queryByText('Participante 26')).not.toBeInTheDocument();
+    expect(screen.getByRole('button',{name:'Página anterior de participantes'})).toBeDisabled();
+    fireEvent.click(screen.getByRole('button',{name:'Próxima página de participantes'}));
+    expect(screen.getByText('Participante 26')).toBeInTheDocument();
+    expect(screen.getByRole('button',{name:'Ir para página 2'})).toHaveAttribute('aria-current','page');
+    fireEvent.click(screen.getByRole('button',{name:'Ir para página 5'}));
+    expect(screen.getAllByRole('row')).toHaveLength(20);
+    expect(screen.getByText('Participante 119')).toBeInTheDocument();
+    expect(screen.getByRole('button',{name:'Próxima página de participantes'})).toBeDisabled();
+    rerender(<ParticipantsPanel {...props} items={items.slice(0,3)}/>);
+    expect(screen.getAllByRole('row')).toHaveLength(4);
+    expect(screen.getByText('Participante 1')).toBeInTheDocument();
+    expect(screen.queryByRole('navigation',{name:'Páginas da lista de presença'})).not.toBeInTheDocument();
+  });
+
+  it('preserves pending-exit selection across pages and selects the complete list', async () => {
+    vi.spyOn(publicEventService,'management').mockResolvedValue([]);
+    const items=Array.from({length:119},(_,i)=>({...fakeCheckedIn,id:`attendance-${i}`,studentName:`Participante ${i+1}`}));
+    await act(async () => { render(<ParticipantsPanel items={items} eventId="evt-1" loading={false} refreshing={false} stale={false} error={null} lastUpdatedAt={null} onRefresh={vi.fn()}/>); });
+    fireEvent.click(screen.getByLabelText('Selecionar Participante 1'));
+    fireEvent.click(screen.getByRole('button',{name:'Ir para página 5'}));
+    fireEvent.click(screen.getByLabelText('Selecionar Participante 119'));
+    expect(screen.getByRole('button',{name:'Confirmar saídas selecionadas (2)'})).toBeEnabled();
+    fireEvent.click(screen.getByRole('button',{name:'Ir para página 1'}));
+    expect(screen.getByLabelText('Selecionar Participante 1')).toBeChecked();
+    fireEvent.click(screen.getByLabelText('Selecionar todos com saída pendente'));
+    expect(screen.getByRole('button',{name:'Confirmar saídas selecionadas (119)'})).toBeEnabled();
+    fireEvent.click(screen.getByRole('button',{name:'Ir para página 5'}));
+    expect(screen.getByLabelText('Selecionar Participante 119')).toBeChecked();
+  });
+
 });
