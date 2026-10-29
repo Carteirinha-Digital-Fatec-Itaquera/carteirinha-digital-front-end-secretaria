@@ -6,7 +6,7 @@ import type { EventView } from '../../../domains/Event';
 vi.mock('../../../api/config/apiRequest', () => ({ apiRequest: vi.fn() }));
 it('keeps GPS disabled until activation is explicitly confirmed', () => {
   render(<EventLocationPanel event={{ id: 'event', status: 'SCHEDULED', locationEnabled: false } as EventView} onSaved={vi.fn()} />);
-  const checkbox = screen.getByRole('checkbox');
+  const checkbox = screen.getByRole('switch');
   expect(checkbox).not.toBeChecked();
   fireEvent.click(checkbox);
   expect(checkbox).not.toBeChecked();
@@ -22,7 +22,7 @@ it('requires a reason and explicitly disables GPS without clearing the configure
   render(<EventLocationPanel event={{ id: 'event', status: 'IN_PROGRESS', locationEnabled: true, geoPolicy: { latitude: -23, longitude: -46, radius: 150, maxAccuracy: 50 } } as EventView} onSaved={saved} />);
   const save = screen.getByRole('button', { name: 'Salvar verificação de localização' });
   expect(save).toBeDisabled();
-  fireEvent.click(screen.getByRole('checkbox'));
+  fireEvent.click(screen.getByRole('switch'));
   fireEvent.change(screen.getByLabelText('Justificativa da alteração'), { target: { value: 'Problema de infraestrutura no local' } });
   fireEvent.click(save);
   await waitFor(() => expect(saved).toHaveBeenCalled());
