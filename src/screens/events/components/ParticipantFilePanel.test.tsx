@@ -1,5 +1,5 @@
 import { it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import ParticipantFilePanel from './ParticipantFilePanel';
 import { apiRequest, ApiRequestError } from '../../../api/config/apiRequest';
 import { management } from '../../../api/event/publicEventService';
@@ -28,8 +28,8 @@ it('analyzes before approval and emits only eligible rows', async () => {
   expect(management).not.toHaveBeenCalled();
   expect(screen.getByRole('button', { name: /Registrar participações e emitir/ })).toBeDisabled();
   fireEvent.change(screen.getByLabelText('Justificativa do lote'), { target: { value: 'Participação conferida presencialmente' } });
-  await waitFor(()=>expect(screen.getByRole('checkbox',{name:'Selecionar'})).not.toBeDisabled());
-  fireEvent.click(screen.getByRole('checkbox',{name:'Selecionar'}));
+  await waitFor(()=>expect(screen.getByRole('checkbox',{name:/^Selecionar /})).not.toBeDisabled());
+  fireEvent.click(screen.getByRole('checkbox',{name:/^Selecionar /}));
   await waitFor(()=>expect(screen.getByLabelText(/Conferi os cadastros/)).not.toBeDisabled());
   fireEvent.click(screen.getByLabelText(/Conferi os cadastros/));
   fireEvent.click(screen.getByRole('button', { name: /Registrar participações e emitir/ }));
@@ -44,7 +44,7 @@ it('allows reviewing a rejected identity only after confirming there is no serve
  fireEvent.change(await screen.findByLabelText('Nomes completos, um por linha'),{target:{value:'Pessoa Teste'}});fireEvent.click(screen.getByRole('button',{name:'Adicionar à lista'}));
  await screen.findByText('Pessoa Teste');await waitFor(()=>expect(screen.getByRole('button',{name:'Conferir cadastros'})).not.toBeDisabled());fireEvent.click(screen.getByRole('button',{name:'Conferir cadastros'}));
  await screen.findByText('Localizado e elegível');fireEvent.change(screen.getByLabelText('Justificativa do lote'),{target:{value:'Conferência fictícia após falha de rede.'}});
- await waitFor(()=>expect(screen.getByRole('checkbox',{name:'Selecionar'})).not.toBeDisabled());fireEvent.click(screen.getByRole('checkbox',{name:'Selecionar'}));
+ await waitFor(()=>expect(screen.getByRole('checkbox',{name:/^Selecionar /})).not.toBeDisabled());fireEvent.click(screen.getByRole('checkbox',{name:/^Selecionar /}));
  await waitFor(()=>expect(screen.getByLabelText(/Conferi os cadastros/)).not.toBeDisabled());fireEvent.click(screen.getByLabelText(/Conferi os cadastros/));
  await waitFor(()=>expect(screen.getByRole('button',{name:/Registrar participações e emitir/})).not.toBeDisabled());fireEvent.click(screen.getByRole('button',{name:/Registrar participações e emitir/}));
  fireEvent.click(screen.getByText('Ações'));
@@ -64,14 +64,14 @@ it('searches names with accents, combines filters, paginates and preserves selec
   fireEvent.click(screen.getByRole('button',{name:'Conferir cadastros'}));
   fireEvent.change(screen.getByLabelText('Buscar por nome'),{target:{value:'agata'}});
   await screen.findByText('Localizado e eleg\u00edvel');
-  await waitFor(()=>expect(screen.getByRole('checkbox',{name:'Selecionar'})).not.toBeDisabled());
-  fireEvent.click(screen.getByRole('checkbox',{name:'Selecionar'}));
+  await waitFor(()=>expect(screen.getByRole('checkbox',{name:/^Selecionar /})).not.toBeDisabled());
+  fireEvent.click(screen.getByRole('checkbox',{name:/^Selecionar /}));
   await screen.findByText(/1 selecionado\(s\) na lista completa/);
   fireEvent.change(screen.getByLabelText('Filtrar lista'),{target:{value:'NOT_FOUND'}});
   expect(document.querySelectorAll('.regularization-rows > li')).toHaveLength(0);
   expect(screen.getByText(/Nenhum participante corresponde/)).toBeInTheDocument();
   fireEvent.change(screen.getByLabelText('Filtrar lista'),{target:{value:'all'}});
-  expect(screen.getByRole('checkbox',{name:'Selecionar'})).toBeChecked();
+  expect(screen.getByRole('checkbox',{name:/^Selecionar /})).toBeChecked();
 });
 
 it('keeps row actions collapsed, supports Escape, and resets identity after correction', async () => {
@@ -122,10 +122,49 @@ it('records the declared source event in the audited manual reason only after ap
  render(<ParticipantFilePanel event={{ id: 'evt', title: 'Destino', startsAt: '2026-10-26T18:00:00Z', endsAt: '2026-10-26T19:00:00Z' } as EventView} onUpdated={vi.fn()} />);
  await screen.findByText('Aluno Teste');
  expect(management).not.toHaveBeenCalled();
- await waitFor(() => expect(screen.getByRole('checkbox', { name: 'Selecionar' })).toBeEnabled());
- fireEvent.click(screen.getByRole('checkbox', { name: 'Selecionar' }));
+ await waitFor(() => expect(screen.getByRole('checkbox', { name: /^Selecionar / })).toBeEnabled());
+ fireEvent.click(screen.getByRole('checkbox', { name: /^Selecionar / }));
  await waitFor(() => expect(screen.getByLabelText(/Conferi os cadastros/)).toBeEnabled());
  fireEvent.click(screen.getByLabelText(/Conferi os cadastros/));
  fireEvent.click(screen.getByRole('button', { name: /Registrar participações e emitir/ }));
  await waitFor(() => expect(management).toHaveBeenCalledWith('events/evt/manual-certificates', expect.objectContaining({ reason: expect.stringContaining('Origem informada da lista: source-event') }), 'POST', expect.any(AbortSignal)));
+});
+
+
+it('reviews an ambiguous student in a dialog without issuing a certificate', async () => {
+  vi.mocked(management).mockClear();
+  vi.mocked(management).mockResolvedValue({total:1,items:[{accountId:'verified-account',ra:'002',name:'Pessoa Conferida',course:'DSM',status:'Ativo',email:'p***@test'}]});
+  render(<ParticipantFilePanel event={{id:'evt',title:'Evento teste',startsAt:'2026-10-26T18:00:00Z',endsAt:'2026-10-26T19:00:00Z'} as EventView} onUpdated={vi.fn()}/>);
+  fireEvent.change(await screen.findByLabelText('Nomes completos, um por linha'),{target:{value:'Pessoa anotada'}});
+  fireEvent.click(screen.getByRole('button',{name:'Adicionar à lista'}));
+  await screen.findByText('Pessoa anotada');
+  fireEvent.click(screen.getByText('Ações'));
+  await waitFor(()=>expect(screen.getByRole('button',{name:'Conferir cadastro'})).toBeEnabled());
+  fireEvent.click(screen.getByRole('button',{name:'Conferir cadastro'}));
+  const dialog=screen.getByRole('dialog',{name:'Conferência de cadastro'});
+  expect(within(dialog).getByRole('button',{name:'Usar este cadastro'})).toBeDisabled();
+  fireEvent.click(within(dialog).getByRole('button',{name:'Buscar aluno'}));
+  fireEvent.click(await within(dialog).findByRole('radio'));
+  fireEvent.click(within(dialog).getByRole('button',{name:'Usar este cadastro'}));
+  await waitFor(()=>expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+  expect(screen.getByText('Localizado e elegível')).toBeInTheDocument();
+  expect(screen.getByRole('checkbox',{name:'Selecionar Pessoa anotada'})).not.toBeChecked();
+  expect(vi.mocked(management).mock.calls.every(([path])=>path.startsWith('students/search'))).toBe(true);
+});
+
+it('keeps an ineligible identity error visible inside the review dialog', async () => {
+  vi.mocked(management).mockResolvedValue({total:1,items:[{accountId:'inactive',ra:'003',name:'Pessoa Inativa',course:'DSM',status:'Inativo',email:'p***@test'}]});
+  render(<ParticipantFilePanel event={{id:'evt',title:'Evento teste',startsAt:'2026-10-26T18:00:00Z',endsAt:'2026-10-26T19:00:00Z'} as EventView} onUpdated={vi.fn()}/>);
+  fireEvent.change(await screen.findByLabelText('Nomes completos, um por linha'),{target:{value:'Pessoa anotada'}});
+  fireEvent.click(screen.getByRole('button',{name:'Adicionar à lista'}));
+  await screen.findByText('Pessoa anotada');
+  fireEvent.click(screen.getByText('Ações'));
+  await waitFor(()=>expect(screen.getByRole('button',{name:'Conferir cadastro'})).toBeEnabled());
+  fireEvent.click(screen.getByRole('button',{name:'Conferir cadastro'}));
+  const dialog=screen.getByRole('dialog',{name:'Conferência de cadastro'});
+  fireEvent.click(within(dialog).getByRole('button',{name:'Buscar aluno'}));
+  fireEvent.click(await within(dialog).findByRole('radio'));
+  fireEvent.click(within(dialog).getByRole('button',{name:'Usar este cadastro'}));
+  expect(await within(dialog).findByRole('alert')).toHaveTextContent('Aluno inativo');
+  expect(dialog).toBeInTheDocument();
 });

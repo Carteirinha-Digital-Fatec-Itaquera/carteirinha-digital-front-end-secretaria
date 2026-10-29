@@ -1,0 +1,32 @@
+.lookup { text-align: left; min-width: 0; color: #253e49; }
+.lookup label { display: block; font-size: 14px; font-weight: 600; margin: 0 0 8px; }
+.lookup input[type="search"] { box-sizing: border-box; width: 100%; min-width: 0; min-height: 46px; padding: 12px 14px; border: 1px solid #b9cbd1; border-radius: 8px; color: #253e49; background: #fff; font: inherit; }
+.lookup button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 10px 16px; border: 1px solid #005c6d; border-radius: 8px; background: #005c6d; color: #fff; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
+.lookup button:hover:not(:disabled) { background: #004656; }
+.lookup button:disabled { opacity: .5; cursor: not-allowed; }
+.lookup button.secondary { background: #fff; border-color: #d4e0e4; color: #005c6d; }
+.lookup button.secondary:hover { background: #edf5f6; }
+.searchBar { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 10px; }
+.hint, .error { font-size: 13px; line-height: 1.6; margin: 12px 0; }
+.hint { color: #607580; }
+.error { color: #a11717; }
+.empty { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 32px 16px; border: 1px dashed #d4e0e4; border-radius: 12px; background: #f8fafb; text-align: center; }
+.empty svg { color: #7d969f; }
+.empty span { font-size: 13px; color: #607580; }
+.results { display: grid; gap: 8px; max-height: 350px; overflow-y: auto; padding: 3px; }
+.lookup .candidate { display: flex; align-items: center; gap: 12px; padding: 16px; margin: 0; border: 1px solid #dbe5e8; border-radius: 10px; background: #fff; cursor: pointer; }
+.lookup .candidate:hover { background: #f7fafb; border-color: #a1bec7; }
+.lookup .candidate.chosen { border-color: #005c6d; background: #edf7f8; box-shadow: 0 0 0 1px #005c6d; }
+.lookup .candidate input { width: 18px; height: 18px; min-height: 18px; flex: 0 0 18px; margin: 0; padding: 0; accent-color: #005c6d; }
+.identity { display: flex; flex-direction: column; gap: 5px; min-width: 0; flex: 1; overflow-wrap: anywhere; }
+.identity strong { font-size: 14px; font-weight: 600; }
+.identity > span { color: #607580; font-size: 12px; font-weight: 400; }
+.badge { flex-shrink: 0; font-size: 11px; font-weight: 600; padding: 4px 8px; border-radius: 6px; background: #eef2f4; color: #49616a; }
+.selection { display: flex; gap: 14px; align-items: center; padding: 18px; background: #f7fafb; border: 1px solid #dbe5e8; border-radius: 12px; margin: 8px 0 24px; }
+.avatar { display: grid; place-items: center; flex-shrink: 0; width: 44px; height: 44px; background: #e6f0f2; color: #005c6d; border-radius: 10px; }
+.footer { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 10px; padding-top: 20px; margin-top: 16px; border-top: 1px solid #e2eaed; }
+.lookup :focus-visible { outline: 3px solid #007e99; outline-offset: 3px; }
+.spin { animation: lookup-spin 1s linear infinite; }
+@keyframes lookup-spin { to { transform: rotate(360deg); } }
+@media(max-width:600px) { .selection { flex-wrap: wrap; padding: 14px; }.selection button { width: 100%; }.searchBar { grid-template-columns: 1fr; }.lookup .candidate { flex-wrap: wrap; padding: 12px; }.badge { margin-left: 30px; }.footer button { flex: 1; } }
+@media(prefers-reduced-motion:reduce) { .spin { animation: none; } }

@@ -1,5 +1,6 @@
 import { LoadingComp } from '../../../components/loading/LoadingComp';
 import { useRef, useState, type FormEvent } from 'react';
+import { ClipboardList, FileUp, UserRoundPlus, ChevronDown, ChevronUp, ShieldCheck } from 'lucide-react';
 import { management, openManagementPdf, type Participant } from '../../../api/event/publicEventService';
 import type { EventView } from '../../../domains/Event';
 import styles from './ManualCertificatePanel.module.css';
@@ -25,6 +26,11 @@ export function ManualCertificatePanel({ event, onUpdated }: { event: EventView;
   const [result, setResult] = useState<Result | null>(null);
   const locked = useRef(false);
   const blocked = event.status === 'CANCELLED' || event.status === 'SCHEDULED' || !event.certificateEnabled;
+  const methods = [
+    { value: 'notes', label: 'Anotar nomes', description: 'Monte uma lista, inclusive sem internet.', icon: ClipboardList },
+    { value: 'file', label: 'Importar JSON/CSV', description: 'Continue a partir de uma lista de arquivo.', icon: FileUp },
+    { value: 'individual', label: 'Adicionar uma pessoa', description: 'Regularize um aluno ou visitante.', icon: UserRoundPlus },
+  ] as const;
   async function run(action: () => Promise<void>) {
     if (locked.current) return;
     locked.current = true; setBusy(true); setError('');
@@ -59,17 +65,18 @@ export function ManualCertificatePanel({ event, onUpdated }: { event: EventView;
     setResult({ ...result, deliveryState: certificate.artifact.deliveryState, artifactState: certificate.artifact.state });
   }
   return <section className={styles.panel} aria-labelledby="manual-certificate-title">
-    <div className={styles.header}><div><h2 id="manual-certificate-title">Regularizar participantes</h2>
+    <div className={styles.header}><span className={styles.headerIcon}><ClipboardList size={24} aria-hidden="true" /></span><div className={styles.headerCopy}><h2 id="manual-certificate-title">Regularizar participantes</h2>
       <p>Regularize a participação de quem não conseguiu registrar presença pelo aplicativo.</p></div>
-      <button type="button" disabled={busy} onClick={() => setOpen(value => !value)} aria-expanded={open} aria-controls="manual-certificate-form">{open ? 'Recolher regularização' : 'Regularizar participantes'}</button>
+      <button type="button" disabled={busy} onClick={() => setOpen(value => !value)} aria-expanded={open} aria-controls="manual-certificate-form">{open ? 'Recolher regularização' : 'Regularizar participantes'}{open ? <ChevronUp size={18} aria-hidden="true" /> : <ChevronDown size={18} aria-hidden="true" />}</button>
     </div>
-    {open && <div id="manual-certificate-form">
+    {open && <div id="manual-certificate-form" className={styles.content}>
       {blocked ? <><p role="alert">A emissão está disponível apenas para eventos iniciados, não cancelados e com certificados habilitados. Você pode preparar e exportar a lista abaixo.</p><ParticipantFilePanel key={event.id} event={event} onUpdated={onUpdated}/></> : <>
 
-        <details><summary>Como funciona a regularização?</summary><p>Confira a participação antes de registrar. O sistema usa o certificado deste evento e envia um link por e-mail, sem anexar o PDF.</p></details>
-        <div className="regularization-actions" role="group" aria-label="Forma de preparar participantes">{([['notes','Anotar nomes'],['file','Importar JSON/CSV'],['individual','Adicionar uma pessoa']] as const).map(([value,label])=><button type="button" key={value} aria-pressed={mode===value} disabled={busy} onClick={()=>setMode(value)}>{label}</button>)}</div>
+        <div className={styles.introduction}><div><span className={styles.eyebrow}>Participação conferida pela secretaria</span><h3>Como deseja adicionar os participantes?</h3><p>Prepare os dados, confira os cadastros e confirme a participação antes de emitir.</p></div><details><summary>Como funciona a regularização?</summary><p>Confira a participação antes de registrar. O sistema usa o certificado deste evento e envia um link por e-mail, sem anexar o PDF.</p></details></div>
+        <div className={styles.methods} role="group" aria-label="Forma de preparar participantes">{methods.map(({value,label,description,icon:Icon})=><button type="button" key={value} aria-label={label} aria-pressed={mode===value} disabled={busy} onClick={()=>setMode(value)}><Icon size={22} aria-hidden="true" /><span><strong>{label}</strong><small>{description}</small></span><span className={styles.methodIndicator} aria-hidden="true" /></button>)}</div>
         <div hidden={mode==='individual'}><ParticipantFilePanel key={event.id} event={event} onUpdated={onUpdated} mode={mode==='file'?'file':'notes'}/></div>
-        <div hidden={mode!=='individual'}>
+        <div hidden={mode!=='individual'} className={styles.individual}>
+        <div className={styles.sectionHeading}><span className={styles.stepNumber}>1</span><div><h3>Identifique o participante</h3><p>Selecione um aluno cadastrado ou informe os dados de uma pessoa sem conta.</p></div></div>
         {busy&&<div role="status" aria-live="polite"><LoadingComp/>Aguardando confirmação do servidor. Não é necessário enviar novamente.</div>}
         <form onSubmit={e => void submit(e)} className={styles.form}>
           <fieldset disabled={busy}><legend>Identificação do participante</legend>
@@ -81,9 +88,10 @@ export function ManualCertificatePanel({ event, onUpdated }: { event: EventView;
               <label>Curso (opcional)<input name="course" maxLength={120} /></label>
               <p>Não cria conta nem senha. O destinatário acessará o certificado pelo CPF, durante o prazo de retenção do evento.</p>
             </div>}
+            <div className={styles.sectionHeading}><span className={styles.stepNumber}>2</span><div><h3>Confira e confirme a participação</h3><p>O registro será vinculado a {event.title}.</p></div></div>
             <label>Justificativa da regularização<textarea name="reason" required minLength={10} maxLength={1000} rows={3} placeholder="Descreva a falha e como a participação foi conferida." /></label>
             <label className={styles.confirm}><input name="confirmed" type="checkbox" required />Confirmo que esta pessoa participou desta atividade e conferi seus dados.</label>
-            <button type="submit">{busy ? 'Processando...' : 'Confirmar participação e enfileirar envio'}</button>
+            <div className={styles.submitBar}><span><ShieldCheck size={18} aria-hidden="true" />O envio será acompanhado após a confirmação.</span><button type="submit">{busy ? 'Processando...' : 'Confirmar participação e enfileirar envio'}</button></div>
           </fieldset>
         </form>
         {result && <div role="status" className={styles.result}>

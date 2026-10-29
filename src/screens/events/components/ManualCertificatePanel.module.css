@@ -1,22 +1,50 @@
-.panel { background: #fff; border: 1px solid #d7e2e6; border-radius: 12px; padding: 24px; margin-top: 24px; color: #253e49; }
-.header { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
-.header h2 { font-size: 1.25rem; margin: 0 0 8px; color: #005e6e; }
-.panel p { line-height: 1.6; }
-.panel button { min-height: 44px; padding: 10px 16px; border: 1px solid #005e6e; border-radius: 8px; background: #005e6e; color: #fff; font: inherit; cursor: pointer; }
-.panel button:disabled { opacity: .6; cursor: wait; }
+.panel { --regularization-primary: #005c6d; background: #fff; border: 1px solid #dbe5e8; border-radius: 14px; padding: 24px; margin-top: 24px; color: #253e49; text-align: left; box-shadow: 0 2px 8px #193d4906; }
+.header { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.headerIcon { display: grid; place-items: center; flex: 0 0 48px; height: 48px; background: #edf5f6; color: #005c6d; border-radius: 12px; }
+.headerCopy { flex: 1; min-width: 200px; }
+.header h2 { font-size: 20px; font-weight: 600; margin: 0 0 6px; color: #253e49; }
+.panel p { line-height: 1.65; font-size: 14px; }
+.header p { margin: 0; color: #657b85; }
+.panel button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 10px 16px; border: 1px solid #005c6d; border-radius: 8px; background: #005c6d; color: #fff; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
+.panel button:hover:not(:disabled) { background: #004656; }
+.panel button:disabled { opacity: .5; cursor: not-allowed; }
+.panel button svg { flex-shrink: 0; }
+.content { margin-top: 24px; padding-top: 24px; border-top: 1px solid #e3ebee; }
+.introduction { display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
+.eyebrow { display: block; color: #005c6d; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .07em; margin-bottom: 8px; }
+.introduction h3 { margin: 0 0 8px; font-size: 18px; font-weight: 600; }
+.introduction p { color: #657b85; margin: 0; }
+.introduction details { max-width: 360px; font-size: 13px; }
+.introduction summary { color: #005c6d; cursor: pointer; padding: 8px 0; }
+.methods { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 12px; margin: 24px 0; }
+.methods button { display: flex; align-items: flex-start; gap: 12px; background: #fff; color: #536d77; border-color: #dbe5e8; padding: 18px 16px; text-align: left; justify-content: flex-start; }
+.methods button:hover:not(:disabled) { background: #f7fafb; border-color: #8fb3bf; }
+.methods button[aria-pressed="true"] { border-color: #005c6d; background: #eef7f8; box-shadow: inset 0 0 0 1px #005c6d; color: #005c6d; }
+.methods strong { display: block; font-size: 14px; font-weight: 600; }
+.methods small { display: block; color: #657b85; line-height: 1.6; font-size: 12px; font-weight: 400; margin-top: 5px; }
+.methodIndicator { flex: 0 0 14px; height: 14px; border: 1px solid #bacdd4; border-radius: 50%; margin-left: auto; margin-top: 4px; }
+.methods button[aria-pressed="true"] .methodIndicator { background: #005c6d; border: 3px solid #eef7f8; outline: 1px solid #005c6d; }
+.individual { padding: 24px; border: 1px solid #dbe5e8; border-radius: 12px; }
+.sectionHeading { display: flex; gap: 12px; align-items: flex-start; margin: 4px 0 20px; }
+.sectionHeading h3 { font-size: 16px; font-weight: 600; margin: 0 0 6px; }
+.sectionHeading p { margin: 0; color: #657b85; font-size: 13px; }
+.stepNumber { display: grid; place-items: center; width: 28px; height: 28px; flex: 0 0 28px; background: #edf5f6; color: #005c6d; border-radius: 8px; font-size: 13px; font-weight: 600; }
 .form { margin-top: 20px; }
 .form fieldset { border: 0; padding: 0; min-width: 0; }
-.form legend { font-weight: 600; margin-bottom: 16px; }
-.form label { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; font-weight: 500; }
-.form input, .form select, .form textarea { box-sizing: border-box; width: 100%; min-height: 44px; padding: 12px; font: inherit; border: 1px solid #aabec7; border-radius: 8px; background: #fff; color: #253e49; }
-.grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 24px; }
+.form legend { font-size: 14px; font-weight: 600; margin-bottom: 16px; }
+.form label { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; font-size: 14px; font-weight: 500; }
+.form input, .form select, .form textarea { box-sizing: border-box; width: 100%; min-height: 44px; padding: 12px; font: inherit; border: 1px solid #b9cbd1; border-radius: 8px; background: #fff; color: #253e49; }
+.form textarea { resize: vertical; }
+.grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 0 24px; }
 .grid p { grid-column: 1 / -1; }
-.form .confirm { flex-direction: row; align-items: flex-start; }
-.form .confirm input { width: 20px; min-height: 20px; flex-shrink: 0; }
-.result { margin-top: 24px; padding: 16px; background: #eef8f7; border: 1px solid #96c7c1; border-radius: 8px; overflow-wrap: anywhere; }
+.form .confirm { flex-direction: row; align-items: flex-start; padding: 16px; background: #f7fafb; border: 1px solid #e1eaed; border-radius: 8px; line-height: 1.6; }
+.form .confirm input { width: 18px; min-height: 18px; flex: 0 0 18px; accent-color: #005c6d; margin-top: 3px; }
+.submitBar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; border-top: 1px solid #e3ebee; padding-top: 20px; }
+.submitBar > span { display: flex; gap: 8px; align-items: center; font-size: 12px; color: #657b85; }
+.result { margin-top: 24px; padding: 20px; background: #eef8f7; border: 1px solid #96c7c1; border-radius: 10px; overflow-wrap: anywhere; }
 .actions { display: flex; flex-wrap: wrap; gap: 12px; }
-.error { color: #a11717; }
+.error { color: #a11717; background: #fff3f1; border-radius: 8px; padding: 12px; }
 .panel :focus-visible { outline: 3px solid #007e99; outline-offset: 3px; }
-@media (max-width: 600px) { .panel { padding: 16px; } .grid { grid-template-columns: 1fr; } .panel button { width: 100%; } }
-
 .panel [hidden] { display: none; }
+@media(max-width:900px) { .methods { grid-template-columns: 1fr; }.methods button { align-items: center; }.methods small { margin-top: 2px; } }
+@media(max-width:600px) { .panel { padding: 18px 14px; }.headerCopy { min-width: 0; flex-basis: calc(100% - 64px); }.header > button { width: 100%; }.grid { grid-template-columns: 1fr; }.individual { padding: 18px 12px; }.submitBar button { width: 100%; } }
