@@ -8,8 +8,8 @@ import { validatedAttendanceQrUrl } from '../../../utils/attendanceQrLink';
 import { formatEventDate, formatEventTime, formatWorkload } from '../../../utils/eventPresentation';
 import './attendancePrint.css';
 
-type Props = { event: EventView; qrUrl: string | null; checkpoint: 'check-in' | 'check-out'; version: number; stable: boolean; disabled?: boolean };
-export default function AttendancePrintPoster({ event, qrUrl, checkpoint, version, stable, disabled }: Props) {
+type Props = { event: EventView; qrUrl: string | null; checkpoint: 'check-in' | 'check-out'; version: number; stable: boolean; permanent?: boolean; disabled?: boolean };
+export default function AttendancePrintPoster({ event, qrUrl, checkpoint, version, stable, permanent = false, disabled }: Props) {
   const [opened, setOpened] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -69,7 +69,7 @@ export default function AttendancePrintPoster({ event, qrUrl, checkpoint, versio
             <h2>{heading}</h2>
             <QRCodeSVG value={value} size={600} level="M" marginSize={4} bgColor="#ffffff" fgColor="#000000" title="Link de registro de presença deste evento" />
             <p>Abra a câmera do celular e aponte para o QR Code.</p>
-            <p>Escolha Aluno ou Visitante e siga as instruções até confirmar o registro.</p>
+            <p>{event.visitorsAllowed ? 'Escolha Aluno ou Visitante e siga as instruções até confirmar o registro.' : 'Entre com sua conta de aluno e siga as instruções até confirmar o registro.'}</p>
             {event.locationEnabled && <p>Permita a localização do navegador e mantenha o GPS ligado.</p>}
           </section>
           <footer className="attendance-poster-footer">
@@ -88,7 +88,7 @@ export default function AttendancePrintPoster({ event, qrUrl, checkpoint, versio
         <div className="attendance-print-controls">
           <h2>Cartaz de presença · A4</h2>
           <p>Imprima em tamanho real ou escolha Salvar como PDF. Desative os cabeçalhos e rodapés do navegador.</p>
-          <p role="note">Este cartaz usa o QR atual. Renovar o QR, encerrar ou reabrir esta etapa invalida a impressão anterior. Gere outro cartaz nesses casos.</p>
+          <p role="note">{permanent ? 'Este QR é fixo por evento. Pode ser impresso antecipadamente e continua igual ao fechar e reabrir a etapa. O registro só é aceito enquanto a etapa estiver aberta.' : 'Este cartaz usa o QR atual. Renovar o QR, encerrar ou reabrir esta etapa invalida a impressão anterior. Gere outro cartaz nesses casos.'}</p>
           {error && <p role="alert">{error}</p>}
           <div><button type="button" disabled={busy} onClick={() => void print()}>{busy ? 'Preparando impressão…' : 'Imprimir / Salvar como PDF'}</button><button type="button" disabled={busy} onClick={() => setOpened(false)}>Fechar prévia</button></div>
         </div>

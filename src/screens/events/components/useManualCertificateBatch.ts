@@ -163,7 +163,7 @@ export function useManualCertificateBatch(
             ra: row.ra,
             expectedAccountId: row.accountId,
             participationConfirmed: true,
-            reason: current()!.reason.trim(),
+            reason: current()!.reason.trim() + (row.sourceEventId ? `\nOrigem informada da lista: ${row.sourceEventId}` : ""),
           };
           await updateRow(row.rowId, {
             operationId: requestId,

@@ -44,8 +44,8 @@ export function validatedAttendanceQrUrl(
     return null;
   }
 
-  // Pathname deve ser estritamente /p/<base64url-22-chars>
-  const match = parsed.pathname.match(/^\/p\/([A-Za-z0-9_-]{22})$/);
+  // Pathname aceita referência legada ou referência permanente prefixada do evento.
+  const match = parsed.pathname.match(/^\/p\/((?:ev_)?[A-Za-z0-9_-]{22})$/);
   if (!match) {
     return null;
   }

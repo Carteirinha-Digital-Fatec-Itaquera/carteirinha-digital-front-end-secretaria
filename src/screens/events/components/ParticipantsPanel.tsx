@@ -1,3 +1,4 @@
+import ReusableParticipantExport from './ReusableParticipantExport';
 import ReissueCertificateDialog from './ReissueCertificateDialog';
 import { EllipsisVertical } from 'lucide-react';
 import { ManualCheckoutDialog } from './ManualCheckoutDialog';
@@ -279,6 +280,7 @@ export const ParticipantsPanel: React.FC<ParticipantsPanelProps> = ({
         </div>
 
         <div className={styles.actionsBar}>
+          {eventId && items.length > 0 && <ReusableParticipantExport items={items} eventId={eventId} />}
           {eventId && <button type="button" className={styles.refreshButton} disabled={!selectedRows.length || eventStatus === 'CANCELLED' || actionBusy || loading} onClick={() => setBulkTargets([...selectedRows])}>Confirmar saídas selecionadas ({selectedRows.length})</button>}
           {items.length > 0 && (
             <button

@@ -69,4 +69,10 @@ describe('validatedAttendanceQrUrl', () => {
     const devIpUrl = `${devIpOrigin}/p/${validRef}`;
     expect(validatedAttendanceQrUrl(devIpUrl, devIpOrigin)).toBe(devIpUrl);
   });
+  it('accepts permanent event references without accepting arbitrary longer tokens', () => {
+    const value = `${origin}/p/ev_${validRef}`;
+    expect(validatedAttendanceQrUrl(value, origin)).toBe(value);
+    expect(validatedAttendanceQrUrl(`${origin}/p/ev_x`, origin)).toBeNull();
+  });
+
 });

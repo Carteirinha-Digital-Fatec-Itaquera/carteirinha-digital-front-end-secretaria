@@ -274,7 +274,9 @@ export default function ParticipantFilePanel({
   const importFile = async (file: File) => {
     setBusy(true);
     try {
-      const imported = await readParticipantDraftFile(file, event);
+      const normalizeName = (name: string) => name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase().trim().replace(/\s+/g, ' ');
+      const existingNames = new Set(draft.rows.map(row => normalizeName(row.rawName)));
+      const imported = (await readParticipantDraftFile(file, event)).filter(row => !existingNames.has(normalizeName(row.rawName)));
       if (draft.rows.length + imported.length > 1000)
         throw new Error("Limite de 1.000 nomes.");
       await change((old) => ({
@@ -601,6 +603,8 @@ export default function ParticipantFilePanel({
               )}
             <div className="participant-row-identity">
               <strong>{row.rawName}</strong>
+              {row.sourceEventId && <span>Nome reaproveitado de outra palestra · confirme participação neste evento.</span>}
+              {row.sourceType === "visitante" && <span>Visitante na origem · confira individualmente antes de vincular a uma conta de aluno.</span>}
               <span className={`participant-row-status participant-row-status--${row.status.toLowerCase()}`}>{labels[row.status] ?? row.status}</span>
             </div>
             </div>

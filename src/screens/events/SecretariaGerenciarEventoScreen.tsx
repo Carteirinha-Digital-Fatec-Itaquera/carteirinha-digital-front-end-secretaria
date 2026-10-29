@@ -36,6 +36,7 @@ import {
   openCheckpoint,
   closeCheckpoint,
   getCheckpointQr,
+  getPermanentAttendanceQr,
   refreshCheckpointQr,
 } from "../../api/event/checkpointService";
 import type { EventView } from "../../domains/Event";
@@ -94,6 +95,7 @@ export default function SecretariaGerenciarEventoScreen() {
     qrUrl?: string;
     checkpointVersion: number;
     stable: boolean;
+    permanent?: boolean;
   } | null>(null);
   const [qrLoading, setQrLoading] = useState(false);
   const [qrError, setQrError] = useState<string | null>(null);
@@ -170,7 +172,7 @@ export default function SecretariaGerenciarEventoScreen() {
       } else if (checkOutCp?.isOpen) {
         setActiveCheckpoint("check-out");
       } else {
-        setActiveCheckpoint(null);
+        setActiveCheckpoint("check-out");
         setQrData(null);
       }
     } catch (err: unknown) {
@@ -210,9 +212,9 @@ export default function SecretariaGerenciarEventoScreen() {
 
         const cpType: CheckpointType =
           type === "check-in" ? "CHECK_IN" : "CHECK_OUT";
-        const response = await (refresh ? refreshCheckpointQr : getCheckpointQr)(id, cpType, {
-          signal: controller.signal,
-        });
+        const response = type === "check-out"
+          ? await getPermanentAttendanceQr(id, { signal: controller.signal })
+          : await (refresh ? refreshCheckpointQr : getCheckpointQr)(id, cpType, { signal: controller.signal });
 
         if (!isMountedRef.current) return;
 
@@ -238,7 +240,8 @@ export default function SecretariaGerenciarEventoScreen() {
           checkpoint: type,
           eventId: id,
           qrUrl: validUrl,
-          checkpointVersion: response.checkpointVersion,
+          checkpointVersion: response.checkpointVersion ?? 0,
+          permanent: response.permanent,
           stable: response.expiresAt === null && response.expiresInSeconds === null,
         });
       } catch (err: unknown) {
@@ -262,7 +265,7 @@ export default function SecretariaGerenciarEventoScreen() {
     [id]
   );
 
-  // O QR permanece estável até encerramento ou renovação manual.
+  // O endereço permanente é reutilizado mesmo após fechamento e reabertura.
   useEffect(() => {
     if (!activeCheckpoint) {
       setQrData(null);
@@ -382,6 +385,7 @@ export default function SecretariaGerenciarEventoScreen() {
     !isCancelled && checkOutStatus === "finished" &&
     Boolean(checkOutCp?.openedAt) && (finalOnly || checkInStatus !== "open");
 
+  const projectionOpen = activeCheckpoint === "check-in" ? !!checkInCp?.isOpen : !!checkOutCp?.isOpen;
   const qrValue = qrData?.qrUrl && qrData.checkpoint === activeCheckpoint && qrData.eventId === id
     ? validatedAttendanceQrUrl(qrData.qrUrl, GLOBAL_VAR.STUDENT_APP_URL)
     : null;
@@ -924,6 +928,7 @@ export default function SecretariaGerenciarEventoScreen() {
           {/* Projeção do QR Code em tempo real */}
           {activeCheckpoint && (
             <div className={styles.projectionCard}>
+              {activeCheckpoint === "check-out" && !checkOutCp?.isOpen && <p role="status">QR fixo deste evento. Você pode imprimir agora; o registro só será aceito após abrir a confirmação de presença.</p>}
               <div className={styles.projectionHeader}>
                 <div>
                   <span className={styles.projectionEyebrow}>PROJEÇÃO</span>
@@ -939,7 +944,7 @@ export default function SecretariaGerenciarEventoScreen() {
                 </div>
 
                 <div className={styles.projectionActions}>
-                  <AttendancePrintPoster event={event} checkpoint={activeCheckpoint} qrUrl={qrData?.checkpointVersion === (activeCheckpoint === 'check-in' ? checkInCp?.version : checkOutCp?.version) ? qrValue : null} version={qrData?.checkpointVersion ?? 0} stable={qrData?.stable ?? false} disabled={qrLoading || actionLoading || !(activeCheckpoint === 'check-in' ? checkInCp?.isOpen : checkOutCp?.isOpen)} />
+                  <AttendancePrintPoster event={event} checkpoint={activeCheckpoint} qrUrl={qrData?.permanent || qrData?.checkpointVersion === (activeCheckpoint === 'check-in' ? checkInCp?.version : checkOutCp?.version) ? qrValue : null} version={qrData?.checkpointVersion ?? 0} stable={qrData?.stable ?? false} permanent={qrData?.permanent} disabled={qrLoading || actionLoading || (!qrData?.permanent && !(activeCheckpoint === 'check-in' ? checkInCp?.isOpen : checkOutCp?.isOpen))} />
                   <button
                     type="button"
                     className={`${styles.pipButton} ${pip.isPipActive ? styles.pipButtonActive : ""}`}
@@ -950,6 +955,7 @@ export default function SecretariaGerenciarEventoScreen() {
                         : "Fixar QR Code flutuante sobre apresentações e slides"
                     }
                     aria-pressed={pip.isPipActive}
+                    disabled={!projectionOpen && !pip.isPipActive}
                   >
                     <PictureInPicture2 size={16} />
                     {pip.isPipActive ? "Fechar PiP" : "Fixar no Canto (PiP)"}
@@ -959,6 +965,7 @@ export default function SecretariaGerenciarEventoScreen() {
                     type="button"
                     className={styles.fullscreenButton}
                     onClick={toggleFullscreen}
+                    disabled={!projectionOpen}
                     title="Abrir em Tela Inteira / Telão"
                   >
                     <Maximize2 size={16} />
@@ -966,7 +973,7 @@ export default function SecretariaGerenciarEventoScreen() {
                   </button>
                   <div className={styles.liveIndicator}>
                     <span />
-                    AO VIVO
+                    {projectionOpen ? "AO VIVO" : "REGISTRO FECHADO"}
                   </div>
                 </div>
               </div>
@@ -1028,7 +1035,7 @@ export default function SecretariaGerenciarEventoScreen() {
                   </div>
 
                   <strong>Controle manual</strong>
-                  <p>QR válido até encerrar esta etapa ou renovar manualmente. Renovar invalida o código anterior.</p>
+                  <p>{qrData?.permanent ? 'QR fixo por evento. Fechar e reabrir não altera o cartaz; a presença só é aceita enquanto a etapa estiver aberta.' : 'QR válido até encerrar esta etapa ou renovar manualmente. Renovar invalida o código anterior.'}</p>
 
                   <button
                     type="button"
@@ -1040,7 +1047,7 @@ export default function SecretariaGerenciarEventoScreen() {
                       size={16}
                       className={qrLoading ? styles.spinning : ""}
                     />
-                    Renovar agora
+                    Atualizar QR
                   </button>
                 </div>
               </div>
@@ -1133,7 +1140,7 @@ export default function SecretariaGerenciarEventoScreen() {
               </div>
 
               <div className={styles.fullscreenBottomBar}>
-                <p>QR válido até encerramento ou renovação manual.</p>
+                <p>{qrData?.permanent ? 'QR fixo do evento. Confirmação disponível somente com a etapa aberta.' : 'QR válido até encerramento ou renovação manual.'}</p>
               </div>
             </div>
           )}

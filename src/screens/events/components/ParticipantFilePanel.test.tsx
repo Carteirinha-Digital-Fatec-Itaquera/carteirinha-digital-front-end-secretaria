@@ -114,3 +114,18 @@ it('only offers row actions when a command exists for persisted processing state
   expect(renderedRows.slice(5).every(row=>row.querySelector('.participant-row-menu'))).toBe(true);
   expect(document.querySelectorAll('.participant-row-menu')).toHaveLength(3);
 });
+
+it('records the declared source event in the audited manual reason only after approval', async () => {
+ vi.mocked(management).mockClear();
+ vi.mocked(loadDraft).mockResolvedValueOnce({ schemaVersion: 1, draftId: '123:evt', ownerSecretaryId: 123, eventId: 'evt', eventSnapshot: { title: 'Destino', startsAt: '2026-10-26T18:00:00Z', endsAt: '2026-10-26T19:00:00Z' }, revision: 1, updatedAt: new Date().toISOString(), rows: [{ rowId: 'one', rawName: 'Aluno Teste', status: 'READY', ra: '001', accountId: 'account', sourceEventId: 'source-event' }], reason: 'Participação conferida presencialmente' });
+ vi.mocked(management).mockResolvedValue({ message: 'Participação confirmada' });
+ render(<ParticipantFilePanel event={{ id: 'evt', title: 'Destino', startsAt: '2026-10-26T18:00:00Z', endsAt: '2026-10-26T19:00:00Z' } as EventView} onUpdated={vi.fn()} />);
+ await screen.findByText('Aluno Teste');
+ expect(management).not.toHaveBeenCalled();
+ await waitFor(() => expect(screen.getByRole('checkbox', { name: 'Selecionar' })).toBeEnabled());
+ fireEvent.click(screen.getByRole('checkbox', { name: 'Selecionar' }));
+ await waitFor(() => expect(screen.getByLabelText(/Conferi os cadastros/)).toBeEnabled());
+ fireEvent.click(screen.getByLabelText(/Conferi os cadastros/));
+ fireEvent.click(screen.getByRole('button', { name: /Registrar participações e emitir/ }));
+ await waitFor(() => expect(management).toHaveBeenCalledWith('events/evt/manual-certificates', expect.objectContaining({ reason: expect.stringContaining('Origem informada da lista: source-event') }), 'POST', expect.any(AbortSignal)));
+});

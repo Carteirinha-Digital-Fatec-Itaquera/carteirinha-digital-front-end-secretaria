@@ -69,3 +69,7 @@ export async function refreshCheckpointQr(
     { method: 'POST', signal: options?.signal }
   );
 }
+
+export function getPermanentAttendanceQr(id: string, options?: RequestOptions): Promise<AttendanceQrResponse> {
+  return apiRequest<AttendanceQrResponse>(`/events/${encodeURIComponent(id)}/attendance-link`, { method: 'GET', signal: options?.signal });
+}

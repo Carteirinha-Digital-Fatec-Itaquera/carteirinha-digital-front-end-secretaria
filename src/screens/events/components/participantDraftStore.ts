@@ -1,6 +1,8 @@
 export type DraftRow = {
   rowId: string;
   rawName: string;
+  sourceType?: string;
+  sourceEventId?: string;
   status: string;
   review?: boolean;
   ra?: string;
@@ -131,6 +133,10 @@ export async function saveDraft(
 }
 export function exportDraft(draft: ParticipantDraft, format: "json" | "csv") {
   const names = draft.rows.map((row) => row.rawName);
+  if (format === "csv" && draft.rows.some(row => row.sourceType || row.review || row.sourceEventId)) {
+    const cell = (value: string) => '"' + (/^[=+@-]/.test(value) ? "'" + value : value).replace(/"/g, '""') + '"';
+    return "\uFEFFnome_transcrito,tipo_participante,status,origem_evento_id\r\n" + draft.rows.map(row => [row.rawName, row.sourceType || 'aluno', row.review ? 'revisar' : '', row.sourceEventId || ''].map(cell).join(',')).join('\r\n');
+  }
   if (format === "csv")
     return (
       "\uFEFFnome_transcrito\r\n" +
@@ -162,7 +168,7 @@ export function exportDraft(draft: ParticipantDraft, format: "json" | "csv") {
           hourCycle: "h23",
         }).format(new Date(draft.eventSnapshot.startsAt)),
       },
-      participantes: names.map((nome_transcrito) => ({ nome_transcrito })),
+      participantes: draft.rows.map(row => ({ nome_transcrito: row.rawName, ...(row.sourceType ? { tipo_participante: row.sourceType } : {}), ...(row.sourceEventId ? { origem_evento_id: row.sourceEventId } : {}), ...(row.review ? { status: "revisar" } : {}) })),
     },
     null,
     2,

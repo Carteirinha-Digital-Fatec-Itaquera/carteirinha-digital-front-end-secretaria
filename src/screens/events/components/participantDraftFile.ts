@@ -1,5 +1,5 @@
 import type { EventView } from "../../../domains/Event";
-type NamedRow = { rawName: string; review: boolean };
+type NamedRow = { rawName: string; review: boolean; sourceType?: string; sourceEventId?: string };
 const nameValue = (data: unknown): NamedRow => {
   const row =
     typeof data === "string"
@@ -22,9 +22,14 @@ const nameValue = (data: unknown): NamedRow => {
     throw new Error(
       "Cada nome deve ter de 3 a 160 caracteres, sem quebras internas.",
     );
+  if (row.tipo_participante !== undefined && !['aluno', 'visitante'].includes(String(row.tipo_participante))) throw new Error('Tipo de participante inválido.');
+  if (row.origem_evento_id !== undefined && row.origem_evento_id !== '' && (typeof row.origem_evento_id !== 'string' || !/^[A-Za-z0-9_-]{1,64}$/.test(row.origem_evento_id))) throw new Error('Origem da lista inválida.');
   return {
+    ...(row.origem_evento_id ? { sourceEventId: String(row.origem_evento_id) } : {}),
+    ...(row.tipo_participante ? { sourceType: String(row.tipo_participante) } : {}),
     rawName: name.trim(),
     review:
+      row.tipo_participante === "visitante" ||
       ["professor", "rasurado", "revisar"].includes(String(row.status)) ||
       row.confianca === "baixa" ||
       row.confianca_leitura === "baixa" ||
@@ -87,8 +92,10 @@ export async function readParticipantDraftFile(
     const data = JSON.parse(text) as Record<string, unknown>;
     if (!data || typeof data !== "object") throw new Error("JSON inválido.");
     if (!Array.isArray(data)) {
-      if (data.versao_formato !== undefined && data.versao_formato !== "1.0")
+      const reusable = data.versao_formato === "2.0" && data.tipo_lista === "nomes_reutilizaveis";
+      if (data.versao_formato !== undefined && data.versao_formato !== "1.0" && !reusable)
         throw new Error("Versão de arquivo desconhecida.");
+      if (reusable && data.evento !== undefined) throw new Error("Lista reutilizável não deve definir evento de destino.");
       const meta = data.evento as Record<string, string> | undefined;
       const day = new Intl.DateTimeFormat("en-CA", {
         timeZone: "America/Sao_Paulo",
@@ -116,7 +123,8 @@ export async function readParticipantDraftFile(
           (meta.horario_inicio && meta.horario_inicio !== time))
       )
         throw new Error("O arquivo pertence a outro evento, data ou horário.");
-      rows = data.participantes;
+      const origin = reusable ? (data.origem as { id_evento_banco?: unknown } | undefined)?.id_evento_banco : undefined;
+      rows = reusable && Array.isArray(data.participantes) ? data.participantes.map(row => ({ ...(typeof row === 'string' ? { nome_transcrito: row } : row), ...(origin !== undefined ? { origem_evento_id: origin } : {}) })) : data.participantes;
     } else rows = data;
   } else if (file.name.toLowerCase().endsWith(".csv")) {
     const [headers, ...records] = csvRecords(text);
@@ -130,5 +138,11 @@ export async function readParticipantDraftFile(
   } else throw new Error("Selecione JSON ou CSV.");
   if (!Array.isArray(rows) || !rows.length || rows.length > 1000)
     throw new Error("A lista deve conter de 1 a 1.000 nomes.");
-  return rows.map(nameValue);
+  const unique = new Map<string, NamedRow>();
+  for (const value of rows.map(nameValue)) {
+    const key = value.rawName.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase().trim().replace(/\s+/g, ' ');
+    const previous = unique.get(key);
+    unique.set(key, { ...value, review: value.review || !!previous?.review || (!!previous && previous.sourceType !== value.sourceType) });
+  }
+  return [...unique.values()];
 }
