@@ -5,6 +5,7 @@ import { apiRequest, ApiRequestError } from '../../../api/config/apiRequest';
 import { management } from '../../../api/event/publicEventService';
 import type { EventView } from '../../../domains/Event';
 import {startSession} from '../../../api/auth/session';
+import { loadDraft, type DraftRow } from './participantDraftStore';
 vi.mock('./participantDraftStore',async importOriginal=>{
  const original=await importOriginal<typeof import('./participantDraftStore')>();
  return {...original,loadDraft:vi.fn().mockResolvedValue(null),saveDraft:vi.fn(async(value:import('./participantDraftStore').ParticipantDraft,revision:number)=>({...value,revision:revision+1,updatedAt:new Date().toISOString()}))};
@@ -93,4 +94,23 @@ it('keeps row actions collapsed, supports Escape, and resets identity after corr
   fireEvent.blur(input);
   await screen.findByText('Nome corrigido ficticio');
   expect(screen.getByText('Aguardando confer\u00eancia')).toBeInTheDocument();
+});
+
+
+it('only offers row actions when a command exists for persisted processing states', async () => {
+  const rows: DraftRow[] = [
+    ...['PENDING_RENDER', 'RENDERING', 'RENDER_FAILED'].map((artifactState, i) => ({rowId:`pending-${i}`,rawName:`Pending PDF ${i}`,status:'DONE',operationId:`op-pending-${i}`,artifactState})),
+    {rowId:'flight',rawName:'Waiting response',status:'IN_FLIGHT',operationId:'op-flight'},
+    {rowId:'unknown',rawName:'Uncertain response',status:'OUTCOME_UNKNOWN',operationId:'op-unknown'},
+    {rowId:'download',rawName:'Available PDF',status:'DONE',operationId:'op-download',artifactState:'READY',certificateId:'certificate'},
+    {rowId:'error',rawName:'Rejected identity',status:'ERROR',operationId:'op-error'},
+    {rowId:'draft',rawName:'Editable person',status:'DRAFT'},
+  ];
+  vi.mocked(loadDraft).mockResolvedValueOnce({schemaVersion:1,draftId:'123:evt',ownerSecretaryId:123,eventId:'evt',eventSnapshot:{title:'Synthetic event',startsAt:'2026-10-26T18:00:00Z',endsAt:'2026-10-26T19:00:00Z'},revision:1,updatedAt:new Date().toISOString(),rows,reason:''});
+  render(<ParticipantFilePanel event={{id:'evt',title:'Synthetic event',startsAt:'2026-10-26T18:00:00Z',endsAt:'2026-10-26T19:00:00Z'} as EventView} onUpdated={vi.fn()}/>);
+  await screen.findByText('Available PDF');
+  const renderedRows=Array.from(document.querySelectorAll('.regularization-rows > li'));
+  expect(renderedRows.slice(0,5).every(row=>!row.querySelector('.participant-row-menu'))).toBe(true);
+  expect(renderedRows.slice(5).every(row=>row.querySelector('.participant-row-menu'))).toBe(true);
+  expect(document.querySelectorAll('.participant-row-menu')).toHaveLength(3);
 });

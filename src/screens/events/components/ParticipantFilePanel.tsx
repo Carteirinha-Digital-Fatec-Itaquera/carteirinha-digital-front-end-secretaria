@@ -624,6 +624,8 @@ export default function ParticipantFilePanel({
               )}
             </div>
               </details>
+            {(editable(row) || (row.status === "ERROR" && !!row.operationId) ||
+              (row.status === "DONE" && row.artifactState === "READY" && !!row.certificateId)) && (
             <details className="participant-row-menu" onKeyDown={(e) => { if (e.key === "Escape") { e.currentTarget.open = false; e.currentTarget.querySelector("summary")?.focus(); } }}>
               <summary>Ações<span className="participant-visually-hidden"> de {row.rawName}</span></summary>
             <div className="regularization-actions">
@@ -715,6 +717,7 @@ export default function ParticipantFilePanel({
               )}
             </div>
             </details>
+            )}
             </div>
           </li>
         ))}
