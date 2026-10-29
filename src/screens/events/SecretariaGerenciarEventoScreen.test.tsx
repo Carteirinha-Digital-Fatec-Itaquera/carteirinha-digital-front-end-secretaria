@@ -81,6 +81,20 @@ describe('SecretariaGerenciarEventoScreen - QR Code & Projeção Telão', () => 
     expect(screen.queryByText('Registro de Entrada')).not.toBeInTheDocument();
   });
 
+  it('prints only the current manual checkpoint version without requesting another QR',async()=>{
+    const ref='abcdefghijklmnopqrstuv';
+    const request=vi.spyOn(checkpointService,'getCheckpointQr').mockResolvedValue({qrToken:'not-for-paper',qrUrl:`https://carteirinha-digital-front-end-aluno.vercel.app/p/${ref}`,expiresAt:null,expiresInSeconds:null,checkpointVersion:1});
+    render(<MemoryRouter initialEntries={['/eventos/evt-test-100/gerenciar']}><Routes><Route path="/eventos/:id/gerenciar" element={<SecretariaGerenciarEventoScreen/>}/></Routes></MemoryRouter>);
+    const print=await screen.findByRole('button',{name:'Imprimir cartaz de presença'});await waitFor(()=>expect(print).toBeEnabled());
+    fireEvent.click(print);expect(screen.getByRole('dialog',{name:'Prévia do cartaz de presença'})).toBeInTheDocument();expect(request).toHaveBeenCalledTimes(1);
+    expect(within(screen.getByRole('article')).getByRole('link')).toHaveAttribute('href',`https://carteirinha-digital-front-end-aluno.vercel.app/p/${ref}`);
+  });
+  it('does not print a QR from a previous checkpoint version',async()=>{
+    vi.mocked(eventService.getEvent).mockResolvedValue({...fakeEvent,checkpoints:fakeEvent.checkpoints.map(cp=>({...cp,version:2}))});
+    vi.spyOn(checkpointService,'getCheckpointQr').mockResolvedValue({qrToken:'old',qrUrl:'https://carteirinha-digital-front-end-aluno.vercel.app/p/abcdefghijklmnopqrstuv',expiresAt:null,expiresInSeconds:null,checkpointVersion:1});
+    render(<MemoryRouter initialEntries={['/eventos/evt-test-100/gerenciar']}><Routes><Route path="/eventos/:id/gerenciar" element={<SecretariaGerenciarEventoScreen/>}/></Routes></MemoryRouter>);
+    expect(await screen.findByRole('button',{name:'Imprimir cartaz de presença'})).toBeDisabled();
+  });
   it('exibe QR Code preferencialmente com qrUrl curto e botão Modo Telão', async () => {
     const validRef = 'shortRef123456'.padEnd(22, '0');
     const getQrSpy = vi.spyOn(checkpointService, 'getCheckpointQr').mockResolvedValue({

@@ -1,3 +1,4 @@
+import AttendancePrintPoster from './components/AttendancePrintPoster';
 import OfflineEventDraft from './components/OfflineEventDraft';
 import EventLocationPanel from './components/EventLocationPanel';
 import { ManualCertificatePanel } from './components/ManualCertificatePanel';
@@ -91,6 +92,8 @@ export default function SecretariaGerenciarEventoScreen() {
     checkpoint: "check-in" | "check-out";
     eventId: string;
     qrUrl?: string;
+    checkpointVersion: number;
+    stable: boolean;
   } | null>(null);
   const [qrLoading, setQrLoading] = useState(false);
   const [qrError, setQrError] = useState<string | null>(null);
@@ -235,6 +238,8 @@ export default function SecretariaGerenciarEventoScreen() {
           checkpoint: type,
           eventId: id,
           qrUrl: validUrl,
+          checkpointVersion: response.checkpointVersion,
+          stable: response.expiresAt === null && response.expiresInSeconds === null,
         });
       } catch (err: unknown) {
         if (!isMountedRef.current) return;
@@ -934,6 +939,7 @@ export default function SecretariaGerenciarEventoScreen() {
                 </div>
 
                 <div className={styles.projectionActions}>
+                  <AttendancePrintPoster event={event} checkpoint={activeCheckpoint} qrUrl={qrData?.checkpointVersion === (activeCheckpoint === 'check-in' ? checkInCp?.version : checkOutCp?.version) ? qrValue : null} version={qrData?.checkpointVersion ?? 0} stable={qrData?.stable ?? false} disabled={qrLoading || actionLoading || !(activeCheckpoint === 'check-in' ? checkInCp?.isOpen : checkOutCp?.isOpen)} />
                   <button
                     type="button"
                     className={`${styles.pipButton} ${pip.isPipActive ? styles.pipButtonActive : ""}`}
