@@ -1,0 +1,153 @@
+.regularization-workspace {
+  margin-top: 20px;
+  color: #253e49;
+  min-width: 0;
+}
+.regularization-workspace [hidden] {
+  display: none;
+}
+.regularization-event {
+  display: grid;
+  gap: 8px;
+  padding: 18px;
+  background: #eef6f7;
+  border: 1px solid #c3dadd;
+  border-radius: 12px;
+}
+.regularization-steps {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-weight: 600;
+}
+.regularization-steps li {
+  padding: 10px;
+  background: #eef6f7;
+  border-radius: 8px;
+}
+.regularization-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 16px 0;
+}
+.regularization-workspace label {
+  display: grid;
+  gap: 8px;
+  margin: 12px 0;
+}
+.regularization-workspace input,
+.regularization-workspace textarea,
+.regularization-workspace select {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 44px;
+  font: inherit;
+  padding: 12px;
+  border: 1px solid #8ba3af;
+  border-radius: 8px;
+  background: white;
+  color: #253e49;
+}
+.regularization-workspace fieldset {
+  min-width: 0;
+  padding: 20px;
+  margin: 20px 0;
+  border: 1px solid #c3dadd;
+  border-radius: 12px;
+}
+.regularization-workspace legend {
+  font-weight: 600;
+  padding: 0 8px;
+}
+.regularization-workspace button {
+  white-space: normal;
+  min-height: 44px;
+}
+.regularization-workspace .regularization-check {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.regularization-workspace .regularization-check input {
+  width: 20px;
+  min-height: 20px;
+  flex: none;
+}
+.regularization-rows {
+  list-style: none;
+  padding: 0;
+}
+.regularization-rows > li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
+  padding: 18px;
+  border: 1px solid #d7e2e6;
+  border-radius: 12px;
+  margin: 12px 0;
+  overflow-wrap: anywhere;
+}
+.regularization-error {
+  padding: 12px;
+  border-left: 3px solid #a11717;
+  background: #fff3f1;
+  color: #8d1818;
+  overflow-wrap: anywhere;
+}
+.regularization-progress {
+  padding: 20px;
+  margin: 20px 0;
+  background: #edf7f4;
+  border: 1px solid #96c7c1;
+  border-radius: 12px;
+}
+.regularization-progress progress {
+  width: 100%;
+  accent-color: #005e6e;
+  min-height: 20px;
+}
+.regularization-review,
+.regularization-selected {
+  padding: 16px;
+  border: 1px solid #8ba3af;
+  border-radius: 12px;
+  margin: 16px 0;
+}
+.regularization-review label:has(input[type="radio"]) {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.regularization-review input[type="radio"] {
+  width: 20px;
+  flex: none;
+}
+.regularization-workspace summary {
+  min-height: 44px;
+  cursor: pointer;
+  padding: 10px 0;
+}
+.regularization-workspace :focus-visible {
+  outline: 3px solid #007e99;
+  outline-offset: 3px;
+}
+@media (max-width: 600px) {
+  .regularization-workspace fieldset {
+    padding: 12px;
+  }
+  .regularization-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .regularization-event {
+    padding: 12px;
+  }
+}
+
+.regularization-actions button { background: #fff; color: #005e6e; }
+.regularization-actions button[aria-pressed="true"],.regularization-actions button.regularization-primary { background: #005e6e; color: #fff; }
+.regularization-workspace { text-align: left; }
