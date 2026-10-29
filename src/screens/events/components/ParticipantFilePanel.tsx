@@ -79,6 +79,7 @@ export default function ParticipantFilePanel({
     [confirmed, setConfirmed] = useState(false),
     [connected, setConnected] = useState(navigator.onLine),
     [filter, setFilter] = useState("all"),
+    [query, setQuery] = useState(""),
     [page, setPage] = useState(0),
     [review, setReview] = useState<string | null>(null),
     [candidate, setCandidate] = useState<Candidate | null>(null),
@@ -329,12 +330,13 @@ export default function ParticipantFilePanel({
     new Set(selected.map((row) => row.accountId)).size !== selected.length;
   const filtered = draft.rows.filter(
     (row) =>
-      filter === "all" ||
+      normalize(`${row.rawName} ${row.officialName ?? ""}`).includes(normalize(query)) && (filter === "all" ||
       (filter === "review"
         ? !["READY", "DONE"].includes(row.status)
-        : row.status === filter),
+        : row.status === filter)),
   );
-  const shown = filtered.slice(page * 25, page * 25 + 25);
+  const currentPage = Math.min(page, Math.max(0, Math.ceil(filtered.length / 25) - 1));
+  const shown = filtered.slice(currentPage * 25, currentPage * 25 + 25);
   return (
     <div className="regularization-workspace">
       <div className="regularization-event">
@@ -548,6 +550,11 @@ export default function ParticipantFilePanel({
         </p>
       )}
       <h3>Lista de participantes · {draft.rows.length}</h3>
+      <div className="participant-list-tools">
+      <label>
+        Buscar por nome
+        <input type="search" value={query} onChange={(e) => { setQuery(e.target.value); setPage(0); }} placeholder="Nome anotado ou do cadastro" />
+      </label>
       <label>
         Filtrar lista
         <select
@@ -564,46 +571,16 @@ export default function ParticipantFilePanel({
           <option value="DONE">Registrados</option>
         </select>
       </label>
+      </div>
+      <p role="status" className="participant-list-count">{filtered.length} de {draft.rows.length} participante(s) · {selected.length} selecionado(s) na lista completa</p>
+      {!!draft.rows.length && !filtered.length && <p className="participant-list-empty">Nenhum participante corresponde à busca e ao filtro. Ajuste os critérios para continuar.</p>}
       {!draft.rows.length && (
         <p>Nenhum nome anotado. Comece acima; a busca será feita depois.</p>
       )}
       <ul className="regularization-rows">
         {shown.map((row) => (
           <li key={row.rowId}>
-            <div>
-              <strong>{row.rawName}</strong>
-              <p>{labels[row.status] ?? row.status}</p>
-              {row.officialName && (
-                <p>
-                  Cadastro: {row.officialName} · RA {row.ra}
-                </p>
-              )}
-              {row.error && <p className="regularization-error">{row.error}</p>}
-              {row.status === "DONE" && (
-                <p>
-                  {pdfLabels[row.artifactState ?? ""] ?? "Consultando PDF"} ·{" "}
-                  {deliveryLabels[row.deliveryState ?? ""] ??
-                    "Consultando envio"}
-                </p>
-              )}
-            </div>
-            <div className="regularization-actions">
-              {row.status === "DONE" &&
-                row.artifactState === "READY" &&
-                row.certificateId && (
-                  <button
-                    type="button"
-                    onClick={() =>
-                      void run(() =>
-                        openManagementPdf(
-                          `certificates/${row.certificateId}/pdf`,
-                        ),
-                      )
-                    }
-                  >
-                    Baixar certificado
-                  </button>
-                )}
+            <div className="participant-row-primary">
               {["READY", "ERROR", "OUTCOME_UNKNOWN", "IN_FLIGHT"].includes(
                 row.status,
               ) && (
@@ -622,6 +599,50 @@ export default function ParticipantFilePanel({
                   Selecionar
                 </label>
               )}
+            <div className="participant-row-identity">
+              <strong>{row.rawName}</strong>
+              <span className={`participant-row-status participant-row-status--${row.status.toLowerCase()}`}>{labels[row.status] ?? row.status}</span>
+            </div>
+            </div>
+            <div className="participant-row-secondary">
+            <details className="participant-row-details">
+              <summary>Detalhes<span className="participant-visually-hidden"> de {row.rawName}</span></summary>
+              <div className="participant-row-detail-content">
+              {!row.officialName && !row.error && row.status !== "DONE" && <p>Cadastro ainda não vinculado. Use as ações para conferir ou corrigir este nome.</p> }
+              {row.officialName && (
+                <p>
+                  Cadastro: {row.officialName} · RA {row.ra}
+                </p>
+              )}
+              {row.error && <p className="regularization-error">{row.error}</p>}
+              {row.status === "DONE" && (
+                <p>
+                  {pdfLabels[row.artifactState ?? ""] ?? "Consultando PDF"} ·{" "}
+                  {deliveryLabels[row.deliveryState ?? ""] ??
+                    "Consultando envio"}
+                </p>
+              )}
+            </div>
+              </details>
+            <details className="participant-row-menu" onKeyDown={(e) => { if (e.key === "Escape") { e.currentTarget.open = false; e.currentTarget.querySelector("summary")?.focus(); } }}>
+              <summary>Ações<span className="participant-visually-hidden"> de {row.rawName}</span></summary>
+            <div className="regularization-actions">
+              {row.status === "DONE" &&
+                row.artifactState === "READY" &&
+                row.certificateId && (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      void run(() =>
+                        openManagementPdf(
+                          `certificates/${row.certificateId}/pdf`,
+                        ),
+                      )
+                    }
+                  >
+                    Baixar certificado
+                  </button>
+                )}
               {row.status === "ERROR" && row.operationId && <button type="button" disabled={locked} onClick={()=>void run(async()=>{
                 setBusy(true);try{
                   const result=await apiRequest<{items:{known:boolean}[]}>(`/event-management/events/${event.id}/manual-certificate-operations/status`,{method:'POST',body:JSON.stringify({operationIds:[row.operationId]}),signal:AbortSignal.timeout(20000)});
@@ -646,6 +667,7 @@ export default function ParticipantFilePanel({
                     <label>
                       Nome anotado
                       <input
+                        disabled={locked}
                         defaultValue={row.rawName}
                         maxLength={160}
                         onBlur={(e) => {
@@ -692,6 +714,8 @@ export default function ParticipantFilePanel({
                 </>
               )}
             </div>
+            </details>
+            </div>
           </li>
         ))}
       </ul>
@@ -699,18 +723,18 @@ export default function ParticipantFilePanel({
         <div className="regularization-actions">
           <button
             type="button"
-            disabled={!page}
-            onClick={() => setPage(page - 1)}
+            disabled={!currentPage}
+            onClick={() => setPage(currentPage - 1)}
           >
             Página anterior
           </button>
           <span>
-            Página {page + 1} de {Math.ceil(filtered.length / 25)}
+            Página {currentPage + 1} de {Math.ceil(filtered.length / 25)}
           </span>
           <button
             type="button"
-            disabled={(page + 1) * 25 >= filtered.length}
-            onClick={() => setPage(page + 1)}
+            disabled={(currentPage + 1) * 25 >= filtered.length}
+            onClick={() => setPage(currentPage + 1)}
           >
             Próxima página
           </button>
