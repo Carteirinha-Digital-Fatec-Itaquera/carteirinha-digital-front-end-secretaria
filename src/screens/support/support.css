@@ -1,1 +1,511 @@
-.secretary-support{flex:1;min-width:0;padding:clamp(16px,4vw,40px);color:#26313b;background:#f5f7f8;overflow-wrap:anywhere}.secretary-support h1{color:#005969}.secretary-support label{display:grid;gap:6px;font-weight:600;margin:12px 0}.secretary-support input,.secretary-support select,.secretary-support textarea{font:inherit;box-sizing:border-box;max-width:100%;min-height:44px;padding:10px;border:1px solid #8797a5;border-radius:8px;background:white;color:#26313b}.secretary-support textarea{width:100%;min-height:110px}.secretary-support button,.secretary-support a{font:inherit;min-height:44px;display:inline-flex;align-items:center}.secretary-support button{padding:10px 16px;border:1px solid #005969;border-radius:8px;background:white;color:#005969;cursor:pointer}.secretary-support button:disabled{opacity:.55;cursor:wait}.secretary-support a{color:#005969}.secretary-support :focus-visible{outline:3px solid #3168b5;outline-offset:3px}.secretary-support .support-tools{display:flex;gap:12px;align-items:center;flex-wrap:wrap}.secretary-support ul,.secretary-support ol{padding:0;list-style:none}.secretary-support li{padding:16px;border-bottom:1px solid #d4dde3;background:white}.secretary-support .support-conversation p{white-space:pre-wrap}.secretary-support time{display:block;font-size:.875rem;color:#526272}.secretary-support .support-check{display:flex;align-items:center;gap:12px}.secretary-support summary{padding:16px;cursor:pointer;min-height:44px}.secretary-support .support-error{padding:16px;background:#fff1f0;border:1px solid #b71918;border-radius:8px}
+.secretary-support {
+  flex: 1;
+  width: 100%;
+  min-width: 0;
+  padding: clamp(18px, 3vw, 40px);
+  color: var(--app-color-text, #26313b);
+  background: var(--app-color-background, #f5f7f8);
+  overflow-wrap: anywhere;
+}
+.secretary-support .support-container {
+  max-width: 1260px;
+  margin: 0 auto;
+}
+.secretary-support h1 {
+  color: var(--app-color-primary, #005969);
+  font-size: clamp(1.7rem, 3vw, 2.25rem);
+  font-weight: 750;
+  margin: 10px 0;
+}
+.secretary-support h2 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin: 0 0 12px;
+}
+.secretary-support h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.45;
+}
+.secretary-support p {
+  line-height: 1.6;
+}
+.secretary-support label {
+  display: grid;
+  gap: 8px;
+  font-weight: 600;
+  margin: 16px 0;
+}
+.secretary-support input,
+.secretary-support select,
+.secretary-support textarea {
+  font: inherit;
+  width: 100%;
+  box-sizing: border-box;
+  min-width: 0;
+  min-height: 44px;
+  padding: 11px 12px;
+  border: 1px solid #9baab4;
+  border-radius: 9px;
+  background: white;
+  color: #26313b;
+}
+.secretary-support textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+.secretary-support button,
+.secretary-support a {
+  font: inherit;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.secretary-support button {
+  padding: 10px 16px;
+  border: 1px solid #a6bdc2;
+  border-radius: 9px;
+  background: white;
+  color: #005969;
+  cursor: pointer;
+  font-weight: 600;
+  justify-content: center;
+}
+.secretary-support button:hover:not(:disabled) {
+  background: #edf5f6;
+  border-color: #005969;
+}
+.secretary-support button.support-primary {
+  background: var(--app-color-primary, #005969);
+  border-color: var(--app-color-primary, #005969);
+  color: white;
+}
+.secretary-support button.support-primary:hover:not(:disabled) {
+  background: #06434e;
+}
+.secretary-support button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.secretary-support a {
+  color: #005969;
+}
+.secretary-support :focus-visible {
+  outline: 3px solid #3168b5;
+  outline-offset: 3px;
+}
+.secretary-support .support-tools {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
+.secretary-support ul,
+.secretary-support ol {
+  padding: 0;
+  list-style: none;
+  margin: 0;
+}
+.secretary-support .support-muted {
+  color: #526272;
+  font-size: 0.9rem;
+}
+.secretary-support .support-page-header {
+  margin-bottom: 28px;
+}
+.secretary-support .support-page-header > p:last-child {
+  color: #526272;
+  margin: 0;
+}
+.secretary-support .support-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #005969;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  margin: 0;
+}
+.secretary-support .support-back {
+  margin-bottom: 20px;
+  font-weight: 600;
+  text-decoration: none;
+}
+.secretary-support .support-panel,
+.secretary-support .support-filter-panel,
+.secretary-support .support-case-header {
+  border: 1px solid #dde5e9;
+  border-radius: 16px;
+  padding: 24px;
+  background: #fff;
+}
+.secretary-support .support-search-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 16px;
+}
+.secretary-support .support-search-row label {
+  flex: 1;
+  margin: 0;
+}
+.secretary-support .support-search-input {
+  display: flex;
+  align-items: center;
+  border: 1px solid #9baab4;
+  border-radius: 9px;
+  padding-left: 12px;
+}
+.secretary-support .support-search-input input {
+  border: 0;
+  background: transparent;
+}
+.secretary-support .support-filters {
+  border-top: 1px solid #e2e9ed;
+  margin-top: 20px;
+  padding-top: 8px;
+}
+.secretary-support summary {
+  padding: 12px 0;
+  cursor: pointer;
+  min-height: 44px;
+  font-weight: 600;
+  color: #005969;
+}
+.secretary-support summary svg {
+  vertical-align: middle;
+  margin-right: 6px;
+}
+.secretary-support .support-filter-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0 18px;
+}
+.secretary-support .support-queue {
+  margin-top: 28px;
+}
+.secretary-support .support-queue-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.secretary-support .support-queue-heading h2 {
+  margin: 0;
+}
+.secretary-support .support-queue-heading span {
+  color: #526272;
+  font-size: 0.85rem;
+}
+.secretary-support .support-ticket-list {
+  display: grid;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+.secretary-support .support-ticket {
+  display: block;
+  padding: 22px 24px;
+  border: 1px solid #dde5e9;
+  border-radius: 14px;
+  background: #fff;
+  text-decoration: none;
+  color: inherit;
+  position: relative;
+}
+.secretary-support .support-ticket:hover {
+  border-color: #6999a3;
+  box-shadow: 0 3px 12px #0059690a;
+}
+.secretary-support .support-ticket h3 {
+  font-size: 1.1rem;
+  margin: 14px 0 8px;
+}
+.secretary-support .support-ticket-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.secretary-support .support-protocol {
+  color: #647581;
+  font-size: 0.85rem;
+}
+.secretary-support .support-ticket-top .support-protocol {
+  margin-left: auto;
+}
+.secretary-support .support-badge {
+  display: inline-flex;
+  width: fit-content;
+  padding: 5px 10px;
+  border-radius: 6px;
+  background: #edf1f5;
+  color: #394b5d;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+.secretary-support .status-IN_PROGRESS {
+  background: #e7f3f5;
+  color: #005969;
+}
+.secretary-support .status-WAITING_STUDENT {
+  background: #fff4dc;
+  color: #795000;
+}
+.secretary-support .status-RESOLVED {
+  background: #e9f5ee;
+  color: #266342;
+}
+.secretary-support .support-unread {
+  color: #005969;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+.secretary-support .support-unread::before {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+.secretary-support .support-student {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+  font-weight: 600;
+}
+.secretary-support .support-student span {
+  font-weight: 400;
+  color: #647581;
+  font-size: 0.85rem;
+}
+.secretary-support .support-ticket-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  color: #526272;
+  font-size: 0.85rem;
+}
+.secretary-support .support-ticket-action {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #005969;
+  font-weight: 600;
+  font-size: 0.9rem;
+  margin-top: 16px;
+}
+.secretary-support .support-empty {
+  display: grid;
+  justify-items: center;
+  text-align: center;
+  gap: 12px;
+  padding: 48px 20px;
+  border-radius: 14px;
+  background: white;
+  color: #526272;
+}
+.secretary-support .support-empty h3,
+.secretary-support .support-empty p {
+  margin: 0;
+}
+.secretary-support .support-case-header {
+  margin-bottom: 20px;
+}
+.secretary-support .support-case-header h2 {
+  font-size: 1.5rem;
+  margin: 16px 0 12px;
+}
+.secretary-support .support-workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 320px);
+  gap: 20px;
+  align-items: start;
+}
+.secretary-support .support-main-column,
+.secretary-support .support-side-column {
+  display: grid;
+  gap: 20px;
+  min-width: 0;
+}
+.secretary-support .support-thread > .support-muted {
+  margin-top: 0;
+}
+.secretary-support .support-conversation {
+  display: grid;
+  gap: 16px;
+  margin: 24px 0;
+}
+.secretary-support .support-conversation li {
+  padding: 18px;
+  border-radius: 10px;
+  border-left: 3px solid #becbd3;
+  background: #f5f7f9;
+}
+.secretary-support .support-conversation .support-message-secretary {
+  background: #edf5f6;
+  border-left-color: #005969;
+}
+.secretary-support .support-message-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.secretary-support .support-message-heading time {
+  font-size: 0.78rem;
+  color: #526272;
+}
+.secretary-support .support-conversation p {
+  white-space: pre-wrap;
+  margin: 12px 0 0;
+}
+.secretary-support .support-message-options {
+  margin-top: 8px;
+  font-size: 0.8rem;
+}
+.secretary-support .support-message-options summary {
+  font-weight: 400;
+}
+.secretary-support .support-reply {
+  border-top: 1px solid #e2e9ed;
+  padding-top: 20px;
+}
+.secretary-support .support-reply > details {
+  margin-bottom: 14px;
+}
+.secretary-support .support-resolution {
+  margin-top: 28px;
+  border-top: 1px solid #e2e9ed;
+  padding-top: 20px;
+}
+.secretary-support .support-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-weight: 400;
+}
+.secretary-support .support-check input {
+  width: 18px;
+  height: 18px;
+  min-height: 18px;
+  flex-shrink: 0;
+  margin-top: 3px;
+  accent-color: #005969;
+}
+.secretary-support .support-data {
+  margin: 0 0 16px;
+}
+.secretary-support .support-data dt {
+  color: #647581;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+.secretary-support .support-data dd {
+  margin: 4px 0 12px;
+}
+.secretary-support .support-student-name {
+  font-weight: 600;
+}
+.secretary-support .support-proposal {
+  border-left: 3px solid #a9c9cf;
+  padding: 8px 0 8px 14px;
+  margin: 20px 0;
+}
+.secretary-support .support-proposal span,
+.secretary-support .support-proposal small {
+  color: #526272;
+  font-size: 0.8rem;
+}
+.secretary-support .support-proposal p {
+  margin: 6px 0;
+}
+.secretary-support .support-related {
+  display: grid;
+  gap: 8px;
+}
+.secretary-support .support-related a {
+  font-size: 0.9rem;
+}
+.secretary-support .support-audit li {
+  padding: 16px 0;
+  border-top: 1px solid #e2e9ed;
+}
+.secretary-support .support-audit li > span {
+  display: block;
+  font-size: 0.8rem;
+  color: #526272;
+  margin-top: 8px;
+}
+.secretary-support .support-audit li p {
+  margin: 8px 0 0;
+}
+.secretary-support .support-other-actions .support-tools {
+  align-items: stretch;
+  flex-direction: column;
+}
+.secretary-support .support-error,
+.secretary-support .support-sensitive {
+  padding: 18px;
+  background: #fff5f4;
+  border: 1px solid #e8b5af;
+  border-radius: 12px;
+  margin-bottom: 20px;
+}
+.secretary-support .support-error {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.secretary-support .support-progress {
+  padding: 12px 16px;
+  border-radius: 10px;
+  background: #e7f3f5;
+  color: #005969;
+}
+@media (max-width: 1100px) {
+  .secretary-support .support-workspace {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .secretary-support .support-side-column {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 600px) {
+  .secretary-support .support-search-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .secretary-support .support-filter-grid,
+  .secretary-support .support-side-column {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .secretary-support .support-panel,
+  .secretary-support .support-filter-panel,
+  .secretary-support .support-case-header,
+  .secretary-support .support-ticket {
+    padding: 18px;
+  }
+  .secretary-support .support-ticket-top {
+    gap: 8px;
+  }
+  .secretary-support .support-ticket-top .support-protocol {
+    margin-left: 0;
+  }
+  .secretary-support .support-tools > button {
+    flex: 1 1 auto;
+  }
+  .secretary-support .support-ticket-meta {
+    flex-direction: column;
+  }
+}
