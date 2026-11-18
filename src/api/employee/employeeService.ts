@@ -42,7 +42,7 @@ export interface EmployeeDetails extends EmployeeIdentity {
 }
 export interface AccessStatus {
   passwordDefined: boolean;
-  firstAccessMethod?: 'REGISTRATION_EMAIL' | 'EMAIL_ONLY' | null;
+  firstAccessMethod?: 'REGISTRATION' | 'REGISTRATION_REQUIRED' | null;
   lastLoginAt: string | null;
   lastAccessRequestAt: string | null;
   lastDeliveryState: DeliveryState | null;
@@ -78,12 +78,6 @@ export function getEmployee(id: string, signal?: AbortSignal) {
 
 export function getEmployeeAccess(id: string, signal?: AbortSignal) {
   return apiRequest<AccessStatus>(employeePath(id) + '/acesso', { signal });
-}
-
-export function inviteEmployee(id: string, requestId: string, expectedVersion: number, signal?: AbortSignal) {
-  return apiRequest<InviteResult>(employeePath(id) + '/convite', {
-    method: 'POST', body: JSON.stringify({ requestId, expectedVersion }), signal,
-  });
 }
 
 export type VersionedReason = { expectedVersion: number; reason: string };

@@ -26,7 +26,6 @@ let archived: boolean;
 let editConflict: boolean;
 let currentName: string;
 let createErrors: Array<Response>;
-let inviteErrors: Array<Response>;
 
 beforeEach(() => {
   logoutSession();
@@ -37,7 +36,6 @@ beforeEach(() => {
   editConflict = false;
   currentName = detail.name;
   createErrors = [];
-  inviteErrors = [];
   vi.stubGlobal('fetch', vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = new URL(String(input));
     const method = init?.method ?? 'GET';
@@ -48,12 +46,6 @@ beforeEach(() => {
     if (url.pathname === '/funcionarios' && method === 'POST') return createErrors.shift() ?? json(detail, 201);
     if (url.pathname === '/funcionarios') return json({ items: [{ ...detail, assignmentTitles: ['Docente', 'Coordenação'] }], nextCursor: null });
     if (url.pathname.endsWith('/acesso')) return json(access);
-    if (url.pathname.endsWith('/convite')) {
-      const response = inviteErrors.shift();
-      if (response) { version++; return response; }
-      access = { ...inactiveAccess, lastDeliveryState: 'ACCEPTED', lastAccessRequestAt: '2026-11-18T12:00:00Z' };
-      return json({ requested: true, deliveryState: access.lastDeliveryState, requestedAt: access.lastAccessRequestAt }, 201);
-    }
     if (method === 'PATCH' && url.pathname === '/funcionarios/' + id && editConflict) {
       editConflict = false;
       version++;
@@ -152,27 +144,12 @@ describe('Funcionários da Secretaria', () => {
     expect(posts[2].body?.requestId).not.toBe(posts[0].body?.requestId);
   });
 
-  it('confirma o convite, recarrega a versão no 409 e verifica o estado de ativação', async () => {
-    inviteErrors = [json({ code: 'VERSION_CONFLICT', message: 'Versão desatualizada' }, 409)];
+  it('mostra primeiro acesso pendente sem ações de convite', async () => {
     open('/funcionarios/' + id);
-    await screen.findByRole('button', { name: 'Enviar convite' });
-    press('Enviar convite');
-    expect(requests.filter(call => call.method === 'POST')).toHaveLength(0);
-    press('Confirmar envio');
-    expect(await screen.findByText(/O cadastro mudou/)).toBeInTheDocument();
-    await screen.findByRole('button', { name: 'Enviar convite' });
-    press('Enviar convite');
-    press('Confirmar envio');
-    await screen.findByRole('button', { name: 'Reenviar convite' });
-    expect(screen.getByRole('status')).toHaveTextContent('Envio aceito pelo serviço de e-mail');
-    const posts = requests.filter(call => call.method === 'POST');
-    expect(posts.map(call => call.body?.expectedVersion)).toEqual([3, 4]);
-    expect(posts[0].body?.requestId).not.toBe(posts[1].body?.requestId);
-    access = { ...access, passwordDefined: true };
-    press('Atualizar situação');
-    expect(await screen.findByText('Acesso ativado')).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Reenviar convite' })).not.toBeInTheDocument();
+    expect(await screen.findByText('Pendente · matrícula funcional')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /convite/i })).not.toBeInTheDocument();
   });
+
   it('preserva a edição em conflito e envia apenas os campos alterados', async () => {
     editConflict = true;
     open('/funcionarios/' + id);

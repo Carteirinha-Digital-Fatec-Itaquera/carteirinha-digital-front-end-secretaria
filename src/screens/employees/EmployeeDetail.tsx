@@ -1,12 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { ApiRequestError } from '../../api/config/apiRequest';
-import { getEmployee, getEmployeeAccess, inviteEmployee, changeArchive, type AccessStatus, type DeliveryState, type EmployeeDetails } from '../../api/employee/employeeService';
+import { getEmployee, getEmployeeAccess, changeArchive, type AccessStatus, type EmployeeDetails } from '../../api/employee/employeeService';
 import Modal from '../../components/modal/Modal';
 import EmployeeEditor from './EmployeeEditor';
-import MessageModal from '../../components/messageModal/MessageModal';
 import EmployeesLayout from './EmployeesLayout';
-import { accountLabels, assignmentLabels, dateLabel, deliveryLabels, employeeError, timeLabel } from './employeePresentation';
+import { accountLabels, assignmentLabels, dateLabel, employeeError, timeLabel } from './employeePresentation';
 import styles from './employees.module.css';
 
 export default function EmployeeDetail() {
@@ -24,9 +23,8 @@ function EmployeeRecord({ id }: { id: string }) {
   const [registered, setRegistered] = useState(location.state?.registered === true);
   const [reload, setReload] = useState(0);
   const [record, setRecord] = useState<{ reload: number; employee?: EmployeeDetails; access?: AccessStatus; error?: string }>();
-  const [confirm, setConfirm] = useState(false);
   const [sending, setSending] = useState(false);
-  const [outcome, setOutcome] = useState<{ deliveryState?: DeliveryState; error?: string }>();
+  const [outcome, setOutcome] = useState<{ error?: string }>();
   const sendingRequest = useRef<AbortController | null>(null);
 
   useEffect(() => {
@@ -44,11 +42,6 @@ function EmployeeRecord({ id }: { id: string }) {
   const employee = current?.employee;
   const access = current?.access;
   const archive = employee?.accountStatus !== 'ARCHIVED';
-  const legacyContract = access?.firstAccessMethod === undefined;
-  const canInvite = legacyContract && employee?.accountStatus === 'ACTIVE' && access && !access.passwordDefined &&
-    access.lastDeliveryState !== 'PENDING';
-  const actionLabel = access?.lastAccessRequestAt ? 'Reenviar convite' : 'Enviar convite';
-
   async function submitArchive() {
     if (!employee || sendingRequest.current || reason.trim().length < 3) return;
     const controller = new AbortController();
@@ -72,32 +65,6 @@ function EmployeeRecord({ id }: { id: string }) {
         setArchiveOpen(false);
         setOutcome({ error: employeeError(cause) });
       }
-    } finally {
-      sendingRequest.current = null;
-      if (!controller.signal.aborted) setSending(false);
-    }
-  }
-
-  async function send() {
-    if (!employee || !access || !canInvite || sendingRequest.current) return;
-    const controller = new AbortController();
-    sendingRequest.current = controller;
-    setConfirm(false);
-    setSending(true);
-    setOutcome(undefined);
-    try {
-      const result = await inviteEmployee(id, crypto.randomUUID(), employee.version, controller.signal);
-      if (controller.signal.aborted) return;
-      setOutcome({ deliveryState: result.deliveryState });
-      setRecord({ reload, employee, access: { ...access,
-        lastAccessRequestAt: result.requestedAt, lastDeliveryState: result.deliveryState } });
-    } catch (cause) {
-      if (controller.signal.aborted) return;
-      const conflict = cause instanceof ApiRequestError && cause.status === 409;
-      setOutcome({ error: conflict
-        ? 'O cadastro mudou. Confira os dados atualizados antes de enviar novamente.'
-        : employeeError(cause) + ' Confira o último envio antes de tentar novamente.' });
-      setReload(previous => previous + 1);
     } finally {
       sendingRequest.current = null;
       if (!controller.signal.aborted) setSending(false);
@@ -149,16 +116,10 @@ function EmployeeRecord({ id }: { id: string }) {
         <dl className={styles.grid}>
           <div><dt>Senha</dt><dd>{access.passwordDefined ? 'Acesso ativado' : 'Aguardando ativação'}</dd></div>
           <div><dt>Último login</dt><dd>{timeLabel(access.lastLoginAt)}</dd></div>
-          {!legacyContract && <div><dt>Primeiro acesso</dt><dd>{access.passwordDefined ? 'Concluído' : access.firstAccessMethod === 'REGISTRATION_EMAIL' ? 'Pendente · matrícula e confirmação por e-mail' : 'Pendente · cadastro legado sem matrícula'}</dd></div>}
-          {legacyContract && <div><dt>Última solicitação</dt><dd>{timeLabel(access.lastAccessRequestAt)}</dd></div>}
-          {legacyContract && <div><dt>Situação do envio</dt><dd>{access.lastDeliveryState ? deliveryLabels[access.lastDeliveryState] : 'Sem envio registrado'}</dd></div>}
+          <div><dt>Primeiro acesso</dt><dd>{access.passwordDefined ? 'Concluído' : employee.registrationNumber ? 'Pendente · matrícula funcional' : 'Pendente · cadastre a matrícula funcional'}</dd></div>
         </dl>
         {sending && <p role="status">Aguarde…</p>}
-        {outcome?.deliveryState && <p role={outcome.deliveryState === 'FAILED' ? 'alert' : 'status'}>
-          {deliveryLabels[outcome.deliveryState]}
-        </p>}
         <div className={styles.toolbar}>
-          {canInvite && <button className={styles.primary} disabled={sending} onClick={() => setConfirm(true)}>{actionLabel}</button>}
           <button disabled={sending} onClick={() => { setOutcome(undefined); setReload(previous => previous + 1); }}>Atualizar situação</button>
         </div>
       </section>
@@ -181,9 +142,6 @@ function EmployeeRecord({ id }: { id: string }) {
         </div>
       </form>
     </Modal>}
-    {employee && <MessageModal visible={confirm} title={actionLabel + '?'} tone="info"
-      message={'As instruções de ativação serão solicitadas para ' + employee.email + '.'}
-      confirmText="Confirmar envio" cancelText="Voltar" onConfirm={() => void send()}
-      onCancel={() => setConfirm(false)} onDismiss={() => setConfirm(false)} />}
+
   </EmployeesLayout>;
 }
