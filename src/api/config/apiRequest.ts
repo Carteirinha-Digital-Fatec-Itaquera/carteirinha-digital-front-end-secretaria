@@ -53,14 +53,15 @@ export async function apiRequest<T>(
   }
 
   if (!response.ok) {
-    let errorData: { message?: string; error?: string; code?: string } | null = null;
+    let errorData: { message?: string | string[]; error?: string; code?: string } | null = null;
     try {
       errorData = await response.json();
     } catch {
       // resposta sem corpo ou não-JSON
     }
 
-    const message = errorData?.message || errorData?.error || response.statusText || 'Erro na requisição';
+    const detail = Array.isArray(errorData?.message) ? errorData.message.join('. ') : errorData?.message;
+    const message = detail || errorData?.error || response.statusText || 'Erro na requisição';
     const code = errorData?.code;
 
     throw new ApiRequestError(response.status, message, code);
