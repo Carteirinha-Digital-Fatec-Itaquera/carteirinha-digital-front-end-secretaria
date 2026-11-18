@@ -1,6 +1,6 @@
 # Cadastro manual de funcionários
 
-A área **Funcionários** da Secretaria lista e pesquisa registros por nome, e-mail ou matrícula funcional. Em **Registrar funcionário**, informe os dados cadastrais e adicione uma ou mais funções. Após salvar, abra **Enviar convite** no detalhe e confirme o destinatário. O estado “envio aceito” indica aceitação pelo provedor, sem confirmar chegada à caixa de entrada. Depois que o titular definir senha, **Atualizar situação** mostra o acesso ativado.
+A área **Funcionários** da Secretaria lista e pesquisa registros por nome, e-mail ou matrícula funcional. Em **Registrar funcionário**, informe os dados cadastrais e adicione uma ou mais funções. Depois de salvar, confira **Primeiro acesso** no detalhe. Quando o titular definir a senha, **Atualizar situação** mostra o acesso ativado.
 
 ## Evolução do cadastro e do acesso
 
@@ -31,5 +31,5 @@ Para garantir um único convite por operação, deduplicar no backend por funcio
 1. Abra os dois frontends em janelas separadas e use Node.js 24. Rode npm ci em ambos.
 2. Na Secretaria, crie .env.local com VITE_BASE_URL=http://localhost:3000. No portal de Funcionários, use VITE_API_BASE_URL=http://localhost:3000.
 3. Rode npm run dev -- --port 5173 na Secretaria e npm run dev -- --port 5174 no portal. Em backend local ou homologação, autorize ambas as origens e defina EMPLOYEE_APP_URL=http://localhost:5174 para os links de ativação. Use somente banco, conta de Secretaria e caixa de e-mail de teste.
-4. Na Secretaria, crie um cadastro sintético. Teste primeiro o envio explícito de convite ou alterne para um novo cadastro e solicite primeiro acesso pelo Portal de Funcionários. Abra o link de teste, defina e confirme a senha, entre no portal e use **Conferir meus dados**. Consulte a situação de acesso na Secretaria.
+4. Na Secretaria, crie um cadastro sintético com matrícula e e-mail de teste. No Portal de Funcionários, abra **Primeiro acesso com matrícula**, informe os dados e solicite a confirmação. Abra o link de teste, defina e confirme a senha, entre no portal e use **Conferir meus dados**. Consulte a situação de acesso na Secretaria.
 5. Na Secretaria, rode npm run lint, npm run build e npm test. Para testes simulados do portal, faça build com VITE_API_BASE_URL=http://localhost:3099, instale Chromium com npx playwright install chromium e rode npm run test:browser. O teste intercepta chamadas e não entrega e-mails.
