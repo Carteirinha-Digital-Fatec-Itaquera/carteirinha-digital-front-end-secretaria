@@ -54,3 +54,9 @@
 .results li { padding: 12px; border: 1px solid var(--app-color-border); border-radius: 12px; display: flex; align-items: start; flex-wrap: wrap; gap: 10px 24px; justify-content: space-between; }
 .results li a { font-weight: 700; }
 .status { background: var(--app-color-primary-soft); color: var(--app-color-primary); padding: 2px 10px; border-radius: 999px; }
+
+.panel .checkbox { display: inline-flex; align-items: center; flex: 0 1 auto; }
+.panel .checkbox input { width: auto; min-height: auto; }
+.page button.danger { color: var(--app-color-danger); border-color: var(--app-color-danger); }
+.reason { display: grid; gap: 8px; margin-block: 12px; }
+.reason textarea { width: 100%; min-height: 80px; }

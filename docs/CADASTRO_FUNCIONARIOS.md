@@ -2,6 +2,12 @@
 
 A área **Funcionários** da Secretaria lista e pesquisa registros por nome, e-mail ou matrícula funcional. Em **Registrar funcionário**, informe os dados cadastrais e adicione uma ou mais funções. Após salvar, abra **Enviar convite** no detalhe e confirme o destinatário. O estado “envio aceito” indica aceitação pelo provedor, sem confirmar chegada à caixa de entrada. Depois que o titular definir senha, **Atualizar situação** mostra o acesso ativado.
 
+## Evolução do cadastro e do acesso
+
+Informe matrícula funcional no cadastro manual. No detalhe, use **Editar funcionário** e registre um motivo. Cada função é salva separadamente. Em conflito, compare a versão atual sem perder o formulário. **Excluir funcionário** arquiva e revoga o acesso. Para restaurar, marque **Mostrar arquivados** e confirme com um motivo.
+
+Quando a API informa o método de primeiro acesso, a tela apresenta o estado de ativação e mantém o convite apenas para o contrato anterior. O titular usa e-mail e matrícula no portal e confirma pelo link enviado. Cadastros legados sem matrícula continuam com confirmação por e-mail.
+
 ## Integração
 
 | Operação | Contrato |

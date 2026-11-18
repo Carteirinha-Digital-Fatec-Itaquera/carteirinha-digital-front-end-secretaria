@@ -22,6 +22,9 @@ let access: typeof inactiveAccess | (Omit<typeof inactiveAccess, 'lastDeliverySt
   lastAccessRequestAt: string;
 });
 let version: number;
+let archived: boolean;
+let editConflict: boolean;
+let currentName: string;
 let createErrors: Array<Response>;
 let inviteErrors: Array<Response>;
 
@@ -30,6 +33,9 @@ beforeEach(() => {
   requests = [];
   access = inactiveAccess;
   version = 3;
+  archived = false;
+  editConflict = false;
+  currentName = detail.name;
   createErrors = [];
   inviteErrors = [];
   vi.stubGlobal('fetch', vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
@@ -48,7 +54,21 @@ beforeEach(() => {
       access = { ...inactiveAccess, lastDeliveryState: 'ACCEPTED', lastAccessRequestAt: '2026-11-18T12:00:00Z' };
       return json({ requested: true, deliveryState: access.lastDeliveryState, requestedAt: access.lastAccessRequestAt }, 201);
     }
-    return json({ ...detail, version });
+    if (method === 'PATCH' && url.pathname === '/funcionarios/' + id && editConflict) {
+      editConflict = false;
+      version++;
+      currentName = 'Nome atualizado pela Secretaria';
+      return json({ code: 'VERSION_CONFLICT' }, 409);
+    }
+    if (method === 'PATCH' || method === 'DELETE' || method === 'POST') {
+      const body = JSON.parse(String(init?.body));
+      if (body.expectedVersion !== version) return json({ code: 'VERSION_CONFLICT' }, 409);
+      version++;
+      if (body.name) currentName = body.name;
+      if (method === 'DELETE') archived = true;
+      if (url.pathname.endsWith('/restaurar')) archived = false;
+    }
+    return json({ ...detail, name: currentName, version, accountStatus: archived ? 'ARCHIVED' : 'ACTIVE' });
   }));
 });
 afterEach(() => { cleanup(); logoutSession(); vi.unstubAllGlobals(); });
@@ -65,6 +85,7 @@ function fillRequired() {
   fill('E-mail *', 'teste@example.test');
   fill('Data de admissão *', '2026-01-01');
   fill('Cargo ou função *', 'Docente');
+  fill('Matrícula funcional *', 'FUNC-001');
 }
 
 describe('Funcionários da Secretaria', () => {
@@ -92,8 +113,7 @@ describe('Funcionários da Secretaria', () => {
     expect(form.checkValidity()).toBe(false);
     fillRequired();
     fill('Nome social', 'Nome Social');
-    fill('Matrícula funcional', 'FUNC-001');
-    fill('RG', 'RG-FICTICIO');
+      fill('RG', 'RG-FICTICIO');
     fill('Início da função', '2026-01-02');
     fill('Término da função', '2026-01-01');
     press('Salvar cadastro');
@@ -152,5 +172,61 @@ describe('Funcionários da Secretaria', () => {
     press('Atualizar situação');
     expect(await screen.findByText('Acesso ativado')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Reenviar convite' })).not.toBeInTheDocument();
+  });
+  it('preserva a edição em conflito e envia apenas os campos alterados', async () => {
+    editConflict = true;
+    open('/funcionarios/' + id);
+    await screen.findByRole('button', { name: 'Editar funcionário' });
+    press('Editar funcionário');
+    fill('Nome completo', 'Nome editado');
+    const form = within(screen.getByRole('group', { name: 'Dados cadastrais' }));
+    fireEvent.change(form.getByLabelText('Motivo da alteração'), { target: { value: 'Correção cadastral' } });
+    press('Salvar dados');
+    expect(await screen.findByText('Nome atualizado pela Secretaria')).toBeInTheDocument();
+    expect(screen.getByLabelText('Nome completo')).toHaveValue('Nome editado');
+    press('Salvar dados');
+    expect(await screen.findByText('Alteração salva.')).toBeInTheDocument();
+    expect(requests.filter(call => call.method === 'PATCH').map(call => call.body)).toEqual([
+      { name: 'Nome editado', expectedVersion: 3, reason: 'Correção cadastral' },
+      { name: 'Nome editado', expectedVersion: 4, reason: 'Correção cadastral' },
+    ]);
+  });
+
+  it('edita e inclui funções em operações versionadas', async () => {
+    open('/funcionarios/' + id);
+    await screen.findByRole('button', { name: 'Editar funcionário' });
+    press('Editar funcionário');
+    const existing = within(screen.getByRole('group', { name: 'Docente' }));
+    fireEvent.change(existing.getByLabelText('Cargo ou função'), { target: { value: 'Docente responsável' } });
+    fireEvent.change(existing.getByLabelText('Motivo da alteração'), { target: { value: 'Ajustar função' } });
+    fireEvent.click(existing.getByRole('button', { name: 'Salvar função' }));
+    await screen.findByRole('button', { name: 'Editar funcionário' });
+    press('Editar funcionário');
+    const addition = within(screen.getByRole('group', { name: 'Nova função' }));
+    fireEvent.change(addition.getByLabelText('Cargo ou função'), { target: { value: 'Coordenação' } });
+    fireEvent.change(addition.getByLabelText('Motivo da alteração'), { target: { value: 'Novo vínculo' } });
+    fireEvent.click(addition.getByRole('button', { name: 'Incluir função' }));
+    await screen.findByRole('button', { name: 'Editar funcionário' });
+    expect(requests.filter(call => call.path.includes('/funcoes')).map(call => [call.method, call.body?.expectedVersion])).toEqual([['PATCH', 3], ['POST', 4]]);
+  });
+
+  it('arquiva e restaura com confirmação e motivo', async () => {
+    open('/funcionarios/' + id);
+    await screen.findByRole('button', { name: 'Excluir funcionário' });
+    press('Excluir funcionário');
+    expect(screen.getByRole('button', { name: 'Confirmar arquivamento' })).toBeDisabled();
+    fill('Motivo', 'Encerramento de vínculo');
+    press('Confirmar arquivamento');
+    await screen.findByText('Funcionário arquivado. O acesso foi revogado.');
+    fireEvent.click(screen.getByLabelText('Mostrar arquivados'));
+    await waitFor(() => expect(requests.some(call => call.path.includes('includeArchived=true'))).toBe(true));
+    fireEvent.click(await screen.findByRole('link', { name: 'Nome Social' }));
+    await screen.findByRole('button', { name: 'Restaurar funcionário' });
+    press('Restaurar funcionário');
+    fill('Motivo', 'Revisão administrativa');
+    press('Confirmar restauração');
+    expect(await screen.findByText(/Funcionário restaurado/)).toBeInTheDocument();
+    expect(requests.find(call => call.method === 'DELETE')?.body).toEqual({ expectedVersion: 3, reason: 'Encerramento de vínculo' });
+    expect(requests.find(call => call.path.endsWith('/restaurar'))?.body).toEqual({ expectedVersion: 4, reason: 'Revisão administrativa' });
   });
 });
