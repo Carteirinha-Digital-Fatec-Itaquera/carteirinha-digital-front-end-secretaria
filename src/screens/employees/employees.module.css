@@ -60,3 +60,9 @@
 .page button.danger { color: var(--app-color-danger); border-color: var(--app-color-danger); }
 .reason { display: grid; gap: 8px; margin-block: 12px; }
 .reason textarea { width: 100%; min-height: 80px; }
+
+.archiveDialog { display: grid; gap: var(--app-space-16); }
+.archiveDialog textarea { padding: 10px 12px; color: var(--app-color-text); border: 1px solid var(--app-color-input-border); border-radius: var(--app-radius-control); resize: vertical; }
+.page .archiveDialog button { padding: 8px 16px; border: 1px solid var(--app-color-primary); border-radius: var(--app-radius-control); background: var(--app-color-surface); color: var(--app-color-primary); font-weight: 600; }
+.page .archiveDialog button.danger { border-color: var(--app-color-danger); background: var(--app-color-danger); color: white; }
+.page .archiveDialog button.primary { background: var(--app-color-primary); color: white; }

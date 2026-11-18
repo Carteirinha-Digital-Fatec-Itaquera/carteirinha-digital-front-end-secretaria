@@ -166,7 +166,7 @@ function EmployeeRecord({ id }: { id: string }) {
     {outcome?.error && <p role="alert">{outcome.error}</p>}
     {employee && archiveOpen && <Modal label={archive ? 'Arquivar funcionário' : 'Restaurar funcionário'}
       onDismiss={sending ? undefined : () => setArchiveOpen(false)}>
-      <form className={styles.panel} onSubmit={event => { event.preventDefault(); void submitArchive(); }}>
+      <form className={styles.archiveDialog} onSubmit={event => { event.preventDefault(); void submitArchive(); }}>
         <h2>{archive ? 'Arquivar funcionário' : 'Restaurar funcionário'}</h2>
         <p><strong>{employee.displayName}</strong></p>
         <p>{archive ? 'O cadastro será arquivado. O acesso e as sessões serão revogados.'
