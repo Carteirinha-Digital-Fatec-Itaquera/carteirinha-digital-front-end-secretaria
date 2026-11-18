@@ -24,12 +24,13 @@ export default function RegisterEmployee() {
     const value = (name: string) => String(fields.get(name) ?? '').trim();
     const payload: EmployeeInput = {
       name: value('name'), email: value('email').toLowerCase(), admissionDate: value('admissionDate'),
-      socialName: value('socialName') || undefined, registrationNumber: value('registrationNumber') || undefined,
+      socialName: value('socialName') || undefined, registrationNumber: value('registrationNumber'),
       rg: value('rg') || undefined,
       assignments: assignments.map(({ title, startsOn, validUntil }) => ({
         title: title.trim(), startsOn: startsOn || undefined, validUntil: validUntil || undefined,
       })),
     };
+    if (!payload.registrationNumber) { setError('Informe a matrícula funcional.'); return; }
     if (payload.name.length < 3 || (payload.socialName && payload.socialName.length < 3) ||
       payload.assignments.some(item => item.title.length < 2)) {
       setError('Informe nomes com pelo menos três caracteres e funções com pelo menos dois.');
@@ -68,7 +69,7 @@ export default function RegisterEmployee() {
           <label>Nome social<input name="socialName" minLength={3} maxLength={160} /></label>
           <label>E-mail *<input name="email" type="email" required maxLength={254} /></label>
           <label>Data de admissão *<input name="admissionDate" type="date" required /></label>
-          <label>Matrícula funcional<input name="registrationNumber" maxLength={40} /></label>
+          <label>Matrícula funcional *<input name="registrationNumber" required maxLength={40} /></label>
           <label>RG<input name="rg" maxLength={24} /></label>
         </div>
       </fieldset>

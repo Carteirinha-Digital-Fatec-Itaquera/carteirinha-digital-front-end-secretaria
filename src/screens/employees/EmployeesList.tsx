@@ -1,13 +1,14 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { listEmployees } from '../../api/employee/employeeService';
 import { accountLabels, employeeError } from './employeePresentation';
 import EmployeesLayout from './EmployeesLayout';
 import styles from './employees.module.css';
 
 export default function EmployeesList() {
+  const { state } = useLocation();
   const [input, setInput] = useState('');
-  const [filter, setFilter] = useState({ query: '', cursor: null as string | null, attempt: 0 });
+  const [filter, setFilter] = useState({ query: '', cursor: null as string | null, attempt: 0, includeArchived: false });
   const [result, setResult] = useState<{
     filter: typeof filter;
     data?: Awaited<ReturnType<typeof listEmployees>>;
@@ -16,7 +17,7 @@ export default function EmployeesList() {
 
   useEffect(() => {
     const controller = new AbortController();
-    void listEmployees(filter.query, filter.cursor, controller.signal).then(
+    void listEmployees(filter.query, filter.cursor, controller.signal, filter.includeArchived).then(
       data => { if (!controller.signal.aborted) setResult({ filter, data }); },
       error => { if (!controller.signal.aborted) setResult({ filter, error: employeeError(error) }); },
     );
@@ -26,10 +27,11 @@ export default function EmployeesList() {
   const current = result?.filter === filter ? result : undefined;
   const search = (event: FormEvent) => {
     event.preventDefault();
-    setFilter({ query: input.trim(), cursor: null, attempt: 0 });
+    setFilter(previous => ({ ...previous, query: input.trim(), cursor: null, attempt: 0 }));
   };
 
   return <EmployeesLayout title="Funcionários">
+    {state?.archived && <p className={styles.notice} role="status">Funcionário arquivado. O acesso foi revogado.</p>}
     <section className={styles.panel} aria-label="Cadastro de funcionários">
       <div className={styles.toolbar}>
         <form onSubmit={search} className={styles.toolbar}>
@@ -37,6 +39,8 @@ export default function EmployeesList() {
             <input type="search" value={input} maxLength={254} onChange={e => setInput(e.target.value)} />
           </label>
           <button type="submit">Pesquisar</button>
+          <label className={styles.checkbox}><input type="checkbox" checked={filter.includeArchived}
+            onChange={e => setFilter({ ...filter, cursor: null, includeArchived: e.target.checked })} /> Mostrar arquivados</label>
         </form>
         <Link className={styles.primary} to="/funcionarios/novo">Registrar funcionário</Link>
       </div>

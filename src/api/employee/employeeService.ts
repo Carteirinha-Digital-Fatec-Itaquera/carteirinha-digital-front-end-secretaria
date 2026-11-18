@@ -9,7 +9,7 @@ export interface EmployeeInput {
   name: string;
   socialName?: string;
   email: string;
-  registrationNumber?: string;
+  registrationNumber: string;
   rg?: string;
   admissionDate: string;
   assignments: AssignmentInput[];
@@ -42,6 +42,7 @@ export interface EmployeeDetails extends EmployeeIdentity {
 }
 export interface AccessStatus {
   passwordDefined: boolean;
+  firstAccessMethod?: 'REGISTRATION' | 'REGISTRATION_REQUIRED' | null;
   lastLoginAt: string | null;
   lastAccessRequestAt: string | null;
   lastDeliveryState: DeliveryState | null;
@@ -59,10 +60,11 @@ interface EmployeePage {
 const root = '/funcionarios';
 const employeePath = (id: string) => root + '/' + encodeURIComponent(id);
 
-export function listEmployees(query: string, cursor: string | null, signal?: AbortSignal) {
+export function listEmployees(query: string, cursor: string | null, signal?: AbortSignal, includeArchived = false) {
   const filters = new URLSearchParams({ limit: '25' });
   if (query) filters.set('q', query);
   if (cursor) filters.set('cursor', cursor);
+  if (includeArchived) filters.set('includeArchived', 'true');
   return apiRequest<EmployeePage>(root + '?' + filters, { signal });
 }
 
@@ -78,8 +80,20 @@ export function getEmployeeAccess(id: string, signal?: AbortSignal) {
   return apiRequest<AccessStatus>(employeePath(id) + '/acesso', { signal });
 }
 
-export function inviteEmployee(id: string, requestId: string, expectedVersion: number, signal?: AbortSignal) {
-  return apiRequest<InviteResult>(employeePath(id) + '/convite', {
-    method: 'POST', body: JSON.stringify({ requestId, expectedVersion }), signal,
-  });
+export type VersionedReason = { expectedVersion: number; reason: string };
+export type EmployeePatch = Partial<Pick<EmployeeDetails, 'name' | 'socialName' | 'email' | 'registrationNumber' | 'rg' | 'admissionDate'>>;
+export type AssignmentPatch = { title?: string; startsOn?: string | null; validUntil?: string | null; active?: boolean };
+
+export function editEmployee(id: string, data: VersionedReason & EmployeePatch, signal: AbortSignal) {
+  return apiRequest<EmployeeDetails>(employeePath(id), { method: 'PATCH', body: JSON.stringify(data), signal });
+}
+
+export function saveAssignment(id: string, assignmentId: string | undefined, data: VersionedReason & AssignmentPatch, signal: AbortSignal) {
+  const path = employeePath(id) + '/funcoes' + (assignmentId ? '/' + encodeURIComponent(assignmentId) : '');
+  return apiRequest<{ version: number }>(path, { method: assignmentId ? 'PATCH' : 'POST', body: JSON.stringify(data), signal });
+}
+
+export function changeArchive(id: string, restore: boolean, data: VersionedReason, signal: AbortSignal) {
+  return apiRequest<EmployeeDetails>(employeePath(id) + (restore ? '/restaurar' : ''),
+    { method: restore ? 'POST' : 'DELETE', body: JSON.stringify(data), signal });
 }
