@@ -2,7 +2,7 @@ import { apiRequest } from '../../api/config/apiRequest';
 import { logoutSession } from '../../api/auth/session';
 import { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { CloudArrowUpIcon, FilePlusIcon, SignOutIcon, UserCircleIcon, UserListIcon, SidebarSimpleIcon, CalendarIcon, CameraIcon, ChatCircleIcon, InfoIcon } from '@phosphor-icons/react';
+import { CloudArrowUpIcon, FilePlusIcon, SignOutIcon, UserCircleIcon, UserListIcon, SidebarSimpleIcon, CalendarIcon, CameraIcon, ChatCircleIcon, InfoIcon, IdentificationBadgeIcon } from '@phosphor-icons/react';
 import MessageModal from '../messageModal/MessageModal';
 import styles from './style.module.css';
 import { getPendingPhotos } from '../../api/student/getPendingPhotos';
@@ -71,6 +71,7 @@ export default function MenuLateral({ pendingPhotoCount }: { pendingPhotoCount?:
    {path:'/students',label:'Lista de alunos',Icon:UserListIcon},
    {path:'/register',label:'Registrar aluno',Icon:FilePlusIcon},
    {path:'/upload-alunos',label:'Importar alunos',Icon:CloudArrowUpIcon},
+   {path:'/funcionarios',label:'Funcionários',Icon:IdentificationBadgeIcon},
    {path:'/perfil',label:'Perfil',Icon:UserCircleIcon},
    {path:'/suporte',label:'Suporte',Icon:ChatCircleIcon},
    {path:'/fotos',label:'Fotos pendentes',Icon:CameraIcon},
@@ -87,6 +88,7 @@ export default function MenuLateral({ pendingPhotoCount }: { pendingPhotoCount?:
    <nav aria-label="Navegação principal" className={styles.navigation}>
     {items.map(({path,label,Icon}) => {
       const active = location.pathname === path || (path === '/suporte' && location.pathname.startsWith('/suporte/')) ||
+        (path === '/funcionarios' && location.pathname.startsWith('/funcionarios/')) ||
         (path === '/students' && location.pathname.startsWith('/update')) ||
         (path === '/eventos' && (location.pathname.startsWith('/eventos') || location.pathname === '/criar-evento')) ||
         (path === '/creditos' && (location.pathname === '/creditos' || location.pathname.startsWith('/creditos/')));

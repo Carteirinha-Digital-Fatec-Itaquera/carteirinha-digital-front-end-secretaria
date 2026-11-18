@@ -1,3 +1,7 @@
+import RequireEmployeeManagement from './screens/employees/RequireEmployeeManagement';
+import EmployeesList from './screens/employees/EmployeesList';
+import RegisterEmployee from './screens/employees/RegisterEmployee';
+import EmployeeDetail from './screens/employees/EmployeeDetail';
 import SupportScreen from './screens/support/SupportScreen';
 import { useEffect } from 'react';
 import { checkSession, watchSessionLifecycle } from './api/auth/session';
@@ -51,6 +55,11 @@ export default function App() {
         <Route element={<RequireSecretarySession />}>
         <Route path="/suporte" element={<SupportScreen />} />
         <Route path="/suporte/:id" element={<SupportScreen />} />
+        <Route element={<RequireEmployeeManagement />}>
+          <Route path="/funcionarios" element={<EmployeesList />} />
+          <Route path="/funcionarios/novo" element={<RegisterEmployee />} />
+          <Route path="/funcionarios/:id" element={<EmployeeDetail />} />
+        </Route>
         <Route path="/students" element={<ListStudentScreen />} />
         <Route path="/register" element={<RegisterStudentScreen />} />
         <Route path="/update/:ra" element={<UpdateStudentScreen />} />
