@@ -74,7 +74,7 @@ describe("Fila de fotografias dos funcionários", () => {
     fireEvent.click(
       screen.getByRole("button", { name: "Confirmar aprovação" }),
     );
-    await screen.findByText("Foto do funcionário aprovada.");
+    await screen.findByText("Foto aprovada com sucesso!");
     expect(reviewEmployeePhoto).toHaveBeenCalledWith(
       photo,
       true,
@@ -85,6 +85,13 @@ describe("Fila de fotografias dos funcionários", () => {
       "Nenhuma fotografia de funcionário aguardando análise.",
     );
     expect(count).toHaveBeenLastCalledWith(0);
+    fireEvent.click(screen.getByRole("button", { name: "OK" }));
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    await waitFor(() =>
+      expect(
+        screen.getByRole("button", { name: "Atualizar pendências" }),
+      ).toHaveFocus(),
+    );
   });
   it("exige motivo de rejeição e impede confirmação duplicada", async () => {
     let resolve!: (value: unknown) => void;
@@ -115,6 +122,9 @@ describe("Fila de fotografias dos funcionários", () => {
     await act(async () => {
       resolve({});
     });
+    expect(
+      await screen.findByText("Foto reprovada com sucesso!"),
+    ).toBeInTheDocument();
     expect(reviewEmployeePhoto).toHaveBeenCalledWith(
       photo,
       false,
@@ -171,5 +181,49 @@ describe("Fila de fotografias dos funcionários", () => {
       expect(screen.getByRole("alert")).toHaveTextContent("Rede indisponível"),
     );
     expect(count).toHaveBeenLastCalledWith(null);
+  });
+  it.each([401, 500, 502])(
+    "não apresenta sucesso em falha HTTP %s",
+    async (status) => {
+      vi.mocked(reviewEmployeePhoto).mockRejectedValue(
+        new ApiRequestError(status, "Falha simulada"),
+      );
+      mount();
+      fireEvent.click(
+        await screen.findByRole("button", { name: "Aprovar foto" }),
+      );
+      fireEvent.click(
+        screen.getByRole("button", { name: "Confirmar aprovação" }),
+      );
+      expect(await screen.findByRole("alert")).toHaveTextContent(
+        "Falha simulada",
+      );
+      expect(
+        screen.queryByText("Foto aprovada com sucesso!"),
+      ).not.toBeInTheDocument();
+    },
+  );
+  it("aguarda resposta da API para abrir sucesso", async () => {
+    let resolve!: (value: unknown) => void;
+    vi.mocked(reviewEmployeePhoto).mockReturnValue(
+      new Promise((done) => {
+        resolve = done;
+      }),
+    );
+    mount();
+    fireEvent.click(
+      await screen.findByRole("button", { name: "Aprovar foto" }),
+    );
+    fireEvent.click(
+      screen.getByRole("button", { name: "Confirmar aprovação" }),
+    );
+    expect(
+      screen.queryByText("Foto aprovada com sucesso!"),
+    ).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Salvando…" })).toBeDisabled();
+    await act(async () => resolve({}));
+    expect(
+      await screen.findByText("Foto aprovada com sucesso!"),
+    ).toBeInTheDocument();
   });
 });

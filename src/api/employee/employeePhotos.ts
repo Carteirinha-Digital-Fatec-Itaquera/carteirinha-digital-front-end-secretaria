@@ -29,13 +29,13 @@ export function getEmployeePhotos(cursor: string | null, signal?: AbortSignal) {
     { signal },
   );
 }
-export function reviewEmployeePhoto(
+export async function reviewEmployeePhoto(
   photo: PendingEmployeePhoto,
   approved: boolean,
   reason: string,
   signal: AbortSignal,
-) {
-  return apiRequest(
+): Promise<unknown> {
+  const result = await apiRequest<unknown>(
     "/funcionarios/" +
       encodeURIComponent(photo.employeeId) +
       "/fotos/" +
@@ -51,6 +51,30 @@ export function reviewEmployeePhoto(
       }),
     },
   );
+  if (
+    !result ||
+    typeof result !== "object" ||
+    !("id" in result) ||
+    result.id !== photo.employeeId ||
+    !("version" in result) ||
+    result.version !== photo.employeeVersion + 1 ||
+    !("photo" in result) ||
+    !result.photo ||
+    typeof result.photo !== "object" ||
+    Array.isArray(result.photo) ||
+    !("approvedPhotoId" in result.photo) ||
+    !("pendingPhotoId" in result.photo) ||
+    !("reviewStatus" in result.photo) ||
+    (approved
+      ? result.photo.approvedPhotoId !== photo.photoId
+      : result.photo.pendingPhotoId === photo.photoId)
+  ) {
+    throw new ApiRequestError(
+      502,
+      "A API retornou uma resposta inválida. Atualize a fila para conferir o resultado antes de avaliar novamente.",
+    );
+  }
+  return result;
 }
 export async function getEmployeePhotoBlob(
   photo: PendingEmployeePhoto,

@@ -47,6 +47,15 @@ describe("Contrato das fotos privadas de funcionários", () => {
   });
   it("envia identificadores e versão sem adaptar o funcionário para RA", async () => {
     const signal = new AbortController().signal;
+    vi.mocked(apiRequest).mockResolvedValue({
+      id: item.employeeId,
+      version: 8,
+      photo: {
+        approvedPhotoId: null,
+        pendingPhotoId: null,
+        reviewStatus: "REJECTED",
+      },
+    });
     await reviewEmployeePhoto(item, false, "  Foto desfocada  ", signal);
     expect(apiRequest).toHaveBeenCalledWith(
       "/funcionarios/employee-safe/fotos/photo-safe/avaliacao",
@@ -76,5 +85,16 @@ describe("Contrato das fotos privadas de funcionários", () => {
     await expect(
       getEmployeePhotoBlob(item, new AbortController().signal),
     ).rejects.toThrow("A resposta não contém uma imagem.");
+  });
+  it.each([
+    undefined,
+    {},
+    { id: "outra-pessoa", version: 8, photo: {} },
+    { id: "employee-safe", version: 7, photo: {} },
+  ])("recusa resposta de avaliação inválida: %j", async (result) => {
+    vi.mocked(apiRequest).mockResolvedValue(result);
+    await expect(
+      reviewEmployeePhoto(item, true, "", new AbortController().signal),
+    ).rejects.toMatchObject({ status: 502 });
   });
 });
