@@ -150,3 +150,57 @@
     width: 100%;
   }
 }
+
+.individualActions {
+  display: flex;
+  gap: 8px;
+  margin-top: 18px;
+}
+.individualActions button {
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 9px 6px;
+  min-height: 44px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border: 0;
+  border-radius: 8px;
+  cursor: pointer;
+  color: white;
+}
+.approve {
+  background: #0b5b74;
+}
+.reject {
+  background: #770d0d;
+}
+.individualActions button:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
+.individualActions button:focus-visible {
+  outline: 3px solid #7bc4d0;
+  outline-offset: 3px;
+}
+.selectable {
+  position: relative;
+}
+.checkbox {
+  position: absolute;
+  z-index: 1;
+  top: 10px;
+  right: 10px;
+  width: 44px;
+  height: 44px;
+  accent-color: var(--app-color-primary);
+  background: white;
+  cursor: pointer;
+}
+.scope {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #52656e;
+}
+.progress {
+  font-weight: 650;
+}

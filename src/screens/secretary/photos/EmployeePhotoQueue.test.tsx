@@ -21,6 +21,7 @@ vi.mock("../../../api/employee/employeePhotos", () => ({
   getEmployeePhotoSummary: vi.fn(),
   reviewEmployeePhoto: vi.fn(),
   getEmployeePhotoBlob: vi.fn(),
+  isOptionalPhotoReasonEnabled: () => true,
 }));
 vi.mock("./EmployeePhotoPreview", () => ({
   default: () => <p>Prévia privada</p>,
@@ -93,7 +94,7 @@ describe("Fila de fotografias dos funcionários", () => {
       ).toHaveFocus(),
     );
   });
-  it("exige motivo de rejeição e impede confirmação duplicada", async () => {
+  it("permite motivo vazio e impede confirmação duplicada", async () => {
     let resolve!: (value: unknown) => void;
     vi.mocked(reviewEmployeePhoto).mockReturnValue(
       new Promise((done) => {
@@ -102,20 +103,11 @@ describe("Fila de fotografias dos funcionários", () => {
     );
     mount();
     fireEvent.click(
-      await screen.findByRole("button", { name: "Rejeitar foto" }),
+      await screen.findByRole("button", { name: "Reprovar foto" }),
     );
     const form = screen
-      .getByRole("button", { name: "Confirmar rejeição" })
+      .getByRole("button", { name: "Confirmar reprovação" })
       .closest("form")!;
-    fireEvent.submit(form);
-    expect(await screen.findByRole("alert")).toHaveTextContent(
-      "Informe um motivo",
-    );
-    expect(reviewEmployeePhoto).not.toHaveBeenCalled();
-    fireEvent.change(
-      screen.getByRole("textbox", { name: "Motivo da rejeição" }),
-      { target: { value: "Rosto fora do quadro." } },
-    );
     fireEvent.submit(form);
     fireEvent.submit(form);
     expect(reviewEmployeePhoto).toHaveBeenCalledTimes(1);
@@ -128,7 +120,7 @@ describe("Fila de fotografias dos funcionários", () => {
     expect(reviewEmployeePhoto).toHaveBeenCalledWith(
       photo,
       false,
-      "Rosto fora do quadro.",
+      "",
       expect.any(AbortSignal),
     );
   });
@@ -143,9 +135,8 @@ describe("Fila de fotografias dos funcionários", () => {
     fireEvent.click(
       screen.getByRole("button", { name: "Confirmar aprovação" }),
     );
-    await screen.findByText(
-      "A solicitação mudou. Confira a fila atualizada e confirme novamente.",
-    );
+    await screen.findByText(/Conflito de versão.*selecione novamente/);
+    fireEvent.click(screen.getByRole("button", { name: "OK" }));
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     expect(getEmployeePhotos).toHaveBeenCalledTimes(2);
     expect(reviewEmployeePhoto).toHaveBeenCalledTimes(1);
@@ -195,9 +186,9 @@ describe("Fila de fotografias dos funcionários", () => {
       fireEvent.click(
         screen.getByRole("button", { name: "Confirmar aprovação" }),
       );
-      expect(await screen.findByRole("alert")).toHaveTextContent(
-        "Falha simulada",
-      );
+      expect(
+        await screen.findByText("Pessoa Fictícia: Falha simulada"),
+      ).toBeInTheDocument();
       expect(
         screen.queryByText("Foto aprovada com sucesso!"),
       ).not.toBeInTheDocument();
