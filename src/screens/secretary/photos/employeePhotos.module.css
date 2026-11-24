@@ -14,7 +14,7 @@
 }
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 310px), 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr));
   gap: 24px;
 }
 .card {
@@ -23,7 +23,7 @@
   border: 1px solid var(--app-color-border, #d5e0e4);
   border-radius: 20px;
   overflow: hidden;
-  padding: 20px;
+  padding: 16px;
 }
 .info {
   padding-top: 18px;

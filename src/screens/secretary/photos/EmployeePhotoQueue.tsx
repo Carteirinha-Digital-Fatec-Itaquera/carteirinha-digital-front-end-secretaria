@@ -7,6 +7,7 @@ import {
   reviewEmployeePhoto,
   type PendingEmployeePhoto,
 } from "../../../api/employee/employeePhotos";
+import MessageModal from "../../../components/messageModal/MessageModal";
 import Modal from "../../../components/modal/Modal";
 import EmployeePhotoPreview from "./EmployeePhotoPreview";
 import styles from "./employeePhotos.module.css";
@@ -23,6 +24,18 @@ export default function EmployeePhotoQueue({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const refreshButton = useRef<HTMLButtonElement>(null);
+  const restoreFocus = useRef(false);
+  const closeNotice = () => {
+    restoreFocus.current = true;
+    setNotice("");
+  };
+  useEffect(() => {
+    if (!notice && !loading && !busy && restoreFocus.current) {
+      restoreFocus.current = false;
+      refreshButton.current?.focus({ preventScroll: true });
+    }
+  });
   const [selection, setSelection] = useState<{
     photo: PendingEmployeePhoto;
     approved: boolean;
@@ -83,7 +96,7 @@ export default function EmployeePhotoQueue({
   }, [load]);
 
   async function confirm() {
-    if (!selection || inFlight.current) return;
+    if (!selection || inFlight.current || notice) return;
     if (!selection.approved && reason.trim().length < 3) {
       setError("Informe um motivo de pelo menos 3 caracteres.");
       return;
@@ -101,10 +114,14 @@ export default function EmployeePhotoQueue({
         lifetime.current.signal,
       );
       if (lifetime.current.signal.aborted) return;
+      onCount(null);
       setNotice(
         selection.approved
-          ? "Foto do funcionário aprovada."
-          : "Foto do funcionário rejeitada.",
+          ? "Foto aprovada com sucesso!"
+          : "Foto reprovada com sucesso!",
+      );
+      setItems((previous) =>
+        previous.filter((item) => item.photoId !== selection.photo.photoId),
       );
       setSelection(undefined);
       await load();
@@ -137,6 +154,7 @@ export default function EmployeePhotoQueue({
       <div className={styles.toolbar}>
         <h2>Funcionários</h2>
         <button
+          ref={refreshButton}
           className={styles.secondary}
           disabled={loading || busy}
           onClick={() => void load()}
@@ -145,9 +163,15 @@ export default function EmployeePhotoQueue({
         </button>
       </div>
       {notice && (
-        <p role="status" className={styles.notice}>
-          {notice}
-        </p>
+        <MessageModal
+          visible
+          tone="success"
+          title="Avaliação da fotografia"
+          message={notice}
+          confirmText="OK"
+          onConfirm={closeNotice}
+          onDismiss={closeNotice}
+        />
       )}
       {error && !selection && (
         <div role="alert">
