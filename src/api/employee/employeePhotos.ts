@@ -1,0 +1,81 @@
+import { apiRequest, ApiRequestError } from "../config/apiRequest";
+import { privateFetch } from "../config/privateFetch";
+import { GLOBAL_VAR } from "../config/globalVar";
+
+export interface PendingEmployeePhoto {
+  photoId: string;
+  employeeId: string;
+  employeeName: string;
+  displayName: string;
+  registrationNumber: string | null;
+  employeeVersion: number;
+  createdAt: string;
+  contentUrl: string;
+}
+export interface EmployeePhotoPage {
+  items: PendingEmployeePhoto[];
+  nextCursor: string | null;
+}
+export function getEmployeePhotoSummary(signal?: AbortSignal) {
+  return apiRequest<{ pendingCount: number }>("/funcionarios/fotos/resumo", {
+    signal,
+  });
+}
+export function getEmployeePhotos(cursor: string | null, signal?: AbortSignal) {
+  const query = new URLSearchParams({ limit: "25" });
+  if (cursor) query.set("cursor", cursor);
+  return apiRequest<EmployeePhotoPage>(
+    "/funcionarios/fotos/pendentes?" + query,
+    { signal },
+  );
+}
+export function reviewEmployeePhoto(
+  photo: PendingEmployeePhoto,
+  approved: boolean,
+  reason: string,
+  signal: AbortSignal,
+) {
+  return apiRequest(
+    "/funcionarios/" +
+      encodeURIComponent(photo.employeeId) +
+      "/fotos/" +
+      encodeURIComponent(photo.photoId) +
+      "/avaliacao",
+    {
+      method: "PATCH",
+      signal,
+      body: JSON.stringify({
+        expectedVersion: photo.employeeVersion,
+        approved,
+        ...(reason.trim() ? { reason: reason.trim() } : {}),
+      }),
+    },
+  );
+}
+export async function getEmployeePhotoBlob(
+  photo: PendingEmployeePhoto,
+  signal: AbortSignal,
+) {
+  // Derive the private same-API path from identifiers. Never forward a bearer to a supplied contentUrl.
+  const path =
+    "/funcionarios/" +
+    encodeURIComponent(photo.employeeId) +
+    "/fotos/" +
+    encodeURIComponent(photo.photoId) +
+    "/conteudo";
+  const response = await privateFetch(
+    GLOBAL_VAR.BASE_URL.replace(/[/]+$/, "") + path,
+    { signal },
+  );
+  if (!response.ok)
+    throw new ApiRequestError(
+      response.status,
+      response.status === 401
+        ? "Sessão expirada."
+        : "Não foi possível carregar a foto privada.",
+    );
+  const blob = await response.blob();
+  if (!blob.type.startsWith("image/"))
+    throw new Error("A resposta não contém uma imagem.");
+  return blob;
+}

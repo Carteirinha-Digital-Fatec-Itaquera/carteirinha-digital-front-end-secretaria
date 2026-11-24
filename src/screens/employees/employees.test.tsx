@@ -39,6 +39,7 @@ beforeEach(() => {
   vi.stubGlobal('fetch', vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = new URL(String(input));
     const method = init?.method ?? 'GET';
+    if (url.pathname === '/funcionarios/fotos/resumo') return json({ pendingCount: 0 });
     if (!url.pathname.startsWith('/funcionarios')) return json(url.pathname.endsWith('/summary') ? { pending: 0 } : []);
     const token = new Headers(init?.headers).get('Authorization');
     requests.push({ path: url.pathname + url.search, method, token, body: init?.body ? JSON.parse(String(init.body)) : null });
