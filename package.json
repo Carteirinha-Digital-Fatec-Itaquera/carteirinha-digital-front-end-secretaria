@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:integration": "vitest run --config vitest.integration.config.ts",
-    "test:photos:browser": "node tests/photos.browser.mjs"
+    "test:photos:browser": "node tests/photos.browser.mjs",
+    "test:photo-batch": "node tests/photo-batch.browser.mjs"
   },
   "dependencies": {
     "@phosphor-icons/react": "^2.1.10",

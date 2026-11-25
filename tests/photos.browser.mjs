@@ -191,14 +191,13 @@ try {
     state.pending = true;
     await page.getByRole("button", { name: "Atualizar pendências" }).click();
     await page
-      .getByRole("button", { name: "Rejeitar foto", exact: true })
+      .getByRole("button", { name: "Reprovar foto", exact: true })
       .click();
-    await page.getByRole("button", { name: "Confirmar rejeição" }).click();
     assert.equal(state.patches, 1);
     await page
-      .getByRole("textbox", { name: "Motivo da rejeição" })
+      .getByRole("textbox", { name: "Motivo da reprovação (opcional)" })
       .fill("Imagem sintética fora do enquadramento.");
-    await page.getByRole("button", { name: "Confirmar rejeição" }).click();
+    await page.getByRole("button", { name: "Confirmar reprovação" }).click();
     await page
       .getByText("Foto reprovada com sucesso!", { exact: true })
       .waitFor();
@@ -219,10 +218,7 @@ try {
           .count(),
         0,
       );
-      if (mode !== "conflict")
-        await page
-          .getByRole("button", { name: "Cancelar", exact: true })
-          .click();
+      await page.getByRole("button", { name: "OK", exact: true }).click();
     }
     state.mode = "expired";
     await page

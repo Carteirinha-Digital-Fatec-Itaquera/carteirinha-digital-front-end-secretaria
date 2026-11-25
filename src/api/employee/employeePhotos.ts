@@ -2,6 +2,9 @@ import { apiRequest, ApiRequestError } from "../config/apiRequest";
 import { privateFetch } from "../config/privateFetch";
 import { GLOBAL_VAR } from "../config/globalVar";
 
+export const isOptionalPhotoReasonEnabled = () =>
+  import.meta.env.VITE_EMPLOYEE_PHOTO_OPTIONAL_REASON === "true";
+
 export interface PendingEmployeePhoto {
   photoId: string;
   employeeId: string;
@@ -35,6 +38,12 @@ export async function reviewEmployeePhoto(
   reason: string,
   signal: AbortSignal,
 ): Promise<unknown> {
+  if (!approved && !reason.trim() && !isOptionalPhotoReasonEnabled()) {
+    throw new ApiRequestError(
+      503,
+      "Envio sem motivo temporariamente indisponível. Informe um motivo ou tente novamente mais tarde.",
+    );
+  }
   const result = await apiRequest<unknown>(
     "/funcionarios/" +
       encodeURIComponent(photo.employeeId) +

@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { privateFetch } from "../config/privateFetch";
 import { GLOBAL_VAR } from "../config/globalVar";
 import {
@@ -29,7 +29,11 @@ const item: PendingEmployeePhoto = {
   contentUrl: "https://external.example.test/privada",
 };
 describe("Contrato das fotos privadas de funcionários", () => {
-  beforeEach(() => vi.resetAllMocks());
+  beforeEach(() => {
+    vi.resetAllMocks();
+    vi.stubEnv("VITE_EMPLOYEE_PHOTO_OPTIONAL_REASON", "true");
+  });
+  afterEach(() => vi.unstubAllEnvs());
   it("obtém a prévia somente pela rota própria da API autenticada", async () => {
     vi.mocked(privateFetch).mockResolvedValue(
       new Response("imagem fictícia", {
@@ -96,5 +100,26 @@ describe("Contrato das fotos privadas de funcionários", () => {
     await expect(
       reviewEmployeePhoto(item, true, "", new AbortController().signal),
     ).rejects.toMatchObject({ status: 502 });
+  });
+  it("omite motivo em branco e protege o backend anterior quando a chave está desligada", async () => {
+    vi.mocked(apiRequest).mockResolvedValue({
+      id: item.employeeId,
+      version: 8,
+      photo: {
+        approvedPhotoId: null,
+        pendingPhotoId: null,
+        reviewStatus: "REJECTED",
+      },
+    });
+    await reviewEmployeePhoto(item, false, "   ", new AbortController().signal);
+    expect(
+      JSON.parse(String(vi.mocked(apiRequest).mock.calls[0][1]?.body)),
+    ).toEqual({ expectedVersion: 7, approved: false });
+    vi.mocked(apiRequest).mockClear();
+    vi.stubEnv("VITE_EMPLOYEE_PHOTO_OPTIONAL_REASON", "false");
+    await expect(
+      reviewEmployeePhoto(item, false, "", new AbortController().signal),
+    ).rejects.toMatchObject({ status: 503 });
+    expect(apiRequest).not.toHaveBeenCalled();
   });
 });
