@@ -68,3 +68,18 @@
   max-height: 65dvh;
   object-fit: contain;
 }
+
+.preview button {
+  min-height: 44px;
+  padding: 10px 20px;
+  border: 1px solid var(--app-color-primary);
+  border-radius: 12px;
+  background: var(--app-color-primary);
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+}
+.preview button:focus-visible {
+  outline: 3px solid var(--app-color-primary);
+  outline-offset: 3px;
+}
