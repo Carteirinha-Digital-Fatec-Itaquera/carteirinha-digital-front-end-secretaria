@@ -187,7 +187,7 @@ describe("Atendimento de suporte", () => {
     );
     await waitFor(() =>
       expect(apiRequest).toHaveBeenCalledWith(
-        "/support/admin/tickets?",
+        "/support/admin/tickets?status=OPEN",
         expect.anything(),
       ),
     );
