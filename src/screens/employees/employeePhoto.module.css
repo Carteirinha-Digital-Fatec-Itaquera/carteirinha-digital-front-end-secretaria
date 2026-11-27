@@ -1,0 +1,85 @@
+.photo {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.avatar {
+  display: block;
+  width: var(--employee-photo-size);
+  height: var(--employee-photo-size);
+  border-radius: 50%;
+  object-fit: cover;
+}
+.list {
+  --employee-photo-size: 40px;
+}
+.detail {
+  --employee-photo-size: 96px;
+}
+.placeholder {
+  display: grid;
+  place-items: center;
+  background: var(--app-color-primary-soft);
+  color: var(--app-color-primary);
+}
+.placeholder svg {
+  width: 55%;
+  height: 55%;
+}
+.photoButton[type="button"] {
+  position: relative;
+  display: block;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  border-radius: 50%;
+  cursor: pointer;
+}
+.photoButton:focus-visible {
+  outline: 3px solid var(--app-color-primary);
+  outline-offset: 4px;
+}
+.expand {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  background: var(--app-color-primary);
+  color: white;
+  border-radius: 50%;
+  padding: 3px;
+  width: 24px;
+  height: 24px;
+}
+.caption {
+  font-size: 0.8125rem;
+  max-width: 200px;
+  color: var(--app-color-muted);
+  text-align: center;
+}
+.preview {
+  display: grid;
+  gap: 16px;
+  justify-items: center;
+}
+.preview img {
+  width: min(100%, 380px);
+  max-height: 65dvh;
+  object-fit: contain;
+}
+
+.preview button {
+  min-height: 44px;
+  padding: 10px 20px;
+  border: 1px solid var(--app-color-primary);
+  border-radius: 12px;
+  background: var(--app-color-primary);
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+}
+.preview button:focus-visible {
+  outline: 3px solid var(--app-color-primary);
+  outline-offset: 3px;
+}

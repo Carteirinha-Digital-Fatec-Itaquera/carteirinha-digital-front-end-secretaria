@@ -1,0 +1,99 @@
+.filters {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  min-width: 0;
+  gap: 16px;
+}
+.actions,
+.pagination {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+.checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-right: auto;
+  min-height: 44px;
+}
+.searchButton {
+  border: 0;
+  background: transparent;
+  display: grid;
+  place-items: center;
+  min-width: 44px;
+  min-height: 44px;
+  cursor: pointer;
+}
+.primary,
+.secondary,
+.pagination button,
+.error button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 8px 16px;
+  border: 1px solid var(--app-color-primary);
+  border-radius: 12px;
+  font-weight: 600;
+  text-decoration: none;
+}
+.primary {
+  background: var(--app-color-primary);
+  color: white;
+}
+.secondary,
+.pagination button,
+.error button {
+  background: var(--app-color-surface);
+  color: var(--app-color-primary);
+}
+.name {
+  color: var(--app-color-primary);
+  font-weight: 600;
+}
+.fullName {
+  display: block;
+  color: var(--app-color-muted);
+  font-size: 0.8125rem;
+}
+.notice {
+  padding: 16px;
+  background: var(--app-color-primary-soft);
+  border-radius: 12px;
+}
+.error {
+  color: var(--app-color-danger);
+  margin-block: 12px;
+}
+.muted {
+  color: var(--app-color-muted);
+  font-size: 0.875rem;
+}
+.pagination {
+  margin-top: 16px;
+}
+.primary:focus-visible,
+.secondary:focus-visible,
+.searchButton:focus-visible {
+  outline: 3px solid var(--app-color-primary);
+  outline-offset: 3px;
+}
+@media (max-width: 767px) {
+  .actions > a {
+    flex: 1 1 180px;
+  }
+  .checkbox {
+    flex-basis: 100%;
+  }
+}
+
+.checkbox input {
+  width: 18px;
+  height: 18px;
+  min-height: 0;
+  flex-shrink: 0;
+}
