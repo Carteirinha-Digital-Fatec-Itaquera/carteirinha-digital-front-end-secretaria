@@ -20,12 +20,19 @@ import { apiRequest } from "../../api/config/apiRequest";
 import layout from "../../styles/layoutWithMenu.module.css";
 import "./support.css";
 const auditLabels: Record<string, string> = {
-  CREATED: 'Solicitação criada', MESSAGE: 'Mensagem enviada', CLAIM: 'Atendimento assumido',
-  ASSIGNEE: 'Responsável alterado', STATUS: 'Situação atualizada', CLOSE: 'Atendimento encerrado',
-  REOPEN: 'Atendimento reaberto', REDACT: 'Conteúdo sensível removido', CANCEL: 'Solicitação cancelada', DELETE: 'Solicitação excluída',
+  CREATED: "Solicitação criada",
+  MESSAGE: "Mensagem enviada",
+  CLAIM: "Atendimento assumido",
+  ASSIGNEE: "Responsável alterado",
+  STATUS: "Situação atualizada",
+  CLOSE: "Atendimento encerrado",
+  REOPEN: "Atendimento reaberto",
+  REDACT: "Conteúdo sensível removido",
+  CANCEL: "Solicitação cancelada",
+  DELETE: "Solicitação excluída",
 };
 const statuses: Record<string, string> = {
-  OPEN: "Aberto",
+  OPEN: "Em aberto",
   IN_PROGRESS: "Em atendimento",
   WAITING_STUDENT: "Aguardando aluno",
   RESOLVED: "Resolvido",
@@ -103,16 +110,28 @@ export default function SupportScreen() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const applied = searchParams.toString();
+  const normalizedParams = new URLSearchParams(searchParams);
+  const rawStatus = normalizedParams.get("status");
+  if (
+    rawStatus === null ||
+    (rawStatus !== "" && !Object.keys(statuses).includes(rawStatus))
+  )
+    normalizedParams.set("status", "OPEN");
+  const applied = normalizedParams.toString();
+  const apiParams = new URLSearchParams(applied);
+  if (!apiParams.get("status")) apiParams.delete("status");
+  const apiQuery = apiParams.toString();
   const listUrl = "/suporte" + (applied ? "?" + applied : "");
   const [loading, setLoading] = useState(true);
   const [redactReason, setRedactReason] = useState("");
   const submitting = useRef(false);
+  const paging = useRef(false);
   const [dangerAction, setDangerAction] = useState<"cancel" | "delete" | null>(
     null,
   );
   const [actionReason, setActionReason] = useState("");
   const [page, setPage] = useState<Page>({ items: [], nextCursor: null });
+  const [loadedQuery, setLoadedQuery] = useState<string | null>(null);
   const [detail, setDetail] = useState<Detail | null>(null);
   const [audit, setAudit] = useState<Audit[]>([]);
   const [assignees, setAssignees] = useState<{ id: number; name: string }[]>(
@@ -120,7 +139,7 @@ export default function SupportScreen() {
   );
   const [filters, setFilters] = useState(() => ({
     q: searchParams.get("q") || "",
-    status: searchParams.get("status") || "",
+    status: normalizedParams.get("status") || "",
     category: searchParams.get("category") || "",
     assignee: searchParams.get("assignee") || "all",
     from: searchParams.get("from") || "",
@@ -172,12 +191,15 @@ export default function SupportScreen() {
           window.dispatchEvent(new Event("support:updated"));
         } else {
           const value = await request<Page>(
-            "/tickets?" + applied,
+            "/tickets?" + apiQuery,
             undefined,
             undefined,
             signal,
           );
-          if (!signal?.aborted && current === epoch.current) setPage(value);
+          if (!signal?.aborted && current === epoch.current) {
+            setPage(value);
+            setLoadedQuery(apiQuery);
+          }
         }
       } catch (e) {
         if (!signal?.aborted && current === epoch.current)
@@ -188,7 +210,7 @@ export default function SupportScreen() {
         if (!signal?.aborted && current === epoch.current) setLoading(false);
       }
     },
-    [id, applied],
+    [id, apiQuery],
   );
   useEffect(() => {
     const counter = epoch;
@@ -289,12 +311,16 @@ export default function SupportScreen() {
     }
   }
   async function more(messages = false) {
+    if (paging.current) return;
+    paging.current = true;
+    const current = epoch.current;
     setBusy(true);
     try {
       if (messages && detail) {
         const older = await request<Detail>(
           "/tickets/" + id + "?cursor=" + detail.messageNextCursor,
         );
+        if (current !== epoch.current) return;
         setDetail({
           ...detail,
           messages: [...older.messages, ...detail.messages],
@@ -302,17 +328,42 @@ export default function SupportScreen() {
         });
       } else {
         const next = await request<Page>(
-          "/tickets?" + applied + "&cursor=" + page.nextCursor,
+          "/tickets?" +
+            apiQuery +
+            "&cursor=" +
+            encodeURIComponent(page.nextCursor!),
         );
-        setPage({
-          items: [...page.items, ...next.items],
+        if (current !== epoch.current) return;
+        setPage((previous) => ({
+          items: [
+            ...new Map(
+              [...previous.items, ...next.items].map((item) => [item.id, item]),
+            ).values(),
+          ],
           nextCursor: next.nextCursor,
-        });
+        }));
       }
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Falha ao carregar.");
+      if (current === epoch.current)
+        setError(e instanceof Error ? e.message : "Falha ao carregar.");
     } finally {
+      paging.current = false;
       setBusy(false);
+    }
+  }
+  function applyFilters(next: typeof filters) {
+    const query = new URLSearchParams(
+      Object.entries(next).filter(
+        ([key, value]) =>
+          key === "status" ||
+          (value && !(key === "assignee" && value === "all")),
+      ),
+    );
+    setFilters(next);
+    if (query.toString() === applied) void load();
+    else {
+      setLoading(true);
+      setSearchParams(query);
     }
   }
   const terminal =
@@ -320,7 +371,8 @@ export default function SupportScreen() {
   const responsible =
     detail && detail.ticket.assignedSecretaryId === detail.viewerSecretaryId;
   const hasFilters = Object.entries(filters).some(
-    ([key, value]) => value && !(key === "assignee" && value === "all"),
+    ([key, value]) =>
+      key !== "status" && value && !(key === "assignee" && value === "all"),
   );
   const statusLabel = (ticket: Ticket) =>
     ticket.closeReason?.startsWith("CANCELLED_")
@@ -370,17 +422,7 @@ export default function SupportScreen() {
                 className="support-filter-panel"
                 onSubmit={(e) => {
                   e.preventDefault();
-                  const query = new URLSearchParams(
-                    Object.entries(filters).filter(
-                      ([key, value]) =>
-                        value && !(key === "assignee" && value === "all"),
-                    ),
-                  );
-                  if (query.toString() === applied) void load();
-                  else {
-                    setLoading(true);
-                    setSearchParams(query);
-                  }
+                  applyFilters(filters);
                 }}
               >
                 <div className="support-search-row">
@@ -398,6 +440,22 @@ export default function SupportScreen() {
                       />
                     </span>
                   </label>
+                  <label className="support-status-filter">
+                    Situação
+                    <select
+                      value={filters.status}
+                      onChange={(e) =>
+                        applyFilters({ ...filters, status: e.target.value })
+                      }
+                    >
+                      <option value="">Todos</option>
+                      {Object.entries(statuses).map(([value, label]) => (
+                        <option value={value} key={value}>
+                          {label}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
                   <button className="support-primary" disabled={busy}>
                     Buscar solicitações
                   </button>
@@ -411,22 +469,6 @@ export default function SupportScreen() {
                     Filtros de atendimento
                   </summary>
                   <div className="support-filter-grid">
-                    <label>
-                      Situação
-                      <select
-                        value={filters.status}
-                        onChange={(e) =>
-                          setFilters({ ...filters, status: e.target.value })
-                        }
-                      >
-                        <option value="">Todas</option>
-                        {Object.entries(statuses).map(([value, label]) => (
-                          <option value={value} key={value}>
-                            {label}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
                     <label>
                       Categoria
                       <select
@@ -483,15 +525,14 @@ export default function SupportScreen() {
                       type="button"
                       disabled={busy}
                       onClick={() => {
-                        setFilters({
+                        applyFilters({
                           q: "",
-                          status: "",
+                          status: "OPEN",
                           category: "",
                           assignee: "all",
                           from: "",
                           to: "",
                         });
-                        setSearchParams({});
                       }}
                     >
                       Limpar filtros
@@ -531,7 +572,7 @@ export default function SupportScreen() {
                     </p>
                   </div>
                 )}
-                {!loading && (
+                {!loading && loadedQuery === apiQuery && (
                   <ul className="support-ticket-list">
                     {page.items.map((ticket) => (
                       <li key={ticket.id}>
@@ -595,7 +636,7 @@ export default function SupportScreen() {
                     ))}
                   </ul>
                 )}
-                {!loading && page.nextCursor && (
+                {!loading && loadedQuery === apiQuery && page.nextCursor && (
                   <button disabled={busy} onClick={() => void more()}>
                     Carregar mais solicitações
                   </button>
@@ -836,7 +877,9 @@ export default function SupportScreen() {
                     <ul>
                       {audit.map((item) => (
                         <li key={item.id}>
-                          <strong>{auditLabels[item.action] || item.action}</strong>
+                          <strong>
+                            {auditLabels[item.action] || item.action}
+                          </strong>
                           <span>
                             {item.actorRole === "STUDENT"
                               ? "Aluno"

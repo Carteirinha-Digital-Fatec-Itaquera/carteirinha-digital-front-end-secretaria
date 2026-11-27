@@ -86,7 +86,7 @@ export async function reviewEmployeePhoto(
   return result;
 }
 export async function getEmployeePhotoBlob(
-  photo: PendingEmployeePhoto,
+  photo: Pick<PendingEmployeePhoto, "employeeId" | "photoId">,
   signal: AbortSignal,
 ) {
   // Derive the private same-API path from identifiers. Never forward a bearer to a supplied contentUrl.

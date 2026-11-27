@@ -1,0 +1,30 @@
+.description {
+  margin: 0 0 24px;
+  color: var(--app-color-muted);
+}
+.disabledArea[aria-disabled="true"],
+.disabledArea[aria-disabled="true"]:hover {
+  cursor: not-allowed;
+  border-color: var(--app-color-input-border);
+  background: var(--app-color-background);
+}
+.notice {
+  padding: 16px;
+  margin-top: 16px;
+  background: var(--app-color-primary-soft);
+  border-radius: 12px;
+}
+.back {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  padding: 10px 16px;
+  color: var(--app-color-primary);
+  border: 1px solid var(--app-color-primary);
+  border-radius: 12px;
+  text-decoration: none;
+}
+.disabledArea h2 {
+  color: var(--app-color-primary);
+  font-size: 1.25rem;
+}

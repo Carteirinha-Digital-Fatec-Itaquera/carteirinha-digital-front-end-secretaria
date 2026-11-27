@@ -1,11 +1,19 @@
-import RequireEmployeeManagement from './screens/employees/RequireEmployeeManagement';
-import EmployeesList from './screens/employees/EmployeesList';
-import RegisterEmployee from './screens/employees/RegisterEmployee';
-import EmployeeDetail from './screens/employees/EmployeeDetail';
-import SupportScreen from './screens/support/SupportScreen';
-import { useEffect } from 'react';
-import { checkSession, watchSessionLifecycle } from './api/auth/session';
-import { BrowserRouter, Routes, Route, Navigate, useLocation, useParams } from "react-router-dom";
+import RequireEmployeeManagement from "./screens/employees/RequireEmployeeManagement";
+import EmployeesList from "./screens/employees/EmployeesList";
+import RegisterEmployee from "./screens/employees/RegisterEmployee";
+import EmployeeDetail from "./screens/employees/EmployeeDetail";
+import EmployeeImport from "./screens/employees/EmployeeImport";
+import SupportScreen from "./screens/support/SupportScreen";
+import { useEffect } from "react";
+import { checkSession, watchSessionLifecycle } from "./api/auth/session";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Navigate,
+  useLocation,
+  useParams,
+} from "react-router-dom";
 
 import LoginScreen from "./screens/login/LoginScreen";
 import RegisterStudentScreen from "./screens/student/register/RegisterStudentScreen";
@@ -31,13 +39,15 @@ import CreditsFormScreen from "./screens/credits/CreditsFormScreen";
 
 function RedirectPublicoToGerenciar() {
   const { id } = useParams<{ id: string }>();
-  return <Navigate to={id ? `/eventos/${id}/gerenciar` : '/eventos'} replace />;
+  return <Navigate to={id ? `/eventos/${id}/gerenciar` : "/eventos"} replace />;
 }
 
 function SessionLifecycle() {
   const location = useLocation();
   useEffect(watchSessionLifecycle, []);
-  useEffect(() => { checkSession(); }, [location.key]);
+  useEffect(() => {
+    checkSession();
+  }, [location.key]);
   return null;
 }
 
@@ -53,35 +63,60 @@ export default function App() {
         <Route path="/code/:email" element={<SecurityCodeScreen />} />
         <Route path="/password/:email/:code" element={<NewPasswordScreen />} />
         <Route element={<RequireSecretarySession />}>
-        <Route path="/suporte" element={<SupportScreen />} />
-        <Route path="/suporte/:id" element={<SupportScreen />} />
-        <Route element={<RequireEmployeeManagement />}>
-          <Route path="/funcionarios" element={<EmployeesList />} />
-          <Route path="/funcionarios/novo" element={<RegisterEmployee />} />
-          <Route path="/funcionarios/:id" element={<EmployeeDetail />} />
-        </Route>
-        <Route path="/students" element={<ListStudentScreen />} />
-        <Route path="/register" element={<RegisterStudentScreen />} />
-        <Route path="/update/:ra" element={<UpdateStudentScreen />} />
-        <Route path="/upload-alunos" element={<UploadStudentsScreen />} />
-        <Route path="/perfil" element={<ProfileScreen />} />
-        <Route path="/fotos" element={<PhotosScreen />} />
-        <Route path="/redefinir-senha" element={<ChangePasswordScreen />} />
+          <Route path="/suporte" element={<SupportScreen />} />
+          <Route path="/suporte/:id" element={<SupportScreen />} />
+          <Route element={<RequireEmployeeManagement />}>
+            <Route path="/funcionarios" element={<EmployeesList />} />
+            <Route path="/funcionarios/novo" element={<RegisterEmployee />} />
+            <Route path="/funcionarios/importar" element={<EmployeeImport />} />
+            <Route path="/funcionarios/:id" element={<EmployeeDetail />} />
+          </Route>
+          <Route path="/students" element={<ListStudentScreen />} />
+          <Route path="/register" element={<RegisterStudentScreen />} />
+          <Route path="/update/:ra" element={<UpdateStudentScreen />} />
+          <Route path="/upload-alunos" element={<UploadStudentsScreen />} />
+          <Route path="/perfil" element={<ProfileScreen />} />
+          <Route path="/fotos" element={<PhotosScreen />} />
+          <Route path="/redefinir-senha" element={<ChangePasswordScreen />} />
 
-        {/* Alias de criacao de evento */}
-        <Route path="/criar-evento" element={<Navigate to="/eventos/novo" replace />} />
+          {/* Alias de criacao de evento */}
+          <Route
+            path="/criar-evento"
+            element={<Navigate to="/eventos/novo" replace />}
+          />
 
-        {/* Rotas administrativas de eventos */}
+          {/* Rotas administrativas de eventos */}
           <Route path="/eventos" element={<SecretariaEventosScreen />} />
-          <Route path="/eventos/catalogo" element={<Navigate to="/eventos" replace />} />
-          <Route path="/eventos/publicos" element={<Navigate to="/eventos" replace />} />
-          <Route path="/eventos/:id/publico" element={<RedirectPublicoToGerenciar />} />
-          <Route path="/eventos/novo" element={<SecretariaNovoEventoScreen />} />
-          <Route path="/eventos/:id/editar" element={<SecretariaEditarEventoScreen />} />
-          <Route path="/eventos/:id/gerenciar" element={<SecretariaGerenciarEventoScreen />} />
+          <Route
+            path="/eventos/catalogo"
+            element={<Navigate to="/eventos" replace />}
+          />
+          <Route
+            path="/eventos/publicos"
+            element={<Navigate to="/eventos" replace />}
+          />
+          <Route
+            path="/eventos/:id/publico"
+            element={<RedirectPublicoToGerenciar />}
+          />
+          <Route
+            path="/eventos/novo"
+            element={<SecretariaNovoEventoScreen />}
+          />
+          <Route
+            path="/eventos/:id/editar"
+            element={<SecretariaEditarEventoScreen />}
+          />
+          <Route
+            path="/eventos/:id/gerenciar"
+            element={<SecretariaGerenciarEventoScreen />}
+          />
 
           {/* Rotas administrativas de creditos */}
-          <Route path="/creditos/gerenciar" element={<Navigate to="/creditos" replace />} />
+          <Route
+            path="/creditos/gerenciar"
+            element={<Navigate to="/creditos" replace />}
+          />
           <Route path="/creditos/novo" element={<CreditsFormScreen />} />
           <Route path="/creditos/:id/editar" element={<CreditsFormScreen />} />
         </Route>
@@ -92,11 +127,19 @@ export default function App() {
         <Route path="/creditos" element={<ProjectCreditsScreen />} />
 
         {/* Rota publica de verificacao de certificado */}
-        <Route path="/certificados/verificar" element={<CertificadoVerificarScreen />} />
-        <Route path="/certificados/verificar/:code" element={<CertificadoVerificarScreen />} />
-        <Route path="/certificado/verificar/:codigo" element={<CertificadoVerificarScreen />} />
+        <Route
+          path="/certificados/verificar"
+          element={<CertificadoVerificarScreen />}
+        />
+        <Route
+          path="/certificados/verificar/:code"
+          element={<CertificadoVerificarScreen />}
+        />
+        <Route
+          path="/certificado/verificar/:codigo"
+          element={<CertificadoVerificarScreen />}
+        />
       </Routes>
     </BrowserRouter>
   );
 }
-

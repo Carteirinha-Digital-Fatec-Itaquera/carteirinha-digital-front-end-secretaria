@@ -509,3 +509,13 @@
     flex-direction: column;
   }
 }
+
+.secretary-support .support-search-row .support-status-filter {
+  flex: 0 1 220px;
+}
+@media (max-width: 600px) {
+  .secretary-support .support-search-row .support-status-filter {
+    flex: auto;
+    width: 100%;
+  }
+}
